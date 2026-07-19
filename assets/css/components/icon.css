@@ -1,0 +1,33 @@
+/* =====================================================
+   THEME ICON
+===================================================== */
+.theme-icon-box {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: var(--surface-hover);
+    transition: .25s;
+}
+
+.theme-icon {
+    font-size: 1.5rem;
+}
+
+.theme-icon-primary {
+    color: #3B82F6;
+}
+
+.theme-icon-success {
+    color: #22C55E;
+}
+
+.theme-icon-warning {
+    color: #F97316;
+}
+
+.theme-icon-light {
+    color: #EAB308;
+}

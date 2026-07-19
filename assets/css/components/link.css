@@ -1,0 +1,44 @@
+/* =====================================================
+   THEME LINK
+===================================================== */
+.theme-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: var(--primary);
+    font-weight: 500;
+    text-decoration: none;
+    width: fit-content;
+    cursor: pointer;
+    transition:
+        color .25s ease;
+}
+
+/* =====================================================
+   THEME LINK MODIFIER
+===================================================== */
+.theme-link.is-disabled {
+    color: rgb(148 163 184);
+    opacity: .55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.theme-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: .375rem;
+}
+
+.theme-link:hover {
+    color: #1D4ED8;
+}
+
+.theme-link i {
+    font-size: .75rem;
+    transition: transform .25s ease;
+}
+
+.theme-link:hover i {
+    transform: translate(2px, -2px);
+}

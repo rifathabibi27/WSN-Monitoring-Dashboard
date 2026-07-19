@@ -1,0 +1,96 @@
+/* =====================================================
+   PRIMARY ACTION BUTTON
+===================================================== */
+#heroMonitoringButton,
+#dashboardMonitoringButton {
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease;
+}
+
+#heroMonitoringButton:hover,
+#dashboardMonitoringButton:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 16px 30px rgba(37, 99, 235, .28);
+}
+
+/* =====================================================
+   DASHBOARD CAROUSEL
+===================================================== */
+#dashboardPrevNode,
+#dashboardNextNode {
+    transition:
+        transform .2s ease,
+        background-color .2s ease,
+        color .2s ease,
+        box-shadow .2s ease;
+}
+
+#dashboardPrevNode:hover,
+#dashboardNextNode:hover {
+    transform: scale(1.08);
+    box-shadow:
+        0 8px 18px rgba(37, 99, 235, .18);
+}
+
+/* =====================================================
+   CAROUSEL INDICATOR
+===================================================== */
+#dashboardCarouselIndicator span {
+    transition:
+        transform .25s ease,
+        background-color .25s ease;
+}
+
+#dashboardCarouselIndicator .bg-blue-600 {
+    transform: scale(1.35);
+}
+
+/* =====================================================
+   DASHBOARD ELEVATION
+===================================================== */
+.bg-white:hover {
+    border-color: #CBD5E1;
+}
+
+#heroMonitoringButton,
+#dashboardMonitoringButton {
+    font-weight: 600;
+    letter-spacing: .2px;
+}
+
+/* =====================================================
+   DASHBOARD CAROUSEL
+===================================================== */
+.theme-carousel-button {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    transition:
+        background-color .25s ease,
+        color .25s ease,
+        transform .25s ease;
+}
+
+.theme-carousel-button:hover {
+    background: var(--surface-hover);
+    color: var(--primary);
+    transform: scale(1.08);
+}
+
+.theme-carousel-dot {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 9999px;
+    background: var(--border);
+    transition:
+        background-color .25s ease,
+        transform .25s ease;
+}
+
+.theme-carousel-dot-active {
+    background: var(--primary);
+    transform: scale(1.35);
+}

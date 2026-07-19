@@ -1,0 +1,76 @@
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media(max-width:1280px) {
+    #sidebar {
+        width: 240px;
+    }
+}
+
+@media(max-width:992px) {
+    #sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        height: 100vh;
+        z-index: 999;
+    }
+
+    #sidebar.show {
+        left: 0;
+    }
+
+    main {
+        width: 100%;
+    }
+}
+
+@media(max-width:768px) {
+    section {
+        padding: 20px !important;
+    }
+
+    header {
+        padding: 0 20px !important;
+    }
+
+    h1 {
+        font-size: 28px !important;
+    }
+
+    .card-value {
+        font-size: 34px;
+    }
+
+    .theme-footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .theme-footer-left,
+    .theme-footer-center,
+    .theme-footer-right {
+        text-align: center;
+    }
+
+    .theme-footer-links {
+        justify-content: center;
+    }
+
+    .theme-app-footer {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media(max-width:576px) {
+    .graph-card {
+        min-height: 320px;
+    }
+
+    .sensor-map {
+        width: 60px;
+        height: 60px;
+        font-size: 16px;
+    }
+}

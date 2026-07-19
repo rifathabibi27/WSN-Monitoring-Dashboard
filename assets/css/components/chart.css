@@ -1,0 +1,29 @@
+/* =====================================================
+   CHART ELEMENT
+===================================================== */
+.theme-chart-title {
+    color: var(--text-primary);
+    transition: color .30s ease;
+}
+
+.theme-chart-subtitle {
+    color: var(--text-muted);
+    transition: color .30s ease;
+}
+
+.theme-chart-toolbar {
+    color: var(--text-secondary);
+    transition: color .30s ease;
+}
+
+/* =====================================================
+   CHART
+===================================================== */
+canvas {
+    width: 100% !important;
+}
+
+.chart-container {
+    position: relative;
+    height: 360px;
+}

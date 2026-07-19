@@ -1,0 +1,176 @@
+/* =====================================================
+   NOTIFICATION PANEL
+===================================================== */
+#notificationPanel {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    transition:
+        background-color .30s ease,
+        border-color .30s ease,
+        color .30s ease;
+}
+
+#notificationPanel section {
+    background: transparent;
+}
+
+#notificationPanel button {
+    color: inherit;
+}
+
+/* =====================================================
+   NOTIFICATION ITEM
+===================================================== */
+.theme-notification-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    transition:
+        background-color .25s ease,
+        border-color .25s ease,
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+
+.theme-notification-item:hover {
+    background: var(--surface-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.theme-notification-title {
+    color: var(--text-primary);
+}
+
+.theme-notification-text {
+    color: var(--text-secondary);
+}
+
+.theme-notification-muted {
+    color: var(--text-muted);
+}
+
+.theme-notification-chip {
+    background: var(--surface-hover);
+    color: var(--text-secondary);
+}
+
+.theme-notification-category {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.theme-notification-icon {
+    background: var(--primary-light);
+}
+
+/* =====================================================
+   NOTIFICATION SEVERITY
+===================================================== */
+.theme-notification-success {
+    border-left-color: var(--success);
+}
+
+.theme-notification-warning {
+    border-left-color: var(--warning);
+}
+
+.theme-notification-danger {
+    border-left-color: var(--danger);
+}
+
+.theme-notification-info {
+    border-left-color: var(--primary);
+}
+
+/* icon */
+.theme-notification-icon-success {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+}
+
+.theme-notification-icon-warning {
+    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning);
+}
+
+.theme-notification-icon-danger {
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    color: var(--danger);
+}
+
+.theme-notification-icon-info {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+}
+
+/* dot */
+.theme-notification-dot-success {
+    background: var(--success);
+}
+
+.theme-notification-dot-warning {
+    background: var(--warning);
+}
+
+.theme-notification-dot-danger {
+    background: var(--danger);
+}
+
+.theme-notification-dot-info {
+    background: var(--primary);
+}
+
+/* =====================================================
+   HEADER NOTIFICATION
+===================================================== */
+#notificationToggle {
+    position: relative;
+}
+
+#notificationToggle.notification-active {
+    background: var(--surface-hover);
+}
+
+#notificationToggle.notification-active i {
+    color: var(--primary);
+}
+
+/* =====================================================
+   NOTIFICATION ACTION
+===================================================== */
+.theme-notification-action {
+    color: var(--primary);
+    transition:
+        color .25s ease,
+        background-color .25s ease;
+}
+
+.theme-notification-action:hover {
+    opacity: .85;
+}
+
+.theme-notification-footer {
+    background: var(--surface-hover);
+}
+
+.theme-notification-footer-button {
+    width: 100%;
+    border-radius: .75rem;
+    padding: .5rem 0;
+    color: var(--primary);
+    font-size: .875rem;
+    font-weight: 500;
+    transition:
+        background-color .25s ease,
+        color .25s ease;
+}
+
+.theme-notification-footer-button:hover {
+    background: var(--primary-light);
+}
+
+.theme-notification-badge {
+    background: var(--danger);
+}

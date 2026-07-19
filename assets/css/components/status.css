@@ -1,0 +1,159 @@
+/* =====================================================
+   STATUS COMPONENT
+===================================================== */
+.theme-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.theme-status-dot {
+    width: .625rem;
+    height: .625rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   TABLE COMPONENT
+===================================================== */
+.theme-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-primary);
+}
+
+.theme-table thead {
+    background: var(--surface-hover);
+}
+
+.theme-table th {
+    padding: 1rem;
+    text-align: left;
+    vertical-align: middle;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.theme-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.theme-table tbody tr {
+    transition:
+        background-color .25s ease;
+}
+
+.theme-table tbody tr:hover {
+    background: var(--surface-hover) !important;
+}
+
+.theme-table tbody tr:hover td {
+    background: transparent;
+}
+
+.theme-table-striped tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, .02);
+}
+
+body:not(.dark) .theme-table-striped tbody tr:nth-child(even) {
+    background: #F8FAFC;
+}
+
+.theme-table-cell {
+    padding: 1rem;
+}
+
+.theme-table-cell-center {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.theme-table-head-center {
+    text-align: center !important;
+}
+
+.theme-table-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-table-cell-number {
+    font-weight: 600;
+}
+
+.theme-table-empty {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* ===========================
+   SYSTEM
+=========================== */
+.theme-status-online {
+    background: #22C55E;
+}
+
+.theme-status-offline {
+    background: #EF4444;
+}
+
+.theme-status-waiting {
+    background: #94A3B8;
+}
+
+/* ===========================
+   DUST
+=========================== */
+.theme-status-normal {
+    background: #22C55E;
+}
+
+.theme-status-warning {
+    background: #F59E0B;
+}
+
+.theme-status-danger {
+    background: #EF4444;
+}
+
+/* ===========================
+   LIGHT
+=========================== */
+.theme-status-ideal {
+    background: #22C55E;
+}
+
+.theme-status-acceptable {
+    background: #3B82F6;
+}
+
+.theme-status-poor {
+    background: #EF4444;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+.status-normal {
+    color: white;
+    background: #22C55E;
+}
+
+.status-warning {
+    color: white;
+    background: #F59E0B;
+}
+
+.status-danger {
+    color: white;
+    background: #EF4444;
+}

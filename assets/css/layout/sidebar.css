@@ -1,0 +1,164 @@
+/* =====================================================
+   SIDEBAR
+===================================================== */
+#sidebar {
+    transition: .35s ease;
+    overflow: hidden;
+}
+
+#sidebar.collapsed {
+    width: 90px;
+}
+
+#sidebar.collapsed h1,
+#sidebar.collapsed p,
+#sidebar.collapsed span,
+#sidebar.collapsed ul ul {
+    display: none;
+}
+
+#sidebar button {
+    transition: .25s;
+}
+
+#sidebar button:hover {
+    background: var(--surface-hover);
+}
+
+#sidebar .active {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+#sidebar button.active:hover,
+#sidebar button.active:focus,
+#sidebar button.active:focus-visible {
+    background: var(--primary);
+    color: white;
+}
+
+/* =====================================================
+   SIDEBAR COLLAPSE UX
+===================================================== */
+#sidebar .sidebar-menu {
+    position: relative;
+}
+
+#sidebar.collapsed .sidebar-text {
+    display: none;
+}
+
+#sidebar.collapsed .sidebar-chevron {
+    display: none;
+}
+
+#sidebar.collapsed .sidebar-menu {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#sidebar.collapsed #monitoringSubmenu {
+    display: none;
+}
+
+#sidebar.collapsed .sidebar-menu i {
+    font-size: 20px;
+}
+
+#sidebar.collapsed .sidebar-menu::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0F172A;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: .2s;
+    z-index: 1000;
+}
+
+#sidebar.collapsed .sidebar-menu:hover::after {
+    opacity: 1;
+}
+
+/* =====================================================
+   SIDEBAR MONITORING COLLAPSE
+===================================================== */
+#sidebar.collapsed #menuMonitoring {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#sidebar.collapsed #menuMonitoring>div {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+}
+
+/* =====================================================
+   SIDEBAR BRANDING
+===================================================== */
+#sidebarLogo {
+    transition:
+        transform .25s ease;
+}
+
+#sidebarLogo:hover {
+    transform: scale(1.05);
+}
+
+#sidebarLogoImage {
+    transition:
+        width .25s ease,
+        height .25s ease,
+        transform .25s ease;
+}
+
+#sidebar.collapsed #sidebarLogoImage {
+    width: 40px;
+    height: 40px;
+}
+
+/* =====================================================
+   RESPONSIVE SIDEBAR OVERLAY
+===================================================== */
+@media (max-width: 1023px) {
+    #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform .30s ease;
+    }
+
+    #sidebar.show {
+        transform: translateX(0);
+    }
+
+    #sidebar.collapsed {
+        width: 18rem;
+    }
+
+    #sidebarOverlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    main,
+    header,
+    #mainContent {
+        margin-left: 0 !important;
+    }
+}

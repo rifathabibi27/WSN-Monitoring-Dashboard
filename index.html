@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Debu & Cahaya Berbasis WSN</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body class="theme-background font-[Inter]">
+    <div class="flex h-screen overflow-hidden">
+        <!-- ===================================================== -->
+        <!-- SIDEBAR                                               -->
+        <!-- ===================================================== -->
+        <aside id="sidebar" class="w-64 theme-surface border-r theme-border shadow-sm transition-all duration-300">
+            <div class="h-20 flex items-center justify-center border-b">
+                <button id="sidebarLogo"
+                    class="group flex items-center justify-center rounded-xl p-2 transition-all duration-300"
+                    title="Dashboard">
+                    <img id="sidebarLogoImage" src="assets/img/logo-dark.png" alt="WSN Monitoring Logo"
+                        class="w-12 h-12 object-contain transition-all duration-300">
+                </button>
+            </div>
+            <nav class="mt-6">
+                <ul class="space-y-2 px-4">
+                    <li>
+                        <button id="menuDashboard"
+                            class="active sidebar-menu w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100"
+                            title="Dashboard">
+                            <i class="bi bi-speedometer2"></i>
+                            <span data-i18n="sidebar.dashboard" class="sidebar-text">
+                                Dashboard
+                            </span>
+                        </button>
+                    </li>
+                    <li>
+                        <button id="menuMonitoring"
+                            class="sidebar-menu w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-100"
+                            title="Monitoring">
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-broadcast"></i>
+                                <span data-i18n="sidebar.monitoring" class="sidebar-text">
+                                    Monitoring
+                                </span>
+                            </div>
+                            <i class="bi bi-chevron-down sidebar-chevron"></i>
+                        </button>
+                        <ul id="monitoringSubmenu" class="ml-10 mt-2 hidden space-y-2">
+                            <li>
+                                <button class="room-selector w-full text-left py-2 px-2 rounded-lg hover:bg-slate-100"
+                                    data-room="nodeA">
+                                    <span data-i18n="monitoring.nodeA">
+                                        LAB. KIK JTE
+                                    </span>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="room-selector w-full text-left py-2 px-2 rounded-lg hover:bg-slate-100"
+                                    data-room="nodeB">
+                                    <span data-i18n="monitoring.nodeB">
+                                        Kontainer
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <button id="menuHistory"
+                            class="sidebar-menu w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100"
+                            title="History Data">
+                            <i class="bi bi-table"></i>
+                            <span data-i18n="sidebar.history" class=" sidebar-text">
+                                History Data
+                            </span>
+                        </button>
+                    </li>
+                    <li>
+                        <button id="menuAbout"
+                            class="sidebar-menu w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100"
+                            title="About">
+                            <i class="bi bi-info-circle"></i>
+                            <span data-i18n="sidebar.about" class="sidebar-text">
+                                About
+                            </span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/40 opacity-0 invisible transition-all duration-300 z-30">
+        </div>
+        <!-- ===================================================== -->
+        <!-- MAIN                                                  -->
+        <!-- ===================================================== -->
+        <main class="flex-1 overflow-y-auto">
+            <div id="pageContainer">
+                <!-- ===================================================== -->
+                <!-- HEADER                                                -->
+                <!-- ===================================================== -->
+                <header class="h-20 theme-surface border-b theme-border flex justify-between items-center px-8">
+                    <div class="flex items-center gap-5">
+                        <button id="toggleSidebar" class="header-toggle text-2xl theme-text-secondary"
+                            aria-label="Toggle Sidebar">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <div>
+                            <h2 data-i18n="header.title" class="text-xl font-bold theme-text">
+                                Monitoring Debu dan Cahaya
+                            </h2>
+                            <p data-i18n="header.subtitle" class="text-sm theme-text-muted">
+                                Wireless Sensor Network Dashboard
+                            </p>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- HEADER ACTION                                         -->
+                    <!-- ===================================================== -->
+                    <div class="relative flex items-center gap-6">
+                        <!-- ===================================================== -->
+                        <!-- CLOCK                                                 -->
+                        <!-- ===================================================== -->
+                        <div class="text-right">
+                            <div id="dateNow" class="text-sm font-medium theme-text-secondary">
+                                Senin, 08 Juli 2026
+                            </div>
+                            <div id="clockNow" class="text-lg font-bold text-blue-600">
+                                12:30:15
+                            </div>
+                        </div>
+                        <!-- ===================================================== -->
+                        <!-- NOTIFICATION                                          -->
+                        <!-- ===================================================== -->
+                        <div class="relative">
+                            <button id="notificationToggle" class="theme-button theme-icon-button"
+                                aria-label="Notification">
+                                <i id="notificationBellIcon" class="bi bi-bell theme-icon"></i>
+                                <!-- Notification Badge -->
+                                <span id="notificationBadge"
+                                    class="hidden absolute top-2 right-2 h-2.5 w-2.5 rounded-full theme-notification-badge">
+                                </span>
+                            </button>
+                            <!-- Notification Panel -->
+                            <div id="notificationPanel"
+                                class="hidden absolute right-0 top-16 z-50 w-[420px] overflow-hidden rounded-2xl border theme-border theme-surface shadow-2xl ring-1 ring-black/5">
+                                <!-- Caret -->
+                                <div
+                                    class="absolute z-top-2 right-5 h-4 w-4 rotate-45 border-l border-t theme-border theme-surface">
+                                </div>
+                                <!-- HEADER -->
+                                <div
+                                    class="sticky top-0 z-20 flex items-center justify-between border-b theme-border theme-surface px-5 py-4">
+                                    <div>
+                                        <h3 data-i18n="notification.title" class="text-base font-semibold theme-text">
+                                            Notifikasi Sistem
+                                        </h3>
+                                        <p data-i18n="notification.subtitle" id="notificationSubtitle"
+                                            class="text-xs theme-text-muted">
+                                            Tidak ada notifikasi baru
+                                        </p>
+                                    </div>
+                                    <button data-i18n="notification.markRead" id="markAllRead"
+                                        class="theme-notification-action text-xs font-medium">
+                                        Tandai sudah dibaca
+                                    </button>
+                                </div>
+                                <!-- BODY -->
+                                <div id="notificationBody" class="max-h-[420px] overflow-y-auto">
+                                    <!-- TODAY -->
+                                    <section class="px-5 pt-5">
+                                        <div class="mb-3 flex items-center justify-between">
+                                            <h4 data-i18n="notification.today"
+                                                class="text-xs font-bold uppercase tracking-wider theme-text-muted">
+                                                Today
+                                            </h4>
+                                        </div>
+                                        <div id="todayNotificationList" class="space-y-3">
+                                        </div>
+                                    </section>
+                                    <!-- YESTERDAY -->
+                                    <section class="px-5 py-5">
+                                        <div class="mb-3 flex items-center justify-between">
+                                            <h4 data-i18n="notification.yesterday"
+                                                class="text-xs font-bold uppercase tracking-wider theme-text-muted">
+                                                Yesterday
+                                            </h4>
+                                        </div>
+                                        <div id="yesterdayNotificationList" class="space-y-3">
+                                        </div>
+                                    </section>
+                                </div>
+                                <div class="theme-notification-footer border-t theme-border px-5 py-3">
+                                    <button data-i18n="notification.viewAll" id="notificationViewAll"
+                                        class="theme-notification-footer-button focus:outline-none active:scale-[0.98]">
+                                        Lihat Semua Notifikasi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ===================================================== -->
+                        <!-- DARK MODE                                             -->
+                        <!-- ===================================================== -->
+                        <button id="themeToggle" class="theme-button theme-icon-button" aria-label="Toggle Theme">
+                            <i id="themeIcon" class="bi bi-moon-stars">
+                            </i>
+                        </button>
+                        <!-- ===================================================== -->
+                        <!-- LANGUAGE                                              -->
+                        <!-- ===================================================== -->
+                        <div class="theme-select-wrapper">
+                            <select id="languageSelect" class="theme-select theme-select-compact">
+                                <option value="id" data-i18n="language.id">ID</option>
+                                <option value="en" data-i18n="language.en">EN</option>
+                            </select>
+                            <i class="bi bi-chevron-down theme-select-icon"></i>
+                        </div>
+                    </div>
+                </header>
+                <!-- ===================================================== -->
+                <!-- PAGE : DASHBOARD                                      -->
+                <!-- ===================================================== -->
+                <section id="dashboardPage" class="p-8">
+                    <!-- ===================================================== -->
+                    <!-- HERO                                                  -->
+                    <!-- ===================================================== -->
+                    <div class="theme-hero theme-hero-dashboard p-7 text-white">
+                        <div class="flex flex-wrap items-center justify-between gap-6">
+                            <div class="flex-1 min-w-[280px]">
+                                <h1 class="text-[2.2rem] font-bold leading-tight text-white"
+                                    data-i18n="dashboard.heroTitle">
+                                    Dashboard Monitoring Debu & Cahaya
+                                </h1>
+                                <p class="mt-4 text-blue-100 leading-8 max-w-3xl" data-i18n="dashboard.heroDescription">
+                                    Sistem Monitoring Debu dan Intensitas Cahaya
+                                    berbasis Wireless Sensor Network menggunakan ESP32,
+                                    ESP-NOW, Firebase Realtime Database dan Website
+                                    Dashboard secara realtime.
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button id="heroMonitoringButton"
+                                    class="theme-button theme-button-primary px-6 py-3 rounded-xl"
+                                    data-i18n="dashboard.heroButton">
+                                    Lihat Monitoring
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- SUMMARY                                               -->
+                    <!-- ===================================================== -->
+                    <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-6 mt-8">
+                        <!-- Card Total Sensor -->
+                        <div class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="theme-card-label" data-i18n="dashboard.summary.totalSensor">
+                                        Total Sensor
+                                    </p>
+                                    <h2 id="totalSensor"
+                                        class="theme-card-value text-4xl font-bold tracking-tight mt-2">
+                                        20
+                                    </h2>
+                                    <p class="theme-card-caption text-xs mt-1"
+                                        data-i18n="dashboard.summary.totalSensorCaption">
+                                        10 Dust • 10 Light
+                                    </p>
+                                </div>
+                                <div class="theme-icon-box">
+                                    <i class="bi bi-cpu text-2xl theme-icon-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card Node Online -->
+                        <div class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="theme-card-label" data-i18n="dashboard.summary.nodeOnline">
+                                        Node Online
+                                    </p>
+                                    <h2 id="onlineNode" class="theme-card-value text-4xl font-bold tracking-tight mt-2">
+                                        0/2
+                                    </h2>
+                                    <p class="theme-card-caption text-xs mt-1" data-i18n="dashboard.summary.lastSync">
+                                        Last Sync
+                                        <span id="dashboardLastSync">--:--:--</span>
+                                    </p>
+                                </div>
+                                <div class="theme-icon-box">
+                                    <i class="bi bi-wifi text-2xl theme-icon-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card Rata Debu -->
+                        <div class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="theme-card-label" data-i18n="dashboard.summary.avgDust">
+                                        Rata-rata Debu
+                                    </p>
+                                    <h2 id="avgDust" class="theme-card-value text-4xl font-bold tracking-tight mt-2">
+                                        ---
+                                    </h2>
+                                    <p class="theme-card-caption text-sm">
+                                        µg/m³
+                                    </p>
+                                    <p class="theme-card-caption text-xs mt-1"
+                                        data-i18n="dashboard.summary.avgDustCaption">
+                                        Average of 10 Dust Sensors
+                                    </p>
+                                </div>
+                                <div class="theme-icon-box">
+                                    <i class="bi bi-wind text-2xl theme-icon-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card Rata Cahaya-->
+                        <div class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="theme-card-label" data-i18n="dashboard.summary.avgLight">
+                                        Rata-rata Cahaya
+                                    </p>
+                                    <h2 id="avgLight" class="theme-card-value text-4xl font-bold tracking-tight mt-2">
+                                        ---
+                                    </h2>
+                                    <p class="theme-card-caption text-sm">
+                                        Lux
+                                    </p>
+                                    <p class="theme-card-caption text-xs mt-1"
+                                        data-i18n="dashboard.summary.avgLightCaption">
+                                        Average of 10 Light Sensors
+                                    </p>
+                                </div>
+                                <div class="theme-icon-box">
+                                    <i class="bi bi-brightness-high text-2xl theme-icon-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- STATUS DASHBOARD                                      -->
+                    <!-- ===================================================== -->
+                    <!-- ===================================================== -->
+                    <!-- REALTIME OVERVIEW                                     -->
+                    <!-- ===================================================== -->
+                    <section class="mt-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <!-- ===================================================== -->
+                            <!-- SYSTEM TREND DASHBOARD                                -->
+                            <!-- ===================================================== -->
+                            <div class="lg:col-span-7 flex">
+                                <div
+                                    class="theme-chart rounded-2xl hover:shadow-lg transition-all duration-300 flex flex-col flex-1">
+                                    <div class="p-6 border-b theme-border">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <h3 class="theme-chart-title text-xl font-semibold"
+                                                    data-i18n="dashboard.trend.title">
+                                                    System Trend
+                                                </h3>
+                                                <p class="theme-chart-subtitle text-sm mt-1"
+                                                    data-i18n="dashboard.trend.subtitle">
+                                                    Realtime dust and light trends from both monitoring nodes.
+                                                </p>
+                                            </div>
+                                            <div id="dashboardTrendState" class="theme-badge theme-badge-live">
+                                                <span class="theme-badge-dot theme-badge-dot-live"></span>
+                                                <span data-i18n="dashboard.trend.live">
+                                                    LIVE
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="h-[360px]">
+                                            <canvas id="dashboardTrendChart"></canvas>
+                                        </div>
+                                        <div class="flex flex-wrap justify-between items-center mt-6 gap-4">
+                                            <div class="flex gap-2">
+                                                <button id="trend10Btn" class="theme-button"
+                                                    data-i18n="dashboard.trend.latest10">
+                                                    10 Data Terbaru
+                                                </button>
+                                                <button id="trend20Btn" class="theme-button"
+                                                    data-i18n="dashboard.trend.latest20">
+                                                    20 Data Terbaru
+                                                </button>
+                                                <button id="trend50Btn" class="theme-button"
+                                                    data-i18n="dashboard.trend.latest50">
+                                                    50 Data Terbaru
+                                                </button>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button id="dashboardTrendZoom" class="theme-button">
+                                                    <i class="bi bi-zoom-in"></i>
+                                                    <span data-i18n="dashboard.trend.zoom">
+                                                        Zoom
+                                                    </span>
+                                                </button>
+                                                <button id="dashboardTrendReset" class="theme-button">
+                                                    <i class="bi bi-arrow-clockwise"></i>
+                                                    <span data-i18n="dashboard.trend.reset">
+                                                        Reset View
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ===================================================== -->
+                            <!-- NODE OVERVIEW                                         -->
+                            <!-- ===================================================== -->
+                            <div class="lg:col-span-5 flex">
+                                <div
+                                    class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 flex flex-col flex-1">
+                                    <div class="p-6 border-b theme-border">
+                                        <h3 class="theme-chart-title text-xl font-semibold"
+                                            data-i18n="dashboard.node.title">
+                                            Monitoring Nodes
+                                        </h3>
+                                        <p class="theme-chart-subtitle text-sm mt-1"
+                                            data-i18n="dashboard.node.subtitle">
+                                            Current condition of each monitoring node.
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col flex-1">
+                                        <!-- BODY -->
+                                        <div class="p-5 flex-1 flex">
+                                            <div class="theme-card rounded-xl p-6 w-full h-full flex flex-col">
+                                                <!-- HEADER -->
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 id="nodeATitle"
+                                                            class="theme-card-value font-semibold text-3xl leading-tight">
+                                                            LAB. KIK JTE
+                                                        </h4>
+                                                        <p id="nodeASubtitle"
+                                                            class="theme-card-caption text-base mt-1.5">
+                                                            Node A
+                                                        </p>
+                                                    </div>
+                                                    <span id="nodeAStatus" class="theme-badge theme-badge-success">
+                                                        <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                                                        NORMAL
+                                                    </span>
+                                                </div>
+                                                <!-- DUST & LIGHT -->
+                                                <div class="border-t theme-border pt-5 mt-5">
+                                                    <div class="grid grid-cols-2 divide-x divide-slate-200">
+                                                        <div class="pr-5">
+                                                            <p class="theme-card-label text-xs uppercase tracking-wide"
+                                                                data-i18n="dashboard.node.dust">
+                                                                Dust
+                                                            </p>
+                                                            <h4 id="nodeADust"
+                                                                class="theme-card-value text-2xl font-bold leading-tight mt-2">
+                                                                -- μg/m³
+                                                            </h4>
+                                                        </div>
+                                                        <div class="pl-5">
+                                                            <p class="theme-card-label text-xs uppercase tracking-widest"
+                                                                data-i18n="dashboard.node.light">
+                                                                Light
+                                                            </p>
+                                                            <h4 id="nodeALight"
+                                                                class="theme-card-value text-2xl font-bold leading-tight mt-2">
+                                                                -- Lux
+                                                            </h4>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- LAST UPDATE -->
+                                                <div class="border-t theme-border pt-5 mt-6">
+                                                    <p class="text-xs uppercase tracking-widest theme-text-muted"
+                                                        data-i18n="dashboard.node.lastUpdate">
+                                                        Last Update
+                                                    </p>
+                                                    <h4 id="nodeALastUpdate"
+                                                        class="theme-card-value text-xl font-semibold mt-2">
+                                                        --:--:--
+                                                    </h4>
+                                                </div>
+                                                <!-- Spacer -->
+                                                <div class="flex-1"></div>
+                                                <!-- BUTTON -->
+                                                <button id="dashboardMonitoringButton"
+                                                    class="mt-8 w-full rounded-xl theme-button theme-button-primary py-3 text-lg">
+                                                    <span data-i18n="dashboard.node.button">
+                                                        Lihat Monitoring
+                                                    </span>
+                                                    <i class="bi bi-arrow-right-circle ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- FOOTER -->
+                                        <div class="border-t theme-border px-5 py-4">
+                                            <div class="flex justify-center items-center gap-4">
+                                                <button id="dashboardPrevNode"
+                                                    class="theme-carousel-button flex items-center justify-center">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </button>
+                                                <div id="dashboardCarouselIndicator" class="flex gap-2">
+                                                    <span
+                                                        class="w-2 h-2 rounded-full theme-carousel-dot theme-carousel-dot-active transition-all duration-300"></span>
+                                                    <span
+                                                        class="w-2 h-2 rounded-full theme-carousel-dot transition-all duration-300"></span>
+                                                </div>
+                                                <button id="dashboardNextNode"
+                                                    class="theme-carousel-button flex items-center justify-center">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- ===================================================== -->
+                    <!-- APPLICATION FOOTER                                    -->
+                    <!-- ===================================================== -->
+                    <footer class="theme-app-footer">
+                        <p data-i18n="dashboard.footer.copyright">
+                            © 2026 Monitoring Debu & Cahaya WSN
+                        </p>
+                        <p data-i18n="dashboard.footer.version">
+                            Version 1.0.0 Stable
+                        </p>
+                    </footer>
+                </section>
+                <!-- ===================================================== -->
+                <!-- PAGE : MONITORING                                     -->
+                <!-- ===================================================== -->
+                <section id="monitoringPage" class="hidden p-8">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
+                        <div>
+                            <h2 id="roomTitle" class="theme-chart-title text-3xl font-bold">
+                                LAB. KIK JTE
+                            </h2>
+                            <p id="roomSubtitle" class="theme-chart-subtitle mt-1">
+                                6 Dust Sensor • 6 Light Sensor
+                            </p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="theme-card rounded-xl px-5 py-3 flex flex-col items-center justify-center
+                                text-center">
+                                <p class="theme-card-label text-xs" data-i18n="monitoring.header.nodeStatus">
+                                    Node Status
+                                </p>
+                                <span id="nodeStatus" class="theme-badge theme-badge-neutral">
+                                    Waiting
+                                </span>
+                            </div>
+                            <div class="theme-card rounded-xl px-5 py-3 flex flex-col items-center justify-center
+                                text-center">
+                                <p class="theme-card-label text-xs" data-i18n="monitoring.header.lastUpdate">
+                                    Last Update
+                                </p>
+                                <h4 id="lastUpdate" class="theme-card-value font-semibold mt-1">
+                                    --
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- MONITORING SUMMARY                                    -->
+                    <!-- ===================================================== -->
+                    <div class="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+                        <div class="theme-card rounded-2xl p-5">
+                            <p class="theme-card-label text-sm" data-i18n="monitoring.summary.averageDust">
+                                Average Dust
+                            </p>
+                            <h3 id="averageDust" class="theme-card-value text-3xl font-bold mt-2">
+                                --
+                            </h3>
+                            <span class="theme-card-caption text-sm">
+                                µg/m³
+                            </span>
+                        </div>
+                        <div class="theme-card rounded-2xl p-5">
+                            <p class="theme-card-label text-sm" data-i18n="monitoring.summary.averageLight">
+                                Average Light
+                            </p>
+                            <h3 id="averageLight" class="theme-card-value text-3xl font-bold mt-2">
+                                --
+                            </h3>
+                            <span class="theme-card-caption text-sm">
+                                Lux
+                            </span>
+                        </div>
+                        <div class="theme-card rounded-2xl p-5">
+                            <p class="theme-card-label text-sm" data-i18n="monitoring.summary.dustSensor">
+                                Dust Sensor
+                            </p>
+                            <h3 id="dustCount" class="theme-card-value text-3xl font-bold mt-2">
+                                6
+                            </h3>
+                        </div>
+                        <div class="theme-card rounded-2xl p-5">
+                            <p class="theme-card-label text-sm" data-i18n="monitoring.summary.lightSensor">
+                                Light Sensor
+                            </p>
+                            <h3 id="lightCount" class="theme-card-value text-3xl font-bold mt-2">
+                                6
+                            </h3>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- REALTIME MONITORING CHART -->
+                    <!-- ===================================================== -->
+                    <div class="theme-chart p-6 rounded-2xl mb-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="theme-chart-title text-xl font-semibold" data-i18n="monitoring.chart.title">
+                                    Realtime Monitoring
+                                </h3>
+                                <p class="theme-chart-subtitle text-sm" data-i18n="monitoring.chart.subtitle">
+                                    Average Dust & Light History
+                                </p>
+                            </div>
+                            <div class="theme-chart-subtitle flex items-center gap-4 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                                    <span data-i18n="monitoring.chart.dust">
+                                        Dust
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                                    <span data-i18n="monitoring.chart.light">
+                                        Light
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-[420px]">
+                            <canvas id="roomChart"></canvas>
+                        </div>
+                        <div class="flex flex-wrap justify-between items-center mt-6 gap-4">
+                            <div class="flex gap-2">
+                                <button id="roomTrend10Btn" class="theme-button theme-button-primary"
+                                    data-i18n="monitoring.chart.latest10">
+                                    10 Data Terbaru
+                                </button>
+                                <button id="roomTrend20Btn" class="theme-button" data-i18n="monitoring.chart.latest20">
+                                    20 Data Terbaru
+                                </button>
+                                <button id="roomTrend50Btn" class="theme-button" data-i18n="monitoring.chart.latest50">
+                                    50 Data Terbaru
+                                </button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="roomTrendZoom" class="theme-button">
+                                    <i class="bi bi-zoom-in"></i>
+                                    <span data-i18n="monitoring.chart.zoom">
+                                        Zoom
+                                    </span>
+                                </button>
+                                <button id="roomTrendReset" class="theme-button">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <span data-i18n="monitoring.chart.reset">
+                                        Reset View
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- TREND ANALYSIS -->
+                    <!-- ===================================================== -->
+                    <div class="theme-chart rounded-2xl p-6 mt-8">
+                        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                            <!-- Judul -->
+                            <div>
+                                <h2 class="theme-chart-title" data-i18n="monitoring.analysis.title">
+                                    Trend Analysis
+                                </h2>
+                                <p class="theme-chart-subtitle" data-i18n="monitoring.analysis.subtitle">
+                                    Analisis tren berdasarkan rata-rata maupun masing-masing sensor.
+                                </p>
+                            </div>
+                            <!-- Control -->
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <!-- Chart Source -->
+                                <div>
+                                    <label class="theme-card-label block text-sm font-medium mb-2"
+                                        data-i18n="monitoring.analysis.chartSource">
+                                        Chart Source
+                                    </label>
+                                    <div class="theme-select-wrapper theme-select-toolbar">
+                                        <select id="chartMode" class="theme-select">
+                                            <option value="averageDust">
+                                                Average Dust
+                                            </option>
+                                            <option value="averageLight">
+                                                Average Light
+                                            </option>
+                                            <option value="dust">
+                                                Dust Sensor
+                                            </option>
+                                            <option value="light">
+                                                Light Sensor
+                                            </option>
+                                        </select>
+                                        <i class="bi bi-chevron-down theme-select-icon"></i>
+                                    </div>
+                                </div>
+                                <!-- Sensor -->
+                                <div>
+                                    <label class="theme-card-label block text-sm font-medium mb-2"
+                                        data-i18n="monitoring.analysis.sensor">
+                                        Sensor
+                                    </label>
+                                    <div class="theme-select-wrapper theme-select-toolbar">
+                                        <select id="chartSensor" disabled class="theme-select">
+                                            <option>
+                                                Average tidak membutuhkan sensor
+                                            </option>
+                                        </select>
+                                        <i class="bi bi-chevron-down theme-select-icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Divider -->
+                        <div class="border-t theme-border my-6"></div>
+                        <!-- ===================================================== -->
+                        <!-- MONITORING TREND CHART HEADER                         -->
+                        <!-- ===================================================== -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="theme-chart-title" data-i18n="monitoring.analysis.chartTitle">
+                                    Trend Analysis Chart
+                                </h3>
+                                <p id="trendChartSubtitle" class="theme-chart-subtitle">
+                                    Historical trend based on selected source.
+                                </p>
+                            </div>
+                            <div id="trendChartBadge" class="theme-badge theme-badge-warning">
+                                Average Dust
+                            </div>
+                        </div>
+                        <!-- Trend Chart -->
+                        <div class="h-[380px]">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                        <div class="flex flex-wrap justify-between items-center mt-6 gap-4">
+                            <div class="flex gap-2">
+                                <button id="analysisTrend10Btn" class="theme-button theme-button-primary"
+                                    data-i18n="monitoring.analysis.latest10">
+                                    10 Data Terbaru
+                                </button>
+                                <button id="analysisTrend20Btn" class="theme-button"
+                                    data-i18n="monitoring.analysis.latest20">
+                                    20 Data Terbaru
+                                </button>
+                                <button id="analysisTrend50Btn" class="theme-button"
+                                    data-i18n="monitoring.analysis.latest50">
+                                    50 Data Terbaru
+                                </button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="analysisTrendZoom" class="theme-button">
+                                    <i class="bi bi-zoom-in"></i>
+                                    <span data-i18n="monitoring.analysis.zoom">
+                                        Zoom
+                                    </span>
+                                </button>
+                                <button id="analysisTrendReset" class="theme-button">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <span data-i18n="monitoring.analysis.reset">
+                                        Reset View
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- Dust Sensor -->
+                    <!-- ===================================================== -->
+                    <div class="mt-10 mb-10">
+                        <div class="theme-section-header">
+                            <h3 class="theme-section-title" data-i18n="monitoring.section.dust">
+                                Dust Sensor
+                            </h3>
+                            <span class="theme-section-subtitle" data-i18n="monitoring.section.realtime">
+                                Realtime Data
+                            </span>
+                        </div>
+                        <div id="dustCards" class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- Light Sensor -->
+                    <!-- ===================================================== -->
+                    <div>
+                        <div class="theme-section-header">
+                            <h3 class="theme-section-title" data-i18n="monitoring.section.light">
+                                Light Sensor
+                            </h3>
+                            <span class="theme-section-subtitle" data-i18n="monitoring.section.realtime">
+                                Realtime Data
+                            </span>
+                        </div>
+                        <div id="lightCards" class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        </div>
+                    </div>
+                    <footer class="theme-app-footer">
+                        <p data-i18n="monitoring.footer.copyright">
+                            © 2026 Monitoring Debu & Cahaya WSN
+                        </p>
+                        <p data-i18n="monitoring.footer.version">
+                            Version 1.0.0 Stable
+                        </p>
+                    </footer>
+                </section>
+                <!-- ===================================================== -->
+                <!-- PAGE : HISTORY                                        -->
+                <!-- ===================================================== -->
+                <section id="historyPage" class="hidden p-8">
+                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+                        <div>
+                            <h1 class="theme-text text-3xl font-bold" data-i18n="history.title">
+                                History Data
+                            </h1>
+                            <p class="theme-text-muted mt-2" data-i18n="history.subtitle">
+                                Riwayat seluruh data monitoring yang tersimpan pada database.
+                            </p>
+                        </div>
+                        <button id="downloadCSV" class="theme-button theme-button-primary mt-5 lg:mt-0">
+                            <i class="bi bi-download me-2"></i>
+                            <span data-i18n="history.download">
+                                Download CSV
+                            </span>
+                        </button>
+                    </div>
+                    <div class="theme-card mt-8 p-6">
+                        <div class="grid xl:grid-cols-6 md:grid-cols-2 gap-5">
+                            <!-- Search -->
+                            <input id="searchData" type="text" data-i18n-placeholder="history.search"
+                                placeholder="Cari data..." class="theme-input">
+                            <!-- Time Range -->
+                            <select id="timeRangeFilter" class="theme-select">
+                                <option value="24h" selected data-i18n="history.time.24h">
+                                    24 Jam Terakhir
+                                </option>
+                                <option value="30m" data-i18n="history.time.30m">
+                                    30 Menit Terakhir
+                                </option>
+                                <option value="1h" data-i18n="history.time.1h">
+                                    1 Jam Terakhir
+                                </option>
+                                <option value="6h" data-i18n="history.time.6h">
+                                    6 Jam Terakhir
+                                </option>
+                                <option value="12h" data-i18n="history.time.12h">
+                                    12 Jam Terakhir
+                                </option>
+                                <option value="7d" data-i18n="history.time.7d">
+                                    7 Hari Terakhir
+                                </option>
+                                <option value="30d" data-i18n="history.time.30d">
+                                    30 Hari Terakhir
+                                </option>
+                                <option value="manual" data-i18n="history.time.manual">
+                                    Manual Range
+                                </option>
+                            </select>
+                            <!-- Room -->
+                            <select id="roomFilter" class="theme-select">
+                                <option value="all" data-i18n="history.room.all">
+                                    Semua Ruangan
+                                </option>
+                                <option value="nodeA" data-i18n="history.room.nodeA">
+                                    LAB. KIK JTE
+                                </option>
+                                <option value="nodeB" data-i18n="history.room.nodeB">
+                                    Kontainer
+                                </option>
+                            </select>
+                            <!-- Sensor -->
+                            <select id="sensorFilter" disabled class="theme-select">
+                                <option value="" data-i18n="history.sensor.selectRoom">
+                                    Pilih ruangan terlebih dahulu
+                                </option>
+                            </select>
+                            <!-- Start Date -->
+                            <input id="startDateFilter" type="date" disabled class="theme-date">
+                            <!-- End Date -->
+                            <input id="endDateFilter" type="date" disabled class="theme-date">
+                        </div>
+                        <div id="historyToolbarActions" class="flex justify-end mt-2">
+                            <button id="resetHistoryFilter" class="theme-button">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span data-i18n="history.reset">
+                                    Reset
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- HISTORY SUMMARY -->
+                    <!-- ===================================================== -->
+                    <div class="mt-6 space-y-4">
+                        <!-- ========================= -->
+                        <!-- ROW 1 -->
+                        <!-- ========================= -->
+                        <div class="grid lg:grid-cols-3 gap-6">
+                            <!-- Total Record -->
+                            <div class="theme-card rounded-2xl p-5">
+                                <p class="text-sm theme-text-muted" data-i18n="history.summary.totalRecords">
+                                    Total Data Records
+                                </p>
+                                <h2 id="summaryTotalRecord" class="text-4xl font-bold mt-4 theme-text">
+                                    0
+                                </h2>
+                            </div>
+                            <!-- Average Dust -->
+                            <div class="theme-card rounded-2xl p-5">
+                                <h3 id="summaryDustTitle" class="text-sm theme-text-muted"
+                                    data-i18n="history.summary.overallDust">
+                                    Overall Dust Average
+                                </h3>
+                                <h2 id="summaryAverageDust" class="text-4xl font-bold mt-4 text-blue-600">
+                                    0.00 µg/m³
+                                </h2>
+                            </div>
+                            <!-- Average Light -->
+                            <div class="theme-card rounded-2xl p-5">
+                                <h3 id="summaryLightTitle" class="text-sm theme-text-muted"
+                                    data-i18n="history.summary.overallLight">
+                                    Overall Light Average
+                                </h3>
+                                <h2 id="summaryAverageLight" class="text-4xl font-bold mt-4 text-amber-500">
+                                    0 Lux
+                                </h2>
+                            </div>
+                        </div>
+                        <!-- ========================= -->
+                        <!-- ROW 2 -->
+                        <!-- ========================= -->
+                        <div class="grid lg:grid-cols-2 gap-6">
+                            <!-- Dust -->
+                            <div class="theme-card rounded-2xl p-4">
+                                <p class="text-sm theme-text-muted mb-4" data-i18n="history.summary.dustStatusRoom">
+                                    Dust Status by Room
+                                </p>
+                                <div id="summaryDustCondition" class="space-y-3">
+                                </div>
+                            </div>
+                            <!-- Light -->
+                            <div class="theme-card rounded-2xl p-4">
+                                <p class="text-sm theme-text-muted mb-4" data-i18n="history.summary.lightStatusRoom">
+                                    Light Status by Room
+                                </p>
+                                <div id="summaryLightCondition" class="space-y-3">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-card rounded-2xl mt-8 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="theme-table theme-table-striped">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="history.table.no">No</th>
+                                        <th data-i18n="history.table.time">Waktu</th>
+                                        <th data-i18n="history.table.room">Ruangan</th>
+                                        <th data-i18n="history.table.sensor">Sensor</th>
+                                        <th data-i18n="history.table.dust">Debu</th>
+                                        <th class="theme-table-head-center" data-i18n="history.table.dustStatus">
+                                            Status Debu</th>
+                                        <th data-i18n="history.table.light">Cahaya</th>
+                                        <th class="theme-table-head-center" data-i18n="history.table.lightStatus">
+                                            Status Cahaya</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTable" class="theme-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-6">
+                        <p class="theme-text-muted">
+                            <span data-i18n="history.pagination.showing">
+                                Menampilkan
+                            </span>
+                            <span id="showingData">
+                                0
+                            </span>
+                            <span data-i18n="history.pagination.data">
+                                data
+                            </span>
+                        </p>
+                        <div class="flex gap-2">
+                            <button id="previousPage" class="theme-button">
+                                <span data-i18n="history.pagination.previous">
+                                    Sebelumnya
+                                </span>
+                            </button>
+                            <div id="pageNumbers" class="flex gap-2">
+                            </div>
+                            <button id="nextPage" class="theme-button">
+                                <span data-i18n="history.pagination.next">
+                                    Berikutnya
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <footer class="theme-app-footer">
+                        <p data-i18n="history.footer.copyright">
+                            © 2026 Monitoring Debu & Cahaya WSN
+                        </p>
+                        <p data-i18n="history.footer.version">
+                            Version 1.0.0 Stable
+                        </p>
+                    </footer>
+                </section>
+                <!-- ===================================================== -->
+                <!-- PAGE : ABOUT                                          -->
+                <!-- ===================================================== -->
+                <section id="aboutPage" class="hidden p-8">
+                    <!-- ===================================================== -->
+                    <!-- HERO                                                  -->
+                    <!-- ===================================================== -->
+                    <div class="theme-hero theme-hero-about">
+                        <div class="grid lg:grid-cols-2 gap-10 items-center p-10">
+                            <div>
+                                <span
+                                    class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium">
+                                    <i class="bi bi-broadcast"></i>
+                                    <span data-i18n="about.hero.badge">
+                                        Wireless Sensor Network
+                                    </span>
+                                </span>
+                                <h1 class="mt-6 text-4xl lg:text-5xl font-bold text-white leading-tight"
+                                    data-i18n="about.hero.title">
+                                    Monitoring Debu & Cahaya
+                                </h1>
+                                <p class="mt-5 text-blue-100 leading-8" data-i18n="about.hero.description">
+                                    Website monitoring realtime berbasis
+                                    <strong>Wireless Sensor Network (WSN)</strong>
+                                    menggunakan komunikasi
+                                    <strong>ESP-NOW</strong>,
+                                    <strong>HTTP</strong>,
+                                    serta
+                                    <strong>Firebase Realtime Database</strong>
+                                    untuk memantau kualitas udara dan intensitas cahaya
+                                    secara realtime.
+                                </p>
+                                <div class="flex flex-wrap gap-3 mt-8">
+                                    <span class="bg-white/20 px-4 py-2 rounded-xl text-white">
+                                        ESP32
+                                    </span>
+                                    <span class="bg-white/20 px-4 py-2 rounded-xl text-white">
+                                        ESP-NOW
+                                    </span>
+                                    <span class="bg-white/20 px-4 py-2 rounded-xl text-white">
+                                        HTTP
+                                    </span>
+                                    <span class="bg-white/20 px-4 py-2 rounded-xl text-white">
+                                        Firebase
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div
+                                    class="w-72 h-72 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+                                    <i class="bi bi-diagram-3-fill text-white text-8xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-card rounded-3xl p-8 mt-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                                <i class="bi bi-info-circle theme-icon-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" data-i18n="about.system.title">
+                                    Tentang Sistem
+                                </h2>
+                                <p class="theme-text-muted" data-i18n="about.system.subtitle">
+                                    Ringkasan penelitian
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid lg:grid-cols-3 gap-8">
+                            <div>
+                                <h3 class="font-semibold text-lg mb-3" data-i18n="about.system.background.title">
+                                    Latar Belakang
+                                </h3>
+                                <p class="theme-text-secondary leading-8"
+                                    data-i18n="about.system.background.description">
+                                    Sistem ini dikembangkan untuk melakukan
+                                    monitoring konsentrasi debu PM2.5 dan
+                                    intensitas cahaya pada beberapa ruangan
+                                    menggunakan konsep Wireless Sensor Network
+                                    sehingga kondisi lingkungan dapat dipantau
+                                    secara realtime.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-3" data-i18n="about.system.objective.title">
+                                    Tujuan
+                                </h3>
+                                <p class="theme-text-secondary leading-8"
+                                    data-i18n="about.system.objective.description">
+                                    Menghasilkan sistem monitoring berbasis
+                                    ESP32 yang mampu mengirimkan data sensor
+                                    secara realtime menuju website melalui
+                                    Gateway dan Firebase Realtime Database.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-3" data-i18n="about.system.benefit.title">
+                                    Manfaat
+                                </h3>
+                                <p class="theme-text-secondary leading-8" data-i18n="about.system.benefit.description">
+                                    Membantu proses monitoring kondisi
+                                    lingkungan laboratorium dan kontainer
+                                    secara realtime sehingga data dapat
+                                    digunakan sebagai dasar pengambilan
+                                    keputusan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-card rounded-3xl p-8 mt-8">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="theme-about-icon-box">
+                                <i class="bi bi-diagram-3 theme-icon-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" data-i18n="about.architecture.title">
+                                    Communication Architecture
+                                </h2>
+                                <p class="theme-text-muted" data-i18n="about.architecture.subtitle">
+                                    Alur komunikasi data pada sistem
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid lg:grid-cols-5 gap-5 text-center">
+                            <div class="theme-about-node">
+                                <i class="bi bi-cpu text-5xl theme-icon-primary"></i>
+                                <h3 class="font-bold mt-4" data-i18n="about.architecture.sensorNode">
+                                    Sensor Node
+                                </h3>
+                                <p class="text-sm theme-text-muted mt-2"
+                                    data-i18n="about.architecture.sensorNodeDescription">
+                                    Node A & Node B
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <div>
+                                    <i class="bi bi-arrow-right text-4xl theme-text-muted"></i>
+                                    <p class="font-semibold mt-2 text-blue-600">
+                                        ESP-NOW
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="theme-about-node">
+                                <i class="bi bi-hdd-network text-5xl theme-icon-success"></i>
+                                <h3 class="font-bold mt-4" data-i18n="about.architecture.gateway">
+                                    Gateway
+                                </h3>
+                                <p class="text-sm theme-text-muted mt-2"
+                                    data-i18n="about.architecture.gatewayDescription">
+                                    ESP32 Main Node
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <div>
+                                    <i class="bi bi-arrow-right text-4xl theme-text-muted"></i>
+                                    <p class="font-semibold mt-2 text-orange-600">
+                                        HTTP
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="theme-about-node">
+                                <i class="bi bi-cloud-check text-5xl text-cyan-600"></i>
+                                <h3 class="font-bold mt-4" data-i18n="about.architecture.database">
+                                    Firebase
+                                </h3>
+                                <p class="text-sm theme-text-muted mt-2"
+                                    data-i18n="about.architecture.databaseDescription">
+                                    Realtime Database
+                                </p>
+                            </div>
+                        </div>
+                        <div class="theme-about-description mt-8">
+                            <p class="leading-8 theme-text-secondary" data-i18n="about.architecture.description">
+                                <strong>ESP-NOW</strong> digunakan sebagai media komunikasi
+                                antara Sensor Node dan Gateway karena memiliki latensi rendah
+                                dan tidak memerlukan akses internet.
+                                Selanjutnya Gateway mengirimkan data menuju
+                                <strong>Firebase Realtime Database</strong>
+                                menggunakan protokol
+                                <strong>HTTP</strong>,
+                                kemudian website melakukan sinkronisasi data
+                                secara realtime melalui Firebase Listener.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- TECHNOLOGY STACK -->
+                    <!-- ===================================================== -->
+                    <div class="theme-card rounded-3xl p-8 mt-8">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
+                                <i class="bi bi-code-slash theme-icon-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" data-i18n="about.tech.title">
+                                    Technology Stack
+                                </h2>
+                                <p class="theme-text-muted" data-i18n="about.tech.subtitle">
+                                    Software yang digunakan pada website monitoring.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                            <!-- HTML5 -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-filetype-html text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        HTML5
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.html.description">
+                                    Website structure and semantic markup.
+                                </p>
+                            </div>
+                            <!-- Tailwind CSS -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-palette text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        Tailwind CSS
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.tailwind.description">
+                                    Responsive user interface framework.
+                                </p>
+                            </div>
+                            <!-- JavaScript -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-filetype-js text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        JavaScript (ES6)
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.javascript.description">
+                                    Frontend application logic.
+                                </p>
+                            </div>
+                            <!-- Chart.js -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-graph-up text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        Chart.js
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.chart.description">
+                                    Realtime data visualization.
+                                </p>
+                            </div>
+                            <!-- Firebase -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-database text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        Firebase Realtime Database
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.firebase.description">
+                                    Cloud realtime database.
+                                </p>
+                            </div>
+                            <!-- Bootstrap Icons -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-bootstrap text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        Bootstrap Icons
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.tech.bootstrap.description">
+                                    Consistent icon library.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- HARDWARE USED -->
+                    <!-- ===================================================== -->
+                    <div class="theme-card rounded-3xl p-8 mt-8">
+                        <h2 class="text-2xl font-bold mb-8" data-i18n="about.hardware.title">
+                            Hardware Used
+                        </h2>
+                        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                            <!-- ESP32 -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-cpu text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        ESP32 DevKit V1
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.esp32.description">
+                                    Main microcontroller for Sensor Node and Gateway.
+                                </p>
+                            </div>
+                            <!-- GP2Y1010AU0F -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-wind text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        GP2Y1010AU0F
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.gp2y.description">
+                                    Optical dust concentration sensor (PM2.5).
+                                </p>
+                            </div>
+                            <!-- BH1750 -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-brightness-high text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        BH1750
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.bh1750.description">
+                                    Digital ambient light intensity sensor.
+                                </p>
+                            </div>
+                            <!-- ADS1115 -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-memory text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        ADS1115
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.ads1115.description">
+                                    16-bit analog-to-digital converter (ADC).
+                                </p>
+                            </div>
+                            <!-- PCA9548A -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-diagram-3 text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        PCA9548A
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.pca9548a.description">
+                                    8-channel I²C multiplexer for multiple sensors.
+                                </p>
+                            </div>
+                            <!-- WiFi Router -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-router text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text">
+                                        WiFi Router
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.hardware.router.description">
+                                    Wireless network access point for gateway connectivity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- PROJECT SPECIFICATION -->
+                    <!-- ===================================================== -->
+                    <div class="theme-card rounded-3xl p-8 mt-8">
+                        <h2 class="text-2xl font-bold mb-8" data-i18n="about.specification.title">
+                            Project Specification
+                        </h2>
+                        <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+                            <!-- Topology -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-diagram-3 text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.topology.title">
+                                        Topology
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.topology.value">
+                                    Wireless Sensor Network (WSN)
+                                </p>
+                            </div>
+                            <!-- Node Communication -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-broadcast text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.nodeCommunication.title">
+                                        Node Communication
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.nodeCommunication.value">
+                                    ESP-NOW
+                                </p>
+                            </div>
+                            <!-- Gateway Communication -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-globe2 text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.gatewayCommunication.title">
+                                        Gateway Communication
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.gatewayCommunication.value">
+                                    HTTP
+                                </p>
+                            </div>
+                            <!-- Database -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-database text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.database.title">
+                                        Database
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.database.value">
+                                    Firebase Realtime Database
+                                </p>
+                            </div>
+                            <!-- Monitoring Interval -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-clock-history text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.interval.title">
+                                        Monitoring Interval
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.interval.value">
+                                    Every 10 Seconds
+                                </p>
+                            </div>
+                            <!-- Total Node -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-hdd-network text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.totalNode.title">
+                                        Total Node
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.totalNode.value">
+                                    2 Sensor Nodes + 1 Gateway Node
+                                </p>
+                            </div>
+                            <!-- Dust Sensor -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-wind text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.dustSensor.title">
+                                        Dust Sensor
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.dustSensor.value">
+                                    10 × GP2Y1010AU0F
+                                </p>
+                            </div>
+                            <!-- Light Sensor -->
+                            <div class="theme-info-card">
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-brightness-high text-xl theme-text-secondary"></i>
+                                    <h4 class="text-lg font-semibold theme-text"
+                                        data-i18n="about.specification.lightSensor.title">
+                                        Light Sensor
+                                    </h4>
+                                </div>
+                                <p class="text-sm theme-text-muted mt-3 leading-6"
+                                    data-i18n="about.specification.lightSensor.value">
+                                    10 × BH1750
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- RESEARCH INFORMATION -->
+                    <!-- ===================================================== -->
+                    <div
+                        class="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-3xl shadow-xl p-8 mt-8 text-white">
+                        <!-- Header -->
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
+                                <i class="bi bi-mortarboard-fill text-3xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold" data-i18n="about.research.title">
+                                    Research Information
+                                </h2>
+                                <p class="text-slate-300 mt-1" data-i18n="about.research.subtitle">
+                                    Research Information & Academic Details
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Content -->
+                        <div class="mt-10 space-y-8">
+                            <!-- ===================================================== -->
+                            <!-- AUTHOR -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-2"
+                                    data-i18n="about.research.author">
+                                    Author
+                                </p>
+                                <a href="https://www.linkedin.com/in/rifathabibi77/" data-link="author" target="_blank"
+                                    rel="noopener noreferrer" aria-label="Author Profile" title="View LinkedIn Profile"
+                                    class="theme-link">
+                                    Rifat Habibi Arya Rachmanda
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                                <p class="text-slate-300 mt-2">
+                                    NIM 3332210038
+                                </p>
+                            </div>
+                            <div class="border-t border-slate-700/60"></div>
+                            <!-- ===================================================== -->
+                            <!-- RESEARCH TITLE -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-2"
+                                    data-i18n="about.research.researchTitle">
+                                    Research Title
+                                </p>
+                                <p class="text-lg leading-8 text-slate-100"
+                                    data-i18n="about.research.researchTitleValue">
+                                    Pemantauan Debu dan Cahaya Berbasis Wireless Sensor Network (WSN)
+                                    Multi Ruangan di Fakultas Teknik Universitas Sultan Ageng Tirtayasa
+                                </p>
+                            </div>
+                            <!-- ===================================================== -->
+                            <!-- ACADEMIC YEAR -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-2"
+                                    data-i18n="about.research.academicYear">
+                                    Academic Year
+                                </p>
+                                <p class="text-lg font-medium">
+                                    2025 / 2026
+                                </p>
+                            </div>
+                            <div class="border-t border-slate-700/60"></div>
+                            <!-- ===================================================== -->
+                            <!-- INSTITUTION -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-3"
+                                    data-i18n="about.research.institution">
+                                    Institution
+                                </p>
+                                <div class="space-y-2 text-slate-200 leading-7">
+                                    <div>
+                                        <a href="https://untirta.ac.id/" data-link="university" target="_blank"
+                                            rel="noopener noreferrer" aria-label="University"
+                                            title="Visit Official Website" class="theme-link"
+                                            data-i18n="about.research.University">
+                                            Universitas Sultan Ageng Tirtayasa
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <a href="https://ft.untirta.ac.id/" data-link="faculty" target="_blank"
+                                            rel="noopener noreferrer" aria-label="Faculty"
+                                            title="Visit Official Website" class="theme-link"
+                                            data-i18n="about.research.Faculty">
+                                            Fakultas Teknik
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                    <p data-i18n="about.research.studyProgram">
+                                        Program Studi Teknik Elektro
+                                    </p>
+                                    <p data-i18n="about.research.concentration">
+                                        Instrumentasi dan Kendali
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/60"></div>
+                            <!-- ===================================================== -->
+                            <!-- SUPERVISORS -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-4"
+                                    data-i18n="about.research.supervisors">
+                                    Supervisors
+                                </p>
+                                <div class="space-y-5">
+                                    <div>
+                                        <p class="text-sm theme-text-muted" data-i18n="about.research.academicAdvisor">
+                                            Academic Advisor
+                                        </p>
+                                        <a href="https://imuttakin.github.io/" data-link="academic-advisor"
+                                            target="_blank" rel="noopener noreferrer" aria-label="Academic Advisor"
+                                            title="View Academic Profile" class="theme-link">
+                                            Imamul Muttakin, Ph.D.
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm theme-text-muted" data-i18n="about.research.supervisor1">
+                                            Thesis Supervisor I
+                                        </p>
+                                        <a href="https://scholar.google.com/citations?user=cakXm8oAAAAJ"
+                                            data-link="supervisor-1" target="_blank" rel="noopener noreferrer"
+                                            aria-label="Supervisor I" title="View Google Scholar Profile"
+                                            class="theme-link">
+                                            Dr. Alimuddin, S.T., MM., MT.
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm theme-text-muted" data-i18n="about.research.supervisor2">
+                                            Thesis Supervisor II
+                                        </p>
+                                        <a href="https://scholar.google.com/citations?user=ejaNPu0AAAAJ"
+                                            data-link="supervisor-2" target="_blank" rel="noopener noreferrer"
+                                            aria-label="Supervisor II" title="View Google Scholar Profile"
+                                            class="theme-link">
+                                            Rian Fahrizal, S.T., M.Eng.
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/60"></div>
+                            <!-- ===================================================== -->
+                            <!-- EXAMINERS -->
+                            <!-- ===================================================== -->
+                            <div>
+                                <p class="uppercase tracking-wider text-xs theme-text-muted mb-4"
+                                    data-i18n="about.research.examiners">
+                                    Examiners
+                                </p>
+                                <div class="space-y-5">
+                                    <div>
+                                        <p class="text-sm theme-text-muted" data-i18n="about.research.examiner1">
+                                            Examiner I
+                                        </p>
+                                        <a href="" data-link="examiner-1" class="theme-link is-disabled"
+                                            aria-disabled="true">
+                                            <span data-i18n="about.research.examinerPending">
+                                                To be updated after thesis defense.
+                                            </span>
+                                            <i class="bi bi-hourglass-split"></i>
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm theme-text-muted" data-i18n="about.research.examiner2">
+                                            Examiner II
+                                        </p>
+                                        <a href="" data-link="examiner-2" class="theme-link is-disabled"
+                                            aria-disabled="true">
+                                            <span data-i18n="about.research.examinerPending">
+                                                To be updated after thesis defense.
+                                            </span>
+                                            <i class="bi bi-hourglass-split"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ===================================================== -->
+                    <!-- FOOTER -->
+                    <!-- ===================================================== -->
+                    <footer class="theme-footer">
+                        <div class="theme-footer-grid">
+                            <!-- ========================= -->
+                            <!-- LEFT -->
+                            <!-- ========================= -->
+                            <div class="theme-footer-left">
+                                <p class="theme-footer-made" data-i18n="about.footer.madeWith">
+                                    Made with ❤
+                                </p>
+                                <p class="theme-footer-copyright" data-i18n="about.footer.copyright">
+                                    © 2026
+                                </p>
+                                <p class="theme-footer-rights" data-i18n="about.footer.rights">
+                                    All rights reserved.
+                                </p>
+                            </div>
+                            <!-- ========================= -->
+                            <!-- CENTER -->
+                            <!-- ========================= -->
+                            <div class="theme-footer-center">
+                                <h3 class="theme-footer-name">
+                                    Rifat Habibi Arya Rachmanda
+                                </h3>
+                                <p class="theme-footer-university" data-i18n="about.research.University">
+                                    Universitas Sultan Ageng Tirtayasa
+                                </p>
+                            </div>
+                            <!-- ========================= -->
+                            <!-- RIGHT -->
+                            <!-- ========================= -->
+                            <div class="theme-footer-right">
+                                <div class="theme-footer-links">
+                                    <a href="mailto:rifatrachmanda@gmail.com?subject=Monitoring%20Debu%20%26%20Cahaya%20WSN"
+                                        class="theme-link" data-link="footer-email" aria-label="Email"
+                                        title="Send Email">
+                                        <span data-i18n="about.footer.email">Email</span>
+                                    </a>
+                                    <span class="theme-footer-divider">·</span>
+                                    <a href="https://github.com/rifathabibi27" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="GitHub" title="Open GitHub Profile">
+                                        GitHub
+                                    </a>
+                                    <span class="theme-footer-divider">·</span>
+                                    <a href="https://www.linkedin.com/in/rifathabibi77/" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="LinkedIn"
+                                        title="Open LinkedIn Profile">
+                                        LinkedIn
+                                    </a>
+                                </div>
+                                <div class="theme-footer-links">
+                                    <a href="https://www.behance.net/rifathabibi77" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="Behance" title="Open Behance Profile">
+                                        Behance
+                                    </a>
+                                    <span class="theme-footer-divider">·</span>
+                                    <a href="https://www.instagram.com/rifathabibi_" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="Instagram"
+                                        title="Open Instagram Profile">
+                                        Instagram
+                                    </a>
+                                    <span class="theme-footer-divider">·</span>
+                                    <a href="https://www.facebook.com/rxfatcchi" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="Facebook"
+                                        title="Open Facebook Profile">
+                                        Facebook
+                                    </a>
+                                    <span class="theme-footer-divider">·</span>
+                                    <a href="https://www.tiktok.com/@rxfatcchi" class="theme-link"
+                                        data-link="footer-github" target="_blank" rel="noopener noreferrer"
+                                        referrerpolicy="no-referrer" aria-label="TikTok" title="Open TikTok Profile">
+                                        TikTok
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </section>
+            </div>
+        </main>
+    </div>
+    <!-- ===================================================== -->
+    <!-- ADMIN PIN MODAL -->
+    <!-- ===================================================== -->
+    <div id="pinModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+        <div class="theme-card rounded-2xl w-full max-w-md p-6">
+            <h2 class="theme-chart-title text-2xl font-bold">
+                Verifikasi Administrator
+            </h2>
+            <p class="theme-chart-subtitle mt-2">
+                Masukkan PIN Administrator untuk mengunduh data history.
+            </p>
+            <form id="pinForm" class="mt-6">
+                <input id="pinInput" type="password" placeholder="PIN Administrator" class="theme-input">
+                <p id="pinError" class="hidden mt-2 text-sm text-red-600 font-medium"></p>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancelPinButton" class="theme-button">
+                        Batal
+                    </button>
+                    <button type="submit" id="confirmPinButton" class="theme-button theme-button-primary">
+                        Download
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/firebase.js"></script>
+    <script src="assets/js/notification.js"></script>
+    <script src="assets/js/chart-design-system.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+    <script src="assets/js/monitoring.js"></script>
+    <script src="assets/js/history.js"></script>
+    <script src="assets/js/language.js"></script>
+    <script src="assets/js/theme.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,213 @@
+/* =====================================================
+   THEME COMPONENT
+===================================================== */
+.theme-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    transition:
+        background-color .30s ease,
+        border-color .30s ease,
+        box-shadow .30s ease,
+        color .30s ease,
+        transform .25s ease;
+}
+
+.theme-card:hover {
+    box-shadow:
+        0 14px 30px rgba(15, 23, 42, .10);
+}
+
+.theme-chart {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+    transition:
+        background-color .30s ease,
+        border-color .30s ease,
+        box-shadow .30s ease,
+        color .30s ease,
+        transform .25s ease;
+}
+
+.theme-chart:hover {
+    box-shadow:
+        0 14px 30px rgba(15, 23, 42, .10);
+}
+
+/* =====================================================
+   CARD ELEMENT
+===================================================== */
+.theme-card-label {
+    color: var(--text-secondary);
+    transition: color .30s ease;
+}
+
+.theme-card-value {
+    color: var(--text-primary);
+    transition: color .30s ease;
+}
+
+.theme-card-caption {
+    color: var(--text-muted);
+    transition: color .30s ease;
+}
+
+/* =====================================================
+   INTERACTIVE CARD
+===================================================== */
+.interactive-card {
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+
+.interactive-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 14px 30px rgba(15, 23, 42, .08);
+}
+
+/* =====================================================
+   HOVER
+===================================================== */
+.hover-card {
+    transition: .3s;
+}
+
+.hover-card:hover {
+    transform: translateY(-8px);
+    box-shadow:
+        0 20px 40px rgba(15, 23, 42, .08);
+}
+
+/* =====================================================
+   CARD VALUE
+===================================================== */
+.card-value {
+    font-size: 42px;
+    font-weight: 700;
+    margin-top: 15px;
+    color: #0F172A;
+}
+
+.card-unit {
+    margin-top: 5px;
+    color: #94A3B8;
+}
+
+/* =====================================================
+   GRAPH CARD
+===================================================== */
+.graph-card {
+    min-height: 430px;
+}
+
+/* =====================================================
+   INFORMATION CARD
+===================================================== */
+
+.theme-info-card {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    transition:
+        background-color .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+}
+
+.theme-info-card:hover {
+    box-shadow: var(--shadow);
+}
+
+/* =====================================================
+   SECTION HEADER
+===================================================== */
+
+.theme-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.theme-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.theme-section-subtitle {
+    color: var(--text-secondary);
+    font-size: .95rem;
+}
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.theme-hero {
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.theme-hero-dashboard {
+    background: linear-gradient(90deg,
+            #2563EB 0%,
+            #06B6D4 100%);
+}
+
+.theme-hero-about {
+    background: linear-gradient(90deg,
+            #2563EB 0%,
+            #0284C7 50%,
+            #06B6D4 100%);
+}
+
+.theme-divider {
+
+    border-color: var(--border);
+
+}
+
+/* =====================================================
+   ABOUT COMPONENT
+===================================================== */
+
+.theme-about-node {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition:
+        background-color .3s ease,
+        border-color .3s ease,
+        box-shadow .3s ease;
+}
+
+.theme-about-node:hover {
+    box-shadow: var(--shadow);
+}
+
+.theme-about-icon-box {
+    width: 3rem;
+    height: 3rem;
+    border-radius: .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+}
+
+.theme-about-description {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}

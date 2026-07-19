@@ -1,0 +1,181 @@
+/* =====================================================
+   BUTTON COMPONENT
+===================================================== */
+.theme-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: .5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: .875rem;
+    cursor: pointer;
+    transition:
+        background-color .30s ease,
+        color .30s ease,
+        border-color .30s ease,
+        box-shadow .30s ease;
+}
+
+.theme-icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 9999px;
+}
+
+.theme-icon-button i {
+    font-size: 1.1rem;
+    color: inherit;
+    transition: color .25s ease;
+}
+
+.theme-button:hover:not(:disabled):not(.theme-button-primary):not(.theme-button-active):not(.theme-button-zoom-active) {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+}
+
+.theme-button-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+}
+
+.theme-button-primary:hover {
+    filter: brightness(.95);
+}
+
+.theme-button-primary:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+    filter: brightness(.96);
+}
+
+.theme-toggle-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 9999px;
+    background: var(--surface-hover);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition:
+        background-color .25s ease,
+        color .25s ease,
+        transform .25s ease;
+}
+
+.theme-toggle-button:hover {
+    background: var(--border);
+}
+
+.theme-button:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 3px color-mix(in srgb,
+            var(--primary) 20%,
+            transparent);
+}
+
+.theme-button:active {
+    filter: brightness(.95);
+}
+
+.theme-toggle-button i {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+/* =====================================================
+   DASHBOARD TOOLBAR BUTTON
+===================================================== */
+.theme-button-active {
+    background: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+.theme-button-active:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+    filter: brightness(.96);
+}
+
+/* =====================================================
+   DASHBOARD ZOOM BUTTON
+===================================================== */
+.theme-button-zoom-active {
+    background: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+.theme-button-zoom-active:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+    filter: brightness(.96);
+}
+
+/* =====================================================
+   DASHBOARD HERO BUTTON
+===================================================== */
+.theme-button-hero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: .625rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    transition: all .2s ease;
+}
+
+.theme-button-hero:hover {
+    background: var(--surface-hover);
+}
+
+.theme-button-hero-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+}
+
+.theme-button-hero-primary:hover {
+    filter: brightness(.95);
+}
+
+.theme-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+}
+
+.theme-button:disabled:hover {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-muted);
+}
+
+.theme-button:focus:not(:focus-visible),
+.theme-toggle-button:focus:not(:focus-visible),
+.theme-icon-button:focus:not(:focus-visible),
+.theme-select:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}

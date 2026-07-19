@@ -1,0 +1,39 @@
+/* ==========================================================
+   History Filter Disabled Style
+========================================================== */
+#sensorFilter:disabled,
+#startDateFilter:disabled,
+#endDateFilter:disabled {
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+/* =====================================================
+   HISTORY STATUS
+===================================================== */
+.history-normal {
+    background: #DCFCE7;
+    color: #15803D;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.history-warning {
+    background: #FEF3C7;
+    color: #B45309;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.history-danger {
+    background: #FEE2E2;
+    color: #B91C1C;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}

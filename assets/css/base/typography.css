@@ -1,0 +1,51 @@
+/* =====================================================
+   TYPOGRAPHY FOUNDATION
+===================================================== */
+
+/* =====================================================
+   HEADINGS
+===================================================== */
+
+.theme-heading {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.theme-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.theme-subtitle {
+    color: var(--text-secondary);
+}
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+.theme-text {
+    color: var(--text-primary);
+}
+
+.theme-text-secondary {
+    color: var(--text-secondary);
+}
+
+.theme-text-muted {
+    color: var(--text-muted);
+}
+
+/* =====================================================
+   SUPPORTING TEXT
+===================================================== */
+
+.theme-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.theme-caption {
+    color: var(--text-muted);
+}

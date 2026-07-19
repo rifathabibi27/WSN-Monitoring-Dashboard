@@ -1,0 +1,18 @@
+/* =====================================================
+   HEADER
+===================================================== */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(18px);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    transition:
+        background-color .30s ease,
+        border-color .30s ease;
+}
+
+header button:not(.header-toggle):hover {
+    background: var(--surface-hover);
+}

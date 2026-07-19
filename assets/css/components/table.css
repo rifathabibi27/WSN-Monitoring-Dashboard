@@ -1,0 +1,32 @@
+/* =====================================================
+   TABLE
+===================================================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #F8FAFC;
+}
+
+thead th {
+    padding: 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+}
+
+tbody td {
+    padding: 18px;
+    border-top: 1px solid #E2E8F0;
+    font-size: 15px;
+}
+
+tbody tr {
+    transition: .25s;
+}
+
+tbody tr:hover {
+    background: #F8FAFC;
+}

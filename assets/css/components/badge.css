@@ -1,0 +1,126 @@
+/* =====================================================
+   BADGE COMPONENT
+===================================================== */
+:root {
+    /* Badge */
+    --badge-padding-y: .5rem;
+    --badge-padding-x: .875rem;
+    --badge-gap: .5rem;
+    --badge-radius: 9999px;
+    --badge-font-size: .75rem;
+    --badge-font-weight: 600;
+    --badge-border-width: 1px;
+    --badge-transition:
+        background-color .25s ease,
+        color .25s ease,
+        border-color .25s ease;
+}
+
+.theme-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    gap: var(--badge-gap);
+    padding:
+        var(--badge-padding-y) var(--badge-padding-x);
+    border-radius: var(--badge-radius);
+    border:
+        var(--badge-border-width) solid transparent;
+    font-size: var(--badge-font-size);
+    font-weight: var(--badge-font-weight);
+    white-space: nowrap;
+    user-select: none;
+    transition: var(--badge-transition);
+}
+
+/* ===========================
+   SYSTEM
+=========================== */
+.theme-badge-online {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.theme-badge-offline {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+.theme-badge-waiting {
+    background: #E2E8F0;
+    color: #475569;
+}
+
+/* ===========================
+   DUST
+=========================== */
+.theme-badge-normal {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.theme-badge-warning {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.theme-badge-danger {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+/* ===========================
+   LIGHT
+=========================== */
+.theme-badge-ideal {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.theme-badge-too-bright {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.theme-badge-poor {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+/* ===========================
+   NEUTRAL
+=========================== */
+.theme-badge-neutral {
+    background: var(--surface-hover);
+    color: var(--text-secondary);
+}
+
+/* =====================================================
+   DASHBOARD TREND STATE
+===================================================== */
+.theme-badge-live {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+    border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.theme-badge-explore {
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.theme-badge-dot {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 9999px;
+}
+
+.theme-badge-dot-live {
+    background: var(--success);
+}
+
+.theme-badge-dot-explore {
+    background: var(--primary);
+}

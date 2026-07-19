@@ -1,0 +1,15 @@
+/* =====================================================
+   ABOUT PAGE
+   THEME LINK
+===================================================== */
+
+#aboutPage .theme-link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+#aboutPage .theme-link:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+}

@@ -1,0 +1,115 @@
+/* =====================================================
+   THEME FOUNDATION
+===================================================== */
+.theme-surface {
+    background: var(--surface);
+}
+
+.theme-surface-hover {
+    background: var(--surface-hover);
+}
+
+.theme-background {
+    background: var(--background);
+}
+
+.theme-border {
+    border-color: var(--border);
+}
+
+.theme-shadow {
+    box-shadow: var(--shadow);
+}
+
+/* =====================================================
+   THEME COLOR
+===================================================== */
+
+.theme-primary {
+    color: var(--primary);
+}
+
+.theme-primary-light {
+    color: var(--primary-light);
+}
+
+.theme-success {
+    color: var(--success);
+}
+
+.theme-warning {
+    color: var(--warning);
+}
+
+.theme-danger {
+    color: var(--danger);
+}
+
+/* =====================================================
+   THEME BACKGROUND COLOR
+===================================================== */
+
+.theme-bg-primary {
+    background: var(--primary);
+}
+
+.theme-bg-primary-light {
+    background: var(--primary-light);
+}
+
+.theme-bg-success {
+    background: var(--success);
+}
+
+.theme-bg-warning {
+    background: var(--warning);
+}
+
+.theme-bg-danger {
+    background: var(--danger);
+}
+
+/* =====================================================
+   THEME BORDER COLOR
+===================================================== */
+
+.theme-border-primary {
+    border-color: var(--primary);
+}
+
+.theme-border-success {
+    border-color: var(--success);
+}
+
+.theme-border-warning {
+    border-color: var(--warning);
+}
+
+.theme-border-danger {
+    border-color: var(--danger);
+}
+
+/* =====================================================
+   THEME ICON
+===================================================== */
+
+.theme-icon-primary {
+    color: var(--primary);
+}
+
+.theme-icon-success {
+    color: var(--success);
+}
+
+.theme-icon-warning {
+    color: var(--warning);
+}
+
+.theme-icon-danger {
+    color: var(--danger);
+}
+
+.theme-icon {
+    color: var(--text-primary);
+    transition: color .25s ease;
+}

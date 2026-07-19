@@ -1,0 +1,35 @@
+/* =====================================================
+   SENSOR MAP
+===================================================== */
+.sensor-map {
+    width: 75px;
+    height: 75px;
+    border-radius: 18px;
+    background: white;
+    border: 2px solid #CBD5E1;
+    font-size: 20px;
+    font-weight: 700;
+    transition: .3s;
+}
+
+.sensor-map:hover {
+    background: #2563EB;
+    color: white;
+    border-color: #2563EB;
+    transform: scale(1.08);
+}
+
+.sensor-online {
+    background: #DCFCE7;
+    border-color: #22C55E;
+}
+
+.sensor-warning {
+    background: #FEF3C7;
+    border-color: #F59E0B;
+}
+
+.sensor-danger {
+    background: #FEE2E2;
+    border-color: #EF4444;
+}
