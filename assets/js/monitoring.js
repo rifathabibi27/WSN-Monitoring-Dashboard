@@ -1568,9 +1568,14 @@ function createLineChart(
     customOptions = {}
 ) {
     const canvas = document.getElementById(canvasId);
+
     if (!canvas) {
         return null;
     }
+
+    const needZoom =
+        customOptions?.plugins?.zoom !== undefined;
+
     return new Chart(canvas, {
         type: "line",
         data: {
@@ -1578,7 +1583,9 @@ function createLineChart(
             datasets
         },
         options: ChartDesignSystem.mergeOptions(
-            ChartDesignSystem.createOptions(),
+            ChartDesignSystem.createOptions({
+                zoom: needZoom
+            }),
             customOptions
         )
     });
