@@ -12,7 +12,6 @@
 /* ===========================================================
    FIREBASE CONFIG
 =========================================================== */
-console.log("firebase.js berhasil dimuat");
 const firebaseConfig = {
     apiKey: "AIzaSyDjlduyA6bumAHVw-QZyzfnqWQPuJlWpSc",
     authDomain: "jte-iot-monitoring.firebaseapp.com",
@@ -58,10 +57,6 @@ window.appState.historyData = {
    APPLICATION START
 =========================================================== */
 window.addEventListener("load", () => {
-    console.log("=================================");
-    console.log("Firebase Initialized");
-    console.log("Starting Realtime Listener...");
-    console.log("=================================");
     startRealtime();
 });
 /* ===========================================================
@@ -78,22 +73,13 @@ function startRealtime() {
    NODE A REALTIME LISTENER
 =========================================================== */
 function listenNodeA() {
-    console.log("Listening Realtime/NodeA...");
     db.ref(DB_PATH.realtime.nodeA).on("value", (snapshot) => {
         if (!snapshot.exists()) {
             console.warn("Node A belum memiliki data.");
             return;
         }
         realtimeData.nodeA = snapshot.val();
-        console.log("=================================");
-        console.log("NODE A UPDATED");
-        console.log(realtimeData.nodeA);
-        console.log("=================================");
         processNodeA(realtimeData.nodeA);
-        console.log(
-            "NodeA Processed :",
-            new Date().toLocaleTimeString()
-        );
     });
 }
 /* ===========================================================
@@ -103,8 +89,6 @@ function processNodeA(data) {
     if (!data)
         return;
     const normalized = normalizeRealtimeData(data);
-    console.log("Monitoring NodeA");
-    console.log(normalized);
     if (typeof updateMonitoringNodeA === "function") {
         updateMonitoringNodeA(normalized);
     }
@@ -155,22 +139,13 @@ function normalizeRealtimeData(data) {
    NODE B REALTIME LISTENER
 =========================================================== */
 function listenNodeB() {
-    console.log("Listening Realtime/NodeB...");
     db.ref(DB_PATH.realtime.nodeB).on("value", (snapshot) => {
         if (!snapshot.exists()) {
             console.warn("Node B belum memiliki data.");
             return;
         }
         realtimeData.nodeB = snapshot.val();
-        console.log("=================================");
-        console.log("NODE B UPDATED");
-        console.log(realtimeData.nodeB);
-        console.log("=================================");
         processNodeB(realtimeData.nodeB);
-        console.log(
-            "NodeB Processed :",
-            new Date().toLocaleTimeString()
-        );
     });
 }
 /* ===========================================================
@@ -180,8 +155,6 @@ function processNodeB(data) {
     if (!data)
         return;
     const normalized = normalizeRealtimeData(data);
-    console.log("Monitoring NodeB");
-    console.log(normalized);
     if (typeof updateMonitoringNodeB === "function") {
         updateMonitoringNodeB(normalized);
     }
@@ -213,13 +186,11 @@ function listenSystem() {
    HISTORY
 =========================================================== */
 function listenHistory() {
-    console.log("Listening History...");
 }
 /* ===========================================================
    HISTORY NODE A
 =========================================================== */
 function listenHistoryNodeA() {
-    console.log("Listening History NodeA...");
     db.ref(DB_PATH.history.nodeA)
         .limitToLast(CONFIG.chart.historyLimit)
         .once("value")
@@ -237,9 +208,6 @@ function listenHistoryNodeA() {
                 });
             });
             window.appState.historyData.nodeA = data;
-            console.log(
-                `History NodeA Loaded : ${data.length} data`
-            );
             if (typeof updateHistoryNodeA === "function") {
                 updateHistoryNodeA(data);
             }
@@ -255,7 +223,6 @@ function listenHistoryNodeA() {
    HISTORY NODE B
 =========================================================== */
 function listenHistoryNodeB() {
-    console.log("Listening History NodeB...");
     db.ref(DB_PATH.history.nodeB)
         .limitToLast(CONFIG.chart.historyLimit)
         .once("value")
@@ -273,9 +240,6 @@ function listenHistoryNodeB() {
                 });
             });
             window.appState.historyData.nodeB = data;
-            console.log(
-                `History NodeB Loaded : ${data.length} data`
-            );
             if (typeof updateHistoryNodeB === "function") {
                 updateHistoryNodeB(data);
             }

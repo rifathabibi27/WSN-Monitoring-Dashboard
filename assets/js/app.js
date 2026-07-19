@@ -242,19 +242,10 @@ function initializeDashboardActions() {
     ROOM NAVIGATION
 ===================================================== */
 function initializeRoomNavigation() {
-    console.log("initializeRoomNavigation");
     document
         .querySelectorAll(".room-selector")
         .forEach(button => {
-            console.log(
-                "Bind :",
-                button.dataset.room
-            );
             button.addEventListener("click", () => {
-                console.log(
-                    "CLICK :",
-                    button.dataset.room
-                );
                 openMonitoring(
                     button.dataset.room
                 );
@@ -328,10 +319,6 @@ function initializeRoomSelector() {
     });
 }
 function loadRoom(room) {
-    console.log(
-        "Load Room :",
-        room
-    );
 }
 /* =====================================================
     TOAST

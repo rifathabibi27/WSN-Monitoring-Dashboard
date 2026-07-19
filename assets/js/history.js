@@ -431,10 +431,6 @@ function loadHistory() {
 function loadHistoryFromMonitoring() {
     console.trace("loadHistoryFromMonitoring called");
     const history = getGlobalHistory();
-    console.log(
-        "Merged History :",
-        history.length
-    );
     if (!Array.isArray(history)) {
         return;
     }
@@ -453,14 +449,6 @@ function getGlobalHistory() {
     ) {
         return [];
     }
-    console.log(
-        "History NodeA :",
-        Monitoring.historyData.nodeA.length
-    );
-    console.log(
-        "History NodeB :",
-        Monitoring.historyData.nodeB.length
-    );
     return [
         ...Monitoring.historyData.nodeA.map(item => ({
             ...item,
@@ -1221,12 +1209,6 @@ function updatePagination() {
         });
         pageContainer.appendChild(button);
     });
-    console.log(
-        "Page",
-        currentPage,
-        "/",
-        totalPage
-    );
     const previous = document.getElementById("previousPage");
     const next = document.getElementById("nextPage");
     setPaginationButtonState(
@@ -1338,7 +1320,6 @@ function generateCSVContent() {
     DOWNLOAD CSV FILE
 ============================================================ */
 function downloadCSVFile() {
-    console.log("DOWNLOAD BARU");
     if (filteredData.length === 0) {
         alert("Tidak ada data untuk diunduh.");
         return;

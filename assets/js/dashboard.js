@@ -113,7 +113,6 @@ function startDashboardRealtime() {
         // Tidak melakukan apa-apa.
         // Dashboard sekarang menunggu update dari Firebase.
     }, 1000);
-    console.log("Dashboard Realtime Started");
 }
 /* =====================================================
     STOP DASHBOARD REALTIME
@@ -123,7 +122,6 @@ function stopDashboardRealtime() {
         return;
     clearInterval(Dashboard.updateInterval);
     Dashboard.updateInterval = null;
-    console.log("Dashboard Realtime Stopped");
 }
 /* =====================================================
     CREATE DASHBOARD CHARTS

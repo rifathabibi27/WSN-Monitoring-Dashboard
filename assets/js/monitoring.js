@@ -1587,7 +1587,6 @@ function createLineChart(
     CHART
 =========================================================== */
 function createRoomChart() {
-    console.log("createRoomChart DIPANGGIL");
     const canvas = document.getElementById(
         "roomChart"
     );
@@ -1954,11 +1953,6 @@ function updateHistoryNodeA(data) {
     // if (typeof onHistoryUpdated === "function") {
     //     onHistoryUpdated();
     // }
-    console.log(
-        "updateHistoryNodeA",
-        "currentRoom =", getCurrentRoomID(),
-        "stateRoom =", getCurrentRoomID()
-    );
 }
 function updateHistoryNodeB(data) {
     Monitoring.historyData.nodeB = data;
@@ -1969,11 +1963,6 @@ function updateHistoryNodeB(data) {
     // if (typeof onHistoryUpdated === "function") {
     //     onHistoryUpdated();
     // }
-    console.log(
-        "updateHistoryNodeB",
-        "currentRoom =", getCurrentRoomID(),
-        "stateRoom =", getCurrentRoomID()
-    );
 }
 /* ===========================================================
     LOAD HISTORY TO CHART
@@ -2021,9 +2010,4 @@ function loadHistoryChart(roomID) {
     if (roomID === getCurrentRoomID()) {
         refreshTrendAnalysis();
     }
-    console.log(
-        "History Chart Loaded:",
-        roomID,
-        history.length
-    );
 }
