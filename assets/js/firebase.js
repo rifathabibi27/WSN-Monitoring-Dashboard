@@ -48,6 +48,14 @@ let realtimeData = {
     nodeB: null,
     system: null
 };
+const realtimeListenerState = {
+    nodeA: {
+        initialized: false
+    },
+    nodeB: {
+        initialized: false
+    }
+};
 window.appState = window.appState || {};
 window.appState.historyData = {
     nodeA: [],
@@ -78,19 +86,31 @@ function listenNodeA() {
             console.warn("Node A belum memiliki data.");
             return;
         }
+        const isInitialSnapshot =
+            !realtimeListenerState.nodeA.initialized;
+        realtimeListenerState.nodeA.initialized = true;
         realtimeData.nodeA = snapshot.val();
-        processNodeA(realtimeData.nodeA);
+        processNodeA(
+            realtimeData.nodeA,
+            isInitialSnapshot
+        );
     });
 }
 /* ===========================================================
    PROCESS NODE A
 =========================================================== */
-function processNodeA(data) {
+function processNodeA(
+    data,
+    isInitialSnapshot = false
+) {
     if (!data)
         return;
     const normalized = normalizeRealtimeData(data);
     if (typeof updateMonitoringNodeA === "function") {
-        updateMonitoringNodeA(normalized);
+        updateMonitoringNodeA(
+            normalized,
+            isInitialSnapshot
+        );
     }
     if (typeof updateDashboardNodeA === "function") {
         updateDashboardNodeA(normalized);
@@ -144,19 +164,31 @@ function listenNodeB() {
             console.warn("Node B belum memiliki data.");
             return;
         }
+        const isInitialSnapshot =
+            !realtimeListenerState.nodeB.initialized;
+        realtimeListenerState.nodeB.initialized = true;
         realtimeData.nodeB = snapshot.val();
-        processNodeB(realtimeData.nodeB);
+        processNodeB(
+            realtimeData.nodeB,
+            isInitialSnapshot
+        );
     });
 }
 /* ===========================================================
    PROCESS NODE B
 =========================================================== */
-function processNodeB(data) {
+function processNodeB(
+    data,
+    isInitialSnapshot = false
+) {
     if (!data)
         return;
     const normalized = normalizeRealtimeData(data);
     if (typeof updateMonitoringNodeB === "function") {
-        updateMonitoringNodeB(normalized);
+        updateMonitoringNodeB(
+            normalized,
+            isInitialSnapshot
+        );
     }
     if (typeof updateDashboardNodeB === "function") {
         updateDashboardNodeB(normalized);
@@ -172,14 +204,6 @@ function listenSystem() {
             return;
         }
         realtimeData.system = snapshot.val();
-        if (typeof updateNodeStatus === "function") {
-            updateNodeStatus(
-                realtimeData.system.status === "ONLINE"
-                    ? "online"
-                    : "offline"
-            );
-
-        }
     });
 }
 /* ===========================================================

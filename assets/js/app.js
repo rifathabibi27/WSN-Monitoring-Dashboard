@@ -97,7 +97,15 @@ function updateClock() {
         weekday: "long",
         day: "2-digit",
         month: "long",
-        year: "numeric"
+        year: "numeric",
+        timeZone: "Asia/Jakarta"
+    };
+    const timeOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Jakarta"
     };
     dateElement.textContent =
         now.toLocaleDateString(
@@ -106,8 +114,9 @@ function updateClock() {
         );
     clockElement.textContent =
         now.toLocaleTimeString(
-            locale
-        );
+            locale,
+            timeOptions
+        ) + " WIB";
 }
 /* =====================================================
     PAGE

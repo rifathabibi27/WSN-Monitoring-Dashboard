@@ -429,7 +429,6 @@ function loadHistory() {
     LOAD FROM MONITORING
 ============================================================ */
 function loadHistoryFromMonitoring() {
-    console.trace("loadHistoryFromMonitoring called");
     const history = getGlobalHistory();
     if (!Array.isArray(history)) {
         return;

@@ -1563,14 +1563,11 @@ function createLineChart(
     customOptions = {}
 ) {
     const canvas = document.getElementById(canvasId);
-
     if (!canvas) {
         return null;
     }
-
     const needZoom =
         customOptions?.plugins?.zoom !== undefined;
-
     return new Chart(canvas, {
         type: "line",
         data: {
@@ -1863,6 +1860,7 @@ function updateBadge(id, status) {
     UPDATE NODE STATUS
 =========================================================== */
 function updateNodeStatus(state) {
+    console.trace("[updateNodeStatus]", state);
     switch (state) {
         case "online":
             updateBadge("nodeStatus", {
@@ -1888,40 +1886,52 @@ function updateNodeStatus(state) {
     CONNECTION STATUS
 =========================================================== */
 function checkConnectionStatus() {
-    const roomID = getCurrentRoomID();
-    const connection =
-        getConnection(roomID);
-    const diff =
-        Date.now() - connection.lastReceive;
-    let state;
-    if (connection.lastReceive === 0) {
-        state = "waiting";
-    } else if (diff <= CONFIG.communication.online) {
-        state = "online";
-    } else if (diff <= CONFIG.communication.waiting) {
-        state = "waiting";
-    } else {
-        state = "offline";
+    CONFIG.rooms.forEach(room => {
+        const connection =
+            getConnection(room.id);
+        if (!connection) {
+            return;
+        }
+        const diff =
+            Date.now() - connection.lastReceive;
+        let state;
+        if (connection.lastReceive === 0) {
+            state = "waiting";
+        } else if (diff <= CONFIG.communication.online) {
+            state = "online";
+        } else if (diff <= CONFIG.communication.waiting) {
+            state = "waiting";
+        } else {
+            state = "offline";
+        }
+        if (connection.state !== state) {
+            connection.state = state;
+            if (room.id === getCurrentRoomID()) {
+                updateNodeStatus(state);
+            }
+        }
+    });
+    if (typeof updateDashboardCommunication === "function") {
+        updateDashboardCommunication();
     }
-    if (connection.state !== state) {
-        connection.state = state;
-        updateNodeStatus(state);
-        if (typeof updateDashboardCommunication === "function") {
-            updateDashboardCommunication(state);
-        }
-        if (typeof refreshDashboard === "function") {
-            refreshDashboard();
-        }
+    if (typeof refreshDashboard === "function") {
+        refreshDashboard();
     }
 }
 /* ===========================================================
     FIREBASE BRIDGE
 =========================================================== */
-function updateMonitoringNodeA(data) {
+function updateMonitoringNodeA(
+    data,
+    isInitialSnapshot = false
+) {
+    console.trace("[updateMonitoringNodeA]");
     if (!data)
         return;
     Monitoring.roomData.nodeA = data;
-    updateLastReceive("nodeA");
+    if (!isInitialSnapshot) {
+        updateLastReceive("nodeA");
+    }
     if (getCurrentRoomID() === "nodeA") {
         updateRoomData(data);
         appendRealtimeChart(data);
@@ -1930,11 +1940,17 @@ function updateMonitoringNodeA(data) {
         refreshDashboard();
     }
 }
-function updateMonitoringNodeB(data) {
+function updateMonitoringNodeB(
+    data,
+    isInitialSnapshot = false
+) {
+    console.trace("[updateMonitoringNodeB]");
     if (!data)
         return;
     Monitoring.roomData.nodeB = data;
-    updateLastReceive("nodeB");
+    if (!isInitialSnapshot) {
+        updateLastReceive("nodeB");
+    }
     if (getCurrentRoomID() === "nodeB") {
         updateRoomData(data);
         appendRealtimeChart(data);
