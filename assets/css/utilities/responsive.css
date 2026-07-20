@@ -6,7 +6,6 @@
         width: 240px;
     }
 }
-
 @media(max-width:992px) {
     #sidebar {
         position: fixed;
@@ -15,62 +14,222 @@
         height: 100vh;
         z-index: 999;
     }
-
     #sidebar.show {
         left: 0;
     }
-
     main {
         width: 100%;
     }
 }
-
 @media(max-width:768px) {
     section {
         padding: 20px !important;
     }
-
     header {
         padding: 0 20px !important;
     }
-
     h1 {
         font-size: 28px !important;
     }
-
     .card-value {
         font-size: 34px;
     }
-
     .theme-footer-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-
     .theme-footer-left,
     .theme-footer-center,
     .theme-footer-right {
         text-align: center;
     }
-
     .theme-footer-links {
         justify-content: center;
     }
-
     .theme-app-footer {
         flex-direction: column;
         text-align: center;
     }
+    /* =====================================================
+    DASHBOARD HERO
+    ===================================================== */
+    .dashboard-hero {
+        padding: 2rem;
+        gap: 1.5rem;
+    }
+    .dashboard-hero-content {
+        width: 100%;
+    }
+    .dashboard-hero-title {
+        font-size: 2.25rem;
+        line-height: 1.2;
+    }
+    .dashboard-hero-description {
+        max-width: none;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+    .dashboard-hero-action {
+        margin-top: 1rem;
+    }
+    .dashboard-hero-action .theme-button {
+        min-width: 180px;
+    }
+    /* =====================================================
+    KPI
+    ===================================================== */
+    .dashboard-kpi-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    /* =====================================================
+    MAIN GRID
+    ===================================================== */
+    .dashboard-main-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    /* =====================================================
+    CHART
+    ===================================================== */
+    .dashboard-chart {
+        min-height: 340px;
+    }
+    /* =====================================================
+    NODE CARD
+    ===================================================== */
+    .dashboard-node-card {
+        width: 100%;
+    }
 }
-
 @media(max-width:576px) {
+    /* =====================================================
+    MOBILE HEADER
+    ===================================================== */
+    .theme-header {
+        padding: .75rem 1rem;
+        min-height: auto;
+        align-items: flex-start;
+        gap: .75rem;
+    }
+    .theme-header-brand {
+        flex: 1;
+        min-width: 0;
+    }
+    .theme-header-brand h2 {
+        font-size: .95rem;
+        line-height: 1.35;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .theme-header-brand p {
+        display: none;
+    }
+    .theme-header-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: .5rem;
+        flex-shrink: 1;
+    }
+    .theme-header-clock {
+        min-width: auto;
+        text-align: right;
+    }
+    .theme-header-clock #dateNow {
+        font-size: .72rem;
+    }
+    .theme-header-clock #clockNow {
+        font-size: .95rem;
+    }
+    .theme-header-language {
+        min-width: auto;
+    }
+    .theme-header-language .theme-select {
+        min-width: 90px;
+    }
+    .theme-header-right>* {
+        flex-shrink: 0;
+    }
+    .theme-header-right>.relative {
+        display: flex;
+    }
     .graph-card {
         min-height: 320px;
     }
-
     .sensor-map {
         width: 60px;
         height: 60px;
         font-size: 16px;
+    }
+    /* =====================================================
+    MOBILE HERO
+    ===================================================== */
+    .dashboard-hero {
+        padding: 1.5rem;
+    }
+    .dashboard-hero-title {
+        font-size: 1.85rem;
+    }
+    .dashboard-hero-description {
+        font-size: .95rem;
+    }
+    .dashboard-hero-action {
+        width: 100%;
+    }
+    .dashboard-hero-action .theme-button {
+        width: 100%;
+    }
+    /* =====================================================
+    MOBILE KPI
+    ===================================================== */
+    .dashboard-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    /* =====================================================
+    MOBILE CHART
+    ===================================================== */
+    .dashboard-chart {
+        min-height: 300px;
+    }
+    /* =====================================================
+    MOBILE CARD
+    ===================================================== */
+    .dashboard-node-card {
+        padding: 1.25rem;
+    }
+}
+@media (max-width:390px) {
+    /* =====================================================
+    SMALL MOBILE
+    ===================================================== */
+    .dashboard-hero {
+        padding: 1.25rem;
+    }
+    .dashboard-hero-title {
+        font-size: 1.6rem;
+    }
+    .dashboard-hero-description {
+        font-size: .9rem;
+        line-height: 1.7;
+    }
+    .dashboard-chart {
+        min-height: 260px;
+    }
+}
+@media (max-width:320px) {
+    /* =====================================================
+    LEGACY MOBILE
+    ===================================================== */
+    .dashboard-hero-title {
+        font-size: 1.45rem;
+    }
+    .dashboard-hero-description {
+        font-size: .875rem;
+    }
+    .dashboard-hero {
+        padding: 1rem;
     }
 }

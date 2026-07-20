@@ -3,7 +3,7 @@
 ===================================================== */
 #pinModal {
     backdrop-filter: blur(6px);
-    animation: fadeModal .25s;
+    animation: fadeModal var(--transition);
 }
 
 @keyframes fadeModal {

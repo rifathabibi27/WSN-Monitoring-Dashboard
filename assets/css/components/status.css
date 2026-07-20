@@ -47,7 +47,7 @@
 
 .theme-table tbody tr {
     transition:
-        background-color .25s ease;
+        background-color var(--transition);
 }
 
 .theme-table tbody tr:hover {
@@ -99,45 +99,45 @@ body:not(.dark) .theme-table-striped tbody tr:nth-child(even) {
    SYSTEM
 =========================== */
 .theme-status-online {
-    background: #22C55E;
+    background: var(--success);
 }
 
 .theme-status-offline {
-    background: #EF4444;
+    background: var(--danger);
 }
 
 .theme-status-waiting {
-    background: #94A3B8;
+    background: var(--text-muted);
 }
 
 /* ===========================
    DUST
 =========================== */
 .theme-status-normal {
-    background: #22C55E;
+    background: var(--success);
 }
 
 .theme-status-warning {
-    background: #F59E0B;
+    background: var(--warning);
 }
 
 .theme-status-danger {
-    background: #EF4444;
+    background: var(--danger);
 }
 
 /* ===========================
    LIGHT
 =========================== */
 .theme-status-ideal {
-    background: #22C55E;
+    background: var(--success);
 }
 
 .theme-status-acceptable {
-    background: #3B82F6;
+    background: var(--primary);
 }
 
 .theme-status-poor {
-    background: #EF4444;
+    background: var(--danger);
 }
 
 /* =====================================================
@@ -145,15 +145,15 @@ body:not(.dark) .theme-table-striped tbody tr:nth-child(even) {
 ===================================================== */
 .status-normal {
     color: white;
-    background: #22C55E;
+    background: var(--success);
 }
 
 .status-warning {
     color: white;
-    background: #F59E0B;
+    background: var(--warning);
 }
 
 .status-danger {
     color: white;
-    background: #EF4444;
+    background: var(--danger);
 }

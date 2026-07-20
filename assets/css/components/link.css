@@ -10,15 +10,14 @@
     text-decoration: none;
     width: fit-content;
     cursor: pointer;
-    transition:
-        color .25s ease;
+    transition: color var(--transition);
 }
 
 /* =====================================================
    THEME LINK MODIFIER
 ===================================================== */
 .theme-link.is-disabled {
-    color: rgb(148 163 184);
+    color: var(--text-muted);
     opacity: .55;
     cursor: not-allowed;
     pointer-events: none;
@@ -31,12 +30,12 @@
 }
 
 .theme-link:hover {
-    color: #1D4ED8;
+    color: var(--primary);
 }
 
 .theme-link i {
     font-size: .75rem;
-    transition: transform .25s ease;
+    transition: transform var(--transition);
 }
 
 .theme-link:hover i {

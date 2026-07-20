@@ -30,16 +30,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #E2E8F0;
+    background: var(--border);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #94A3B8;
+    background: var(--text-muted);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #64748B;
+    background: var(--text-secondary);
 }
 
 /* =====================================================

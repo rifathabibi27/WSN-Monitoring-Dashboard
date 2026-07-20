@@ -7,19 +7,19 @@ table {
 }
 
 thead {
-    background: #F8FAFC;
+    background: var(--surface-hover);
 }
 
 thead th {
     padding: 18px;
     font-size: 14px;
     font-weight: 600;
-    color: #475569;
+    color: var(--text-secondary);
 }
 
 tbody td {
     padding: 18px;
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid var(--border);
     font-size: 15px;
 }
 
@@ -28,5 +28,5 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: #F8FAFC;
+    background: var(--surface-hover);
 }

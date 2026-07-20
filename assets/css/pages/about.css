@@ -4,12 +4,12 @@
 ===================================================== */
 
 #aboutPage .theme-link {
-    color: #3b82f6;
+    color: var(--primary);
     text-decoration: none;
-    transition: color .2s ease;
+    transition: color var(--transition-fast);
 }
 
 #aboutPage .theme-link:hover {
-    color: #60a5fa;
+    color: color-mix(in srgb, var(--primary) 75%, white);
     text-decoration: underline;
 }

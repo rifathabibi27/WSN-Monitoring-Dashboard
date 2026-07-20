@@ -4,32 +4,32 @@
 .sensor-map {
     width: 75px;
     height: 75px;
-    border-radius: 18px;
-    background: white;
-    border: 2px solid #CBD5E1;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 2px solid var(--border);
     font-size: 20px;
     font-weight: 700;
-    transition: .3s;
+    transition: var(--transition-slow);
 }
 
 .sensor-map:hover {
-    background: #2563EB;
+    background: var(--primary);
     color: white;
-    border-color: #2563EB;
+    border-color: var(--primary);
     transform: scale(1.08);
 }
 
 .sensor-online {
-    background: #DCFCE7;
-    border-color: #22C55E;
+    background: var(--success-soft);
+    border-color: var(--success);
 }
 
 .sensor-warning {
-    background: #FEF3C7;
-    border-color: #F59E0B;
+    background: var(--warning-soft);
+    border-color: var(--warning);
 }
 
 .sensor-danger {
-    background: #FEE2E2;
-    border-color: #EF4444;
+    background: var(--danger-soft);
+    border-color: var(--danger);
 }

@@ -76,8 +76,8 @@
     color: var(--text-secondary);
     font-weight: 500;
     transition:
-        color .25s ease,
-        transform .25s ease;
+        color var(--transition),
+        transform var(--transition);
 }
 
 .theme-footer-right a:hover {
@@ -88,7 +88,7 @@
 .theme-footer-right a:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 3px;
-    border-radius: .35rem;
+    border-radius: var(--radius-sm);
 }
 
 .theme-footer-divider {

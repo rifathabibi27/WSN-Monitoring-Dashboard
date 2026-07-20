@@ -27,10 +27,10 @@
     border: 1px solid var(--border);
     border-left-width: 4px;
     transition:
-        background-color .25s ease,
-        border-color .25s ease,
-        transform .25s ease,
-        box-shadow .25s ease;
+        background-color var(--transition),
+        border-color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
 }
 
 .theme-notification-item:hover {
@@ -86,22 +86,22 @@
 
 /* icon */
 .theme-notification-icon-success {
-    background: color-mix(in srgb, var(--success) 15%, transparent);
+    background: var(--success-soft);
     color: var(--success);
 }
 
 .theme-notification-icon-warning {
-    background: color-mix(in srgb, var(--warning) 15%, transparent);
+    background: var(--warning-soft);
     color: var(--warning);
 }
 
 .theme-notification-icon-danger {
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
+    background: var(--danger-soft);
     color: var(--danger);
 }
 
 .theme-notification-icon-info {
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    background: var(--primary-soft);
     color: var(--primary);
 }
 
@@ -143,8 +143,8 @@
 .theme-notification-action {
     color: var(--primary);
     transition:
-        color .25s ease,
-        background-color .25s ease;
+        color var(--transition),
+        background-color var(--transition);
 }
 
 .theme-notification-action:hover {
@@ -163,8 +163,8 @@
     font-size: .875rem;
     font-weight: 500;
     transition:
-        background-color .25s ease,
-        color .25s ease;
+        background-color var(--transition),
+        color var(--transition);
 }
 
 .theme-notification-footer-button:hover {

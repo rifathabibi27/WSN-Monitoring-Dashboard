@@ -12,28 +12,16 @@
    HISTORY STATUS
 ===================================================== */
 .history-normal {
-    background: #DCFCE7;
-    color: #15803D;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
+    background: var(--success-soft);
+    color: var(--success);
 }
 
 .history-warning {
-    background: #FEF3C7;
-    color: #B45309;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
+    background: var(--warning-soft);
+    color: var(--warning);
 }
 
 .history-danger {
-    background: #FEE2E2;
-    color: #B91C1C;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
+    background: var(--danger-soft);
+    color: var(--danger);
 }

@@ -4,36 +4,29 @@
 #heroMonitoringButton,
 #dashboardMonitoringButton {
     transition:
-        transform .22s ease,
-        box-shadow .22s ease;
+        transform var(--transition-fast) box-shadow var(--transition-fast)
 }
-
 #heroMonitoringButton:hover,
 #dashboardMonitoringButton:hover {
     transform: translateY(-2px);
-    box-shadow:
-        0 16px 30px rgba(37, 99, 235, .28);
+    box-shadow: var(--shadow-lg)
 }
-
 /* =====================================================
    DASHBOARD CAROUSEL
 ===================================================== */
 #dashboardPrevNode,
 #dashboardNextNode {
     transition:
-        transform .2s ease,
-        background-color .2s ease,
-        color .2s ease,
-        box-shadow .2s ease;
+        transform var(--transition-fast),
+        background-color var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast),
 }
-
 #dashboardPrevNode:hover,
 #dashboardNextNode:hover {
     transform: scale(1.08);
-    box-shadow:
-        0 8px 18px rgba(37, 99, 235, .18);
+    box-shadow: var(--shadow-md)
 }
-
 /* =====================================================
    CAROUSEL INDICATOR
 ===================================================== */
@@ -42,24 +35,20 @@
         transform .25s ease,
         background-color .25s ease;
 }
-
 #dashboardCarouselIndicator .bg-blue-600 {
     transform: scale(1.35);
 }
-
 /* =====================================================
    DASHBOARD ELEVATION
 ===================================================== */
 .bg-white:hover {
-    border-color: #CBD5E1;
+    border-color: var(--border);
 }
-
 #heroMonitoringButton,
 #dashboardMonitoringButton {
     font-weight: 600;
     letter-spacing: .2px;
 }
-
 /* =====================================================
    DASHBOARD CAROUSEL
 ===================================================== */
@@ -73,13 +62,11 @@
         color .25s ease,
         transform .25s ease;
 }
-
 .theme-carousel-button:hover {
     background: var(--surface-hover);
     color: var(--primary);
     transform: scale(1.08);
 }
-
 .theme-carousel-dot {
     width: .5rem;
     height: .5rem;
@@ -89,7 +76,6 @@
         background-color .25s ease,
         transform .25s ease;
 }
-
 .theme-carousel-dot-active {
     background: var(--primary);
     transform: scale(1.35);

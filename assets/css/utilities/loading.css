@@ -5,8 +5,8 @@
     width: 55px;
     height: 55px;
     border-radius: 50%;
-    border: 6px solid #E2E8F0;
-    border-top: 6px solid #2563EB;
+    border: 6px solid var(--border);
+    border-top: 6px solid var(--primary);
     animation: spin 1s linear infinite;
 }
 

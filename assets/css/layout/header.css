@@ -1,10 +1,16 @@
 /* =====================================================
-   HEADER
+   HEADER FOUNDATION
 ===================================================== */
-header {
+.theme-header {
     position: sticky;
     top: 0;
     z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 80px;
+    padding: 0 2rem;
     backdrop-filter: blur(18px);
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -12,7 +18,46 @@ header {
         background-color .30s ease,
         border-color .30s ease;
 }
-
-header button:not(.header-toggle):hover {
+/* =====================================================
+   LEFT
+===================================================== */
+.theme-header-brand {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.theme-header-brand h2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.theme-header-brand p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* =====================================================
+   RIGHT
+===================================================== */
+.theme-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+.theme-header-clock {
+    text-align: right;
+    min-width: 130px;
+}
+/* =====================================================
+   LANGUAGE
+===================================================== */
+.theme-header-language {
+    min-width: 110px;
+}
+/* =====================================================
+   BUTTON
+===================================================== */
+.theme-header button:not(.header-toggle):hover {
     background: var(--surface-hover);
 }

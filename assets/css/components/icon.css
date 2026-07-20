@@ -9,7 +9,7 @@
     justify-content: center;
     border-radius: 18px;
     background: var(--surface-hover);
-    transition: .25s;
+    transition: var(--transition);
 }
 
 .theme-icon {
@@ -17,17 +17,17 @@
 }
 
 .theme-icon-primary {
-    color: #3B82F6;
+    color: var(--primary);
 }
 
 .theme-icon-success {
-    color: #22C55E;
+    color: var(--success);
 }
 
 .theme-icon-warning {
-    color: #F97316;
+    color: var(--warning);
 }
 
 .theme-icon-light {
-    color: #EAB308;
+    color: var(--warning);
 }
