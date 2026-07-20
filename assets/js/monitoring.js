@@ -769,14 +769,9 @@ function refreshMonitoringLanguage() {
     createMonitoringCards();
     createMonitoringInformation();
     syncTrendControls();
+    renderCurrentRoom();
     refreshTrendAnalysis();
-    /* =========================================
-       REFRESH CURRENT MONITORING STATE
-    ========================================= */
-    updateRoomSummary();
-    updateTrendChart();
-    updateRealtimeChart();
-    updateSensorTable();
+    restoreTrendChart();
 }
 /* ===========================================================
     INITIALIZE
