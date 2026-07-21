@@ -1415,6 +1415,20 @@ function currentTime() {
         );
 }
 /* ===========================================================
+    FORMAT MONITORING TIME
+=========================================================== */
+function formatMonitoringTime(timestamp) {
+    if (!timestamp) {
+        return "--";
+    }
+    const date = new Date(timestamp);
+    return date
+        .toLocaleTimeString("id-ID", {
+            hour12: false
+        })
+        .replace(/:/g, ".");
+}
+/* ===========================================================
     UPDATE SENSOR
 =========================================================== */
 function updateSensor(id, value) {
@@ -1875,7 +1889,7 @@ function updateMonitoringSummary(data) {
             room.lightSensors;
     if (lastUpdate)
         lastUpdate.textContent =
-            currentTime();
+            formatMonitoringTime(data.timestamp);
 }
 /* ===========================================================
     UPDATE BADGE

@@ -46,16 +46,16 @@ const Dashboard = {
     communicationState: "online",
     eventState: {
         nodeA: {
-            communication: "waiting",
+            communication: null,
             lastTimestamp: null,
-            dust: "normal",
-            light: "normal"
+            dust: null,
+            light: null
         },
         nodeB: {
-            communication: "waiting",
+            communication: null,
             lastTimestamp: null,
-            dust: "normal",
-            light: "normal"
+            dust: null,
+            light: null
         }
     },
 };
@@ -1053,7 +1053,14 @@ function collectNodeActivity(
     COLLECT RECENT ACTIVITIES
 ===================================================== */
 function collectRecentActivities() {
-    collectCommunicationEvent();
+    collectCommunicationEvent(
+        "nodeA",
+        "LAB. KIK JTE"
+    );
+    collectCommunicationEvent(
+        "nodeB",
+        "Kontainer"
+    );
     collectMonitoringEvents();
 }
 function getDashboardConnection(roomID) {
