@@ -1951,10 +1951,10 @@ function checkConnectionStatus() {
         renderConnection(room.id);
     });
     if (
-        typeof updateDashboardCommunication ===
+        typeof refreshDashboard ===
         "function"
     ) {
-        updateDashboardCommunication();
+        refreshDashboard();
     }
 }
 /* ===========================================================

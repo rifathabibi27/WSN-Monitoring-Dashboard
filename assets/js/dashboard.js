@@ -950,7 +950,9 @@ function refreshOnlineNode() {
         if (!connection) {
             return;
         }
-        if (connection.state === "online") {
+        if (
+            connection.state === CONNECTION_STATE.ONLINE
+        ) {
             online++;
         }
     });
@@ -1077,7 +1079,7 @@ function collectCommunicationEvent(
         return;
     }
     if (
-        connection.state === "online"
+        connection.state === CONNECTION_STATE.ONLINE
     ) {
         appendActivity({
             key: `${nodeId}_online_${connection.lastReceive}`,
@@ -1092,7 +1094,7 @@ function collectCommunicationEvent(
         });
     }
     else if (
-        connection.state === "waiting"
+        connection.state === CONNECTION_STATE.WAITING
     ) {
         appendActivity({
             key: `${nodeId}_waiting_${connection.lastReceive}`,
@@ -1106,7 +1108,9 @@ function collectCommunicationEvent(
             timestamp: Date.now()
         });
     }
-    else {
+    else if (
+        connection.state === CONNECTION_STATE.OFFLINE
+    ) {
         appendActivity({
             key: `${nodeId}_offline_${connection.lastReceive}`,
             category: "communication",
