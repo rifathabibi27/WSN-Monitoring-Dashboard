@@ -2,6 +2,14 @@
     monitoring.js
     Version 2.0
 =========================================================== */
+/* ===========================================================
+    CONNECTION STATE
+=========================================================== */
+const CONNECTION_STATE = Object.freeze({
+    WAITING: "waiting",
+    ONLINE: "online",
+    OFFLINE: "offline"
+});
 const Monitoring = {
     currentRoom: "nodeA",
     state: {
@@ -64,10 +72,14 @@ const Monitoring = {
     },
     connection: {
         nodeA: {
-            state: "waiting"
+            state: CONNECTION_STATE.WAITING,
+            lastReceive: 0,
+            received: false
         },
         nodeB: {
-            state: "waiting"
+            state: CONNECTION_STATE.WAITING,
+            lastReceive: 0,
+            received: false
         }
     },
     initialized: false,
@@ -681,21 +693,53 @@ function currentHistory() {
 function getConnection(roomID) {
     return Monitoring.connection[roomID];
 }
+function hasReceivedPacket(roomID) {
+    return getConnection(roomID).received;
+}
 function getLastReceive(roomID) {
     return getConnection(roomID).lastReceive;
 }
 function updateLastReceive(roomID) {
-    const connection =
-        getConnection(roomID);
-    connection.lastReceive =
-        Date.now();
+    const connection = getConnection(roomID);
+    connection.lastReceive = Date.now();
+    connection.received = true;
 }
 function getConnectionState(roomID) {
     return getConnection(roomID).state;
 }
 function setConnectionState(roomID, state) {
-    getConnection(roomID).state =
-        state;
+    getConnection(roomID).state = state;
+}
+/* ===========================================================
+    CONNECTION ENGINE
+=========================================================== */
+function calculateConnectionState(roomID) {
+    const connection = getConnection(roomID);
+    if (!connection.received) {
+        return CONNECTION_STATE.WAITING;
+    }
+    const diff =
+        Date.now() - connection.lastReceive;
+    if (diff <= CONFIG.communication.online) {
+        return CONNECTION_STATE.ONLINE;
+    }
+    if (diff <= CONFIG.communication.waiting) {
+        return CONNECTION_STATE.WAITING;
+    }
+    return CONNECTION_STATE.OFFLINE;
+}
+function receivePacket(roomID) {
+    updateLastReceive(roomID);
+    return syncConnectionState(roomID);
+}
+function syncConnectionState(roomID) {
+    const state =
+        calculateConnectionState(roomID);
+    setConnectionState(
+        roomID,
+        state
+    );
+    return state;
 }
 /* ===========================================================
     TREND DATA PROVIDER
@@ -968,6 +1012,7 @@ function changeRoom(roomID) {
         loadCurrentRoom();
         restoreRoomChart();
         restoreTrendChart();
+        renderConnection(roomID);
         return;
     }
     setCurrentRoom(roomID);
@@ -986,6 +1031,7 @@ function changeRoom(roomID) {
     restoreTrendChart();
     refreshTrendAnalysis();
     subscribeRoom(roomID);
+    renderConnection(roomID);
 }
 /* ===========================================================
     LOAD ROOM DATA
@@ -1860,21 +1906,20 @@ function updateBadge(id, status) {
     UPDATE NODE STATUS
 =========================================================== */
 function updateNodeStatus(state) {
-    console.trace("[updateNodeStatus]", state);
     switch (state) {
-        case "online":
+        case CONNECTION_STATE.ONLINE:
             updateBadge("nodeStatus", {
                 text: CONFIG.status.system.online,
                 class: "theme-badge-online"
             });
             break;
-        case "waiting":
+        case CONNECTION_STATE.WAITING:
             updateBadge("nodeStatus", {
                 text: CONFIG.status.system.waiting,
                 class: "theme-badge-waiting"
             });
             break;
-        case "offline":
+        case CONNECTION_STATE.OFFLINE:
             updateBadge("nodeStatus", {
                 text: CONFIG.status.system.offline,
                 class: "theme-badge-offline"
@@ -1883,38 +1928,38 @@ function updateNodeStatus(state) {
     }
 }
 /* ===========================================================
+    CONNECTION RENDERER
+=========================================================== */
+function renderConnection(roomID) {
+    const state =
+        getConnectionState(roomID);
+    if (
+        roomID === getCurrentRoomID()
+    ) {
+        updateNodeStatus(state);
+    }
+}
+/* ===========================================================
     CONNECTION STATUS
 =========================================================== */
 function checkConnectionStatus() {
     CONFIG.rooms.forEach(room => {
-        const connection =
-            getConnection(room.id);
-        if (!connection) {
+        if (!getConnection(room.id)) {
             return;
         }
-        const diff =
-            Date.now() - connection.lastReceive;
-        let state;
-        if (connection.lastReceive === 0) {
-            state = "waiting";
-        } else if (diff <= CONFIG.communication.online) {
-            state = "online";
-        } else if (diff <= CONFIG.communication.waiting) {
-            state = "waiting";
-        } else {
-            state = "offline";
-        }
-        if (connection.state !== state) {
-            connection.state = state;
-            if (room.id === getCurrentRoomID()) {
-                updateNodeStatus(state);
-            }
-        }
+        syncConnectionState(room.id);
+        renderConnection(room.id);
     });
-    if (typeof updateDashboardCommunication === "function") {
+    if (
+        typeof updateDashboardCommunication ===
+        "function"
+    ) {
         updateDashboardCommunication();
     }
-    if (typeof refreshDashboard === "function") {
+    if (
+        typeof refreshDashboard ===
+        "function"
+    ) {
         refreshDashboard();
     }
 }
@@ -1925,12 +1970,11 @@ function updateMonitoringNodeA(
     data,
     isInitialSnapshot = false
 ) {
-    console.trace("[updateMonitoringNodeA]");
     if (!data)
         return;
     Monitoring.roomData.nodeA = data;
     if (!isInitialSnapshot) {
-        updateLastReceive("nodeA");
+        receivePacket("nodeA");
     }
     if (getCurrentRoomID() === "nodeA") {
         updateRoomData(data);
@@ -1944,12 +1988,11 @@ function updateMonitoringNodeB(
     data,
     isInitialSnapshot = false
 ) {
-    console.trace("[updateMonitoringNodeB]");
     if (!data)
         return;
     Monitoring.roomData.nodeB = data;
     if (!isInitialSnapshot) {
-        updateLastReceive("nodeB");
+        receivePacket("nodeB");
     }
     if (getCurrentRoomID() === "nodeB") {
         updateRoomData(data);
