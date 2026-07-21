@@ -946,7 +946,7 @@ function refreshOnlineNode() {
     let online = 0;
     CONFIG.rooms.forEach(room => {
         const connection =
-            Monitoring.connection?.[room.id];
+            getConnection(room.id);
         if (!connection) {
             return;
         }
@@ -1057,7 +1057,7 @@ function collectRecentActivities() {
     collectMonitoringEvents();
 }
 function getDashboardConnection(roomID) {
-    return Monitoring.connection?.[roomID] ?? null;
+    return getConnection(roomID);
 }
 /* =====================================================
     COMMUNICATION EVENTS
