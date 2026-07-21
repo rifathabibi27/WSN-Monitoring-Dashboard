@@ -1956,12 +1956,6 @@ function checkConnectionStatus() {
     ) {
         updateDashboardCommunication();
     }
-    if (
-        typeof refreshDashboard ===
-        "function"
-    ) {
-        refreshDashboard();
-    }
 }
 /* ===========================================================
     FIREBASE BRIDGE
