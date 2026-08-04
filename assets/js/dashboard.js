@@ -453,9 +453,12 @@ function refreshDashboard() {
     if (!Dashboard.active) {
         return;
     }
-    const nodeA = Monitoring.roomData.nodeA;
-    const nodeB = Monitoring.roomData.nodeB;
-    if (!nodeA || !nodeB) {
+    const nodeA = Monitoring.roomData.nodeA ?? null;
+    const nodeB = Monitoring.roomData.nodeB ?? null;
+    /*
+    Tidak ada data sama sekali.
+    */
+    if (!nodeA && !nodeB) {
         return;
     }
     refreshSummary(nodeA, nodeB);
@@ -476,13 +479,24 @@ function refreshSummary(nodeA, nodeB) {
     REFRESH NODE CARD
 ===================================================== */
 function refreshNodeCard() {
-    const node = currentDashboardNode();
     const room = currentDashboardRoom();
-    if (!node || !room) {
+    if (!room) {
         return;
     }
     renderNodeCardHeader(room);
-    renderNodeCard(node, room);
+    const node =
+        Monitoring.roomData[
+            Dashboard.view.currentNode
+        ];
+    const connectionState =
+        getConnectionState(
+            Dashboard.view.currentNode
+        );
+    renderNodeCard(
+        node,
+        room,
+        connectionState
+    );
 }
 function getDashboardLocale() {
     return Language.current === "en"
@@ -535,7 +549,11 @@ function renderNodeCardHeader(room) {
 /* =====================================================
     RENDER NODE CARD
 ===================================================== */
-function renderNodeCard(node, room) {
+function renderNodeCard(
+    node,
+    room,
+    connectionState
+) {
     const status =
         document.getElementById("nodeAStatus");
     const dust =
@@ -544,28 +562,80 @@ function renderNodeCard(node, room) {
         document.getElementById("nodeALight");
     const lastUpdate =
         document.getElementById("nodeALastUpdate");
+    /*
+    =====================================================
+    NODE OFFLINE / BELUM ADA DATA
+    =====================================================
+    */
+    if (
+        !node ||
+        connectionState !== CONNECTION_STATE.ONLINE
+    ) {
+        if (dust) {
+            dust.textContent = "--";
+        }
+        if (light) {
+            light.textContent = "--";
+        }
+        if (lastUpdate) {
+            lastUpdate.textContent = "--";
+        }
+        if (status) {
+            status.className = "theme-badge";
+            status.classList.add(
+                "theme-badge-offline"
+            );
+            status.textContent =
+                CONFIG.status.system.offline;
+        }
+        return;
+    }
+    /*
+    =====================================================
+    NODE ONLINE
+    =====================================================
+    */
     if (dust) {
         dust.textContent =
-            Number(node.averageDust || 0).toFixed(2) +
+            Number(node.averageDust)
+                .toFixed(2) +
             " μg/m³";
-    } if (light) {
+    }
+    if (light) {
         light.textContent =
-            Number(node.averageLight || 0).toFixed(2) +
+            Number(node.averageLight)
+                .toFixed(2) +
             " Lux";
-    } if (lastUpdate) {
-        lastUpdate.textContent = formatDashboardDate(node.timestamp);
-    } if (!status) {
+    }
+    if (lastUpdate) {
+        lastUpdate.textContent =
+            formatDashboardDate(
+                node.timestamp
+            );
+    }
+    if (!status) {
         return;
-    } if (
-        node.status &&
-        node.status.toUpperCase() === "NORMAL") {
-        status.className = "theme-badge";
-        status.classList.add("theme-badge-success");
-        status.textContent = Language.get("dashboard.dynamic.status.normal");
+    }
+    status.className = "theme-badge";
+    const nodeStatus =
+        String(node.status ?? "")
+            .toUpperCase();
+    if (nodeStatus === "NORMAL") {
+        status.classList.add(
+            "theme-badge-success"
+        );
+        status.textContent =
+            Language.get(
+                "dashboard.dynamic.status.normal"
+            );
     } else {
-        status.className = "theme-badge";
-        status.classList.add("theme-badge-danger");
-        status.textContent = Language.get("dashboard.dynamic.status.abnormal");
+        status.classList.add(
+            "theme-badge-danger"
+        );
+        status.textContent =
+            Language.get(
+                "dashboard.dynamic.status.abnormal"
+            );
     }
 }
 /* =====================================================
@@ -925,14 +995,31 @@ function exitDashboardExploreMode() {
     EXECUTIVE KPI
 ===================================================== */
 function refreshAverageDust(nodeA, nodeB) {
-    const average = (
-        Number(nodeA?.averageDust ?? 0) +
-        Number(nodeB?.averageDust ?? 0)
-    ) / 2;
-    updateCard(
-        "avgDust",
-        average.toFixed(2)
-    );
+    const values = [];
+    if (
+        nodeA &&
+        getConnectionState("nodeA") === CONNECTION_STATE.ONLINE
+    ) {
+        values.push(Number(nodeA.averageDust));
+    }
+    if (
+        nodeB &&
+        getConnectionState("nodeB") === CONNECTION_STATE.ONLINE
+    ) {
+        values.push(Number(nodeB.averageDust));
+    }
+    const el = document.getElementById("avgDust");
+    if (!el) {
+        return;
+    }
+    if (values.length === 0) {
+        el.textContent = "--";
+        return;
+    }
+    const avg =
+        values.reduce((a, b) => a + b, 0) /
+        values.length;
+    el.textContent = avg.toFixed(2);
 }
 function refreshTotalSensor() {
     const total = CONFIG.rooms.reduce((sum, room) => {
@@ -965,32 +1052,64 @@ function refreshOnlineNode() {
         `${online}/${CONFIG.rooms.length}`;
 }
 function refreshLastSync(nodeA, nodeB) {
-    const latest = Math.max(
-        nodeA?.timestamp || 0,
-        nodeB?.timestamp || 0
-    );
-    const el = document.getElementById("dashboardLastSync");
+    const timestamps = [];
+    if (
+        nodeA &&
+        getConnectionState("nodeA") === CONNECTION_STATE.ONLINE
+    ) {
+        timestamps.push(Number(nodeA.timestamp));
+    }
+    if (
+        nodeB &&
+        getConnectionState("nodeB") === CONNECTION_STATE.ONLINE
+    ) {
+        timestamps.push(Number(nodeB.timestamp));
+    }
+    const el =
+        document.getElementById("dashboardLastSync");
     if (!el) {
         return;
     }
-    if (!latest) {
+    if (timestamps.length === 0) {
         el.textContent = "--";
         return;
     }
-    el.textContent = new Date(latest).toLocaleTimeString(
-        getDashboardLocale(),
-        {
-            hour12: false
-        }
-    );
+    const latest = Math.max(...timestamps);
+    el.textContent =
+        new Date(latest)
+            .toLocaleTimeString(
+                getDashboardLocale(),
+                {
+                    hour12: false
+                }
+            );
 }
 function refreshAverageLight(nodeA, nodeB) {
-    const average =
-        (Number(nodeA.averageLight) +
-            Number(nodeB.averageLight)) / 2;
+    const values = [];
+    if (
+        nodeA &&
+        getConnectionState("nodeA") === CONNECTION_STATE.ONLINE
+    ) {
+        values.push(Number(nodeA.averageLight));
+    }
+    if (
+        nodeB &&
+        getConnectionState("nodeB") === CONNECTION_STATE.ONLINE
+    ) {
+        values.push(Number(nodeB.averageLight));
+    }
     const el = document.getElementById("avgLight");
-    if (el)
-        el.textContent = average.toFixed(2);
+    if (!el) {
+        return;
+    }
+    if (values.length === 0) {
+        el.textContent = "--";
+        return;
+    }
+    const avg =
+        values.reduce((a, b) => a + b, 0) /
+        values.length;
+    el.textContent = avg.toFixed(2);
 }
 /* =====================================================
     RECENT ACTIVITY
@@ -1234,13 +1353,11 @@ function collectLightEvent(
             titleKey = "activity.light.low.title";
             descriptionKey = "activity.light.low.description";
             break;
-
         case "high":
             type = "warning";
             titleKey = "activity.light.high.title";
             descriptionKey = "activity.light.high.description";
             break;
-
         default:
             type = "success";
             titleKey = "activity.light.normal.title";

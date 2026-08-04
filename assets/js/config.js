@@ -38,7 +38,7 @@ const CONFIG = {
     },
     communication: {
         online: 15000,
-        waiting: 30000
+        waiting: 45000
     },
     status: {
         system: {

@@ -72,16 +72,18 @@ const Monitoring = {
     },
     connection: {
         nodeA: {
-            state: CONNECTION_STATE.WAITING,
-            lastReceive: 0,
-            received: false
-        },
-        nodeB: {
-            state: CONNECTION_STATE.WAITING,
-            lastReceive: 0,
-            received: false
-        }
+        state: CONNECTION_STATE.WAITING,
+        lastReceive: 0,
+        received: false,
+        startedAt: Date.now()
     },
+    nodeB: {
+        state: CONNECTION_STATE.WAITING,
+        lastReceive: 0,
+        received: false,
+        startedAt: Date.now()
+    }
+},
     initialized: false,
     listener: null,
     subscribedRoom: null
@@ -699,6 +701,10 @@ function hasReceivedPacket(roomID) {
 function getLastReceive(roomID) {
     return getConnection(roomID).lastReceive;
 }
+function getConnectionAge(roomID) {
+    return Date.now() -
+        getConnection(roomID).startedAt;
+}
 function updateLastReceive(roomID) {
     const connection = getConnection(roomID);
     connection.lastReceive = Date.now();
@@ -714,16 +720,40 @@ function setConnectionState(roomID, state) {
     CONNECTION ENGINE
 =========================================================== */
 function calculateConnectionState(roomID) {
-    const connection = getConnection(roomID);
+    const connection =
+        getConnection(roomID);
+    /*
+    ====================================================
+    BELUM PERNAH MENERIMA PAKET
+    ====================================================
+    */
     if (!connection.received) {
-        return CONNECTION_STATE.WAITING;
+        if (
+            getConnectionAge(roomID) <=
+            CONFIG.communication.waiting
+        ) {
+            return CONNECTION_STATE.WAITING;
+        }
+        return CONNECTION_STATE.OFFLINE;
     }
+    /*
+    ====================================================
+    SUDAH PERNAH MENERIMA PAKET
+    ====================================================
+    */
     const diff =
-        Date.now() - connection.lastReceive;
-    if (diff <= CONFIG.communication.online) {
+        Date.now() -
+        connection.lastReceive;
+    if (
+        diff <=
+        CONFIG.communication.online
+    ) {
         return CONNECTION_STATE.ONLINE;
     }
-    if (diff <= CONFIG.communication.waiting) {
+    if (
+        diff <=
+        CONFIG.communication.waiting
+    ) {
         return CONNECTION_STATE.WAITING;
     }
     return CONNECTION_STATE.OFFLINE;
@@ -998,9 +1028,15 @@ function resetMonitoringView() {
             }
         );
     }
-    document.getElementById("averageDust").textContent = "--";
-    document.getElementById("averageLight").textContent = "--";
-    document.getElementById("lastUpdate").textContent = "--";
+    document.getElementById(
+        "averageDust"
+    ).textContent = "--";
+    document.getElementById(
+        "averageLight"
+    ).textContent = "--";
+    document.getElementById(
+        "lastUpdate"
+    ).textContent = "--";
 }
 /* ===========================================================
     CHANGE ROOM
@@ -1040,6 +1076,11 @@ function loadCurrentRoom() {
     const data = getCurrentRoomData();
     if (!data) {
         resetMonitoringView();
+        updateMonitoringSummary({
+            averageDust: null,
+            averageLight: null,
+            timestamp: null
+        });
         return;
     }
     updateRoomData(data);
@@ -1858,38 +1899,42 @@ function calculateAverage(data) {
     UPDATE SUMMARY
 =========================================================== */
 function updateMonitoringSummary(data) {
-    const avgDust =
-        document.getElementById("averageDust");
-    const avgLight =
-        document.getElementById("averageLight");
-    const dustCount =
-        document.getElementById("dustCount");
-    const lightCount =
-        document.getElementById("lightCount");
-    const nodeStatus =
-        document.getElementById("nodeStatus");
-    const lastUpdate =
-        document.getElementById("lastUpdate");
+    const avgDust = document.getElementById("averageDust");
+    const avgLight = document.getElementById("averageLight");
+    const dustCount = document.getElementById("dustCount");
+    const lightCount = document.getElementById("lightCount");
+    const lastUpdate = document.getElementById("lastUpdate");
     const room = currentRoom();
-    const dustValue =
-        Number(data.averageDust ?? 0);
-    const lightValue =
-        Number(data.averageLight ?? 0);
-    if (avgDust)
-        avgDust.textContent =
-            dustValue.toFixed(2);
-    if (avgLight)
-        avgLight.textContent =
-            lightValue.toFixed(2);
-    if (dustCount)
+    const dustValue = data?.averageDust;
+    const lightValue = data?.averageLight;
+    if (avgDust) {
+        avgDust.textContent = dustValue == null
+            ? "--"
+            : Number(dustValue)
+                .toFixed(2);
+    }
+    if (avgLight) {
+        avgLight.textContent = lightValue == null
+            ? "--"
+            : Number(lightValue)
+                .toFixed(2);
+    }
+    if (dustCount) {
         dustCount.textContent =
             room.dustSensors;
-    if (lightCount)
+    }
+    if (lightCount) {
         lightCount.textContent =
             room.lightSensors;
-    if (lastUpdate)
+    }
+    if (lastUpdate) {
         lastUpdate.textContent =
-            formatMonitoringTime(data.timestamp);
+            data?.timestamp
+                ? formatMonitoringTime(
+                    data.timestamp
+                )
+                : "--";
+    }
 }
 /* ===========================================================
     UPDATE BADGE
@@ -1978,12 +2023,17 @@ function updateMonitoringNodeA(
     data,
     isInitialSnapshot = false
 ) {
-    if (!data)
+    if (!data) {
         return;
-    Monitoring.roomData.nodeA = data;
-    if (!isInitialSnapshot) {
-        receivePacket("nodeA");
     }
+    Monitoring.roomData.nodeA = data;
+    /*
+    =====================================================
+    Seluruh snapshot Firebase dianggap sebagai paket yang
+    diterima, termasuk initial snapshot.
+    =====================================================
+    */
+    receivePacket("nodeA");
     if (getCurrentRoomID() === "nodeA") {
         updateRoomData(data);
         appendRealtimeChart(data);
@@ -1996,12 +2046,16 @@ function updateMonitoringNodeB(
     data,
     isInitialSnapshot = false
 ) {
-    if (!data)
+    if (!data) {
         return;
-    Monitoring.roomData.nodeB = data;
-    if (!isInitialSnapshot) {
-        receivePacket("nodeB");
     }
+    Monitoring.roomData.nodeB = data;
+    /*
+    =====================================================
+    Initial snapshot juga dianggap paket valid.
+    =====================================================
+    */
+    receivePacket("nodeB");
     if (getCurrentRoomID() === "nodeB") {
         updateRoomData(data);
         appendRealtimeChart(data);

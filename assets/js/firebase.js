@@ -129,8 +129,8 @@ function normalizeRealtimeData(data) {
         status: data.keterangan,
         dust: [],
         light: [],
-        averageDust: Number(data.debu?.rata ?? 0),
-        averageLight: Number(data.cahaya?.rata ?? 0),
+        averageDust: data.debu?.rata == null? null: Number(data.debu.rata),
+        averageLight: data.cahaya?.rata == null? null: Number(data.cahaya.rata),
         timestamp: data.waktu
     };
     if (data.debu) {
