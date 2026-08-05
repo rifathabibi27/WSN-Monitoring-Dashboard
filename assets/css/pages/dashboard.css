@@ -3,80 +3,79 @@
 ===================================================== */
 #heroMonitoringButton,
 #dashboardMonitoringButton {
-    transition:
-        transform var(--transition-fast) box-shadow var(--transition-fast)
+  transition: transform var(--transition-fast) box-shadow var(--transition-fast);
 }
 #heroMonitoringButton:hover,
 #dashboardMonitoringButton:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg)
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 /* =====================================================
    DASHBOARD CAROUSEL
 ===================================================== */
 #dashboardPrevNode,
 #dashboardNextNode {
-    transition:
-        transform var(--transition-fast),
-        background-color var(--transition-fast),
-        color var(--transition-fast),
-        box-shadow var(--transition-fast),
+  transition:
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 #dashboardPrevNode:hover,
 #dashboardNextNode:hover {
-    transform: scale(1.08);
-    box-shadow: var(--shadow-md)
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md);
 }
 /* =====================================================
    CAROUSEL INDICATOR
 ===================================================== */
 #dashboardCarouselIndicator span {
-    transition:
-        transform .25s ease,
-        background-color .25s ease;
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease;
 }
 #dashboardCarouselIndicator .bg-blue-600 {
-    transform: scale(1.35);
+  transform: scale(1.35);
 }
 /* =====================================================
    DASHBOARD ELEVATION
 ===================================================== */
 .bg-white:hover {
-    border-color: var(--border);
+  border-color: var(--border);
 }
 #heroMonitoringButton,
 #dashboardMonitoringButton {
-    font-weight: 600;
-    letter-spacing: .2px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 /* =====================================================
    DASHBOARD CAROUSEL
 ===================================================== */
 .theme-carousel-button {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 9999px;
-    color: var(--text-secondary);
-    transition:
-        background-color .25s ease,
-        color .25s ease,
-        transform .25s ease;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
 }
 .theme-carousel-button:hover {
-    background: var(--surface-hover);
-    color: var(--primary);
-    transform: scale(1.08);
+  background: var(--surface-hover);
+  color: var(--primary);
+  transform: scale(1.08);
 }
 .theme-carousel-dot {
-    width: .5rem;
-    height: .5rem;
-    border-radius: 9999px;
-    background: var(--border);
-    transition:
-        background-color .25s ease,
-        transform .25s ease;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--border);
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease;
 }
 .theme-carousel-dot-active {
-    background: var(--primary);
-    transform: scale(1.35);
+  background: var(--primary);
+  transform: scale(1.35);
 }

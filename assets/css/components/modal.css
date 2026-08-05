@@ -2,34 +2,29 @@
    MODAL
 ===================================================== */
 #pinModal {
-    backdrop-filter: blur(6px);
-    animation: fadeModal var(--transition);
+  backdrop-filter: blur(6px);
+  animation: fadeModal var(--transition);
 }
-
 @keyframes fadeModal {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-
-#pinModal>div {
-    background: var(--surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
+#pinModal > div {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
-
 @keyframes popup {
-    from {
-        transform: translateY(25px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+  from {
+    transform: translateY(25px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

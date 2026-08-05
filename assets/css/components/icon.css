@@ -2,32 +2,27 @@
    THEME ICON
 ===================================================== */
 .theme-icon-box {
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 18px;
-    background: var(--surface-hover);
-    transition: var(--transition);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: var(--surface-hover);
+  transition: var(--transition);
 }
-
 .theme-icon {
-    font-size: 1.5rem;
+  font-size: 1.5rem;
 }
-
 .theme-icon-primary {
-    color: var(--primary);
+  color: var(--primary);
 }
-
 .theme-icon-success {
-    color: var(--success);
+  color: var(--success);
 }
-
 .theme-icon-warning {
-    color: var(--warning);
+  color: var(--warning);
 }
-
 .theme-icon-light {
-    color: var(--warning);
+  color: var(--warning);
 }

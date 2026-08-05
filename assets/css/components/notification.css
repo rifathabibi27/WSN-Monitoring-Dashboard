@@ -2,175 +2,144 @@
    NOTIFICATION PANEL
 ===================================================== */
 #notificationPanel {
-    background: var(--surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    transition:
-        background-color .30s ease,
-        border-color .30s ease,
-        color .30s ease;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
 }
-
 #notificationPanel section {
-    background: transparent;
+  background: transparent;
 }
-
 #notificationPanel button {
-    color: inherit;
+  color: inherit;
 }
-
 /* =====================================================
    NOTIFICATION ITEM
 ===================================================== */
 .theme-notification-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left-width: 4px;
-    transition:
-        background-color var(--transition),
-        border-color var(--transition),
-        transform var(--transition),
-        box-shadow var(--transition);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
 }
-
 .theme-notification-item:hover {
-    background: var(--surface-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
-
 .theme-notification-title {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
-
 .theme-notification-text {
-    color: var(--text-secondary);
+  color: var(--text-secondary);
 }
-
 .theme-notification-muted {
-    color: var(--text-muted);
+  color: var(--text-muted);
 }
-
 .theme-notification-chip {
-    background: var(--surface-hover);
-    color: var(--text-secondary);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
 }
-
 .theme-notification-category {
-    background: var(--primary-light);
-    color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
 }
-
 .theme-notification-icon {
-    background: var(--primary-light);
+  background: var(--primary-light);
 }
-
 /* =====================================================
    NOTIFICATION SEVERITY
 ===================================================== */
 .theme-notification-success {
-    border-left-color: var(--success);
+  border-left-color: var(--success);
 }
-
 .theme-notification-warning {
-    border-left-color: var(--warning);
+  border-left-color: var(--warning);
 }
-
 .theme-notification-danger {
-    border-left-color: var(--danger);
+  border-left-color: var(--danger);
 }
-
 .theme-notification-info {
-    border-left-color: var(--primary);
+  border-left-color: var(--primary);
 }
-
 /* icon */
 .theme-notification-icon-success {
-    background: var(--success-soft);
-    color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
 }
-
 .theme-notification-icon-warning {
-    background: var(--warning-soft);
-    color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
 }
-
 .theme-notification-icon-danger {
-    background: var(--danger-soft);
-    color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
-
 .theme-notification-icon-info {
-    background: var(--primary-soft);
-    color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
-
 /* dot */
 .theme-notification-dot-success {
-    background: var(--success);
+  background: var(--success);
 }
-
 .theme-notification-dot-warning {
-    background: var(--warning);
+  background: var(--warning);
 }
-
 .theme-notification-dot-danger {
-    background: var(--danger);
+  background: var(--danger);
 }
-
 .theme-notification-dot-info {
-    background: var(--primary);
+  background: var(--primary);
 }
-
 /* =====================================================
    HEADER NOTIFICATION
 ===================================================== */
 #notificationToggle {
-    position: relative;
+  position: relative;
 }
-
 #notificationToggle.notification-active {
-    background: var(--surface-hover);
+  background: var(--surface-hover);
 }
-
 #notificationToggle.notification-active i {
-    color: var(--primary);
+  color: var(--primary);
 }
-
 /* =====================================================
    NOTIFICATION ACTION
 ===================================================== */
 .theme-notification-action {
-    color: var(--primary);
-    transition:
-        color var(--transition),
-        background-color var(--transition);
+  color: var(--primary);
+  transition:
+    color var(--transition),
+    background-color var(--transition);
 }
-
 .theme-notification-action:hover {
-    opacity: .85;
+  opacity: 0.85;
 }
-
 .theme-notification-footer {
-    background: var(--surface-hover);
+  background: var(--surface-hover);
 }
-
 .theme-notification-footer-button {
-    width: 100%;
-    border-radius: .75rem;
-    padding: .5rem 0;
-    color: var(--primary);
-    font-size: .875rem;
-    font-weight: 500;
-    transition:
-        background-color var(--transition),
-        color var(--transition);
+  width: 100%;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background-color var(--transition),
+    color var(--transition);
 }
-
 .theme-notification-footer-button:hover {
-    background: var(--primary-light);
+  background: var(--primary-light);
 }
-
 .theme-notification-badge {
-    background: var(--danger);
+  background: var(--danger);
 }

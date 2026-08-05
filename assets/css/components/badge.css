@@ -2,138 +2,113 @@
    BADGE COMPONENT
 ===================================================== */
 :root {
-    /* Badge */
-    --badge-padding-y: .5rem;
-    --badge-padding-x: .875rem;
-    --badge-gap: .5rem;
-    --badge-radius: 9999px;
-    --badge-font-size: .75rem;
-    --badge-font-weight: 600;
-    --badge-border-width: 1px;
-    --badge-transition:
-        background-color .25s ease,
-        color .25s ease,
-        border-color .25s ease;
+  /* Badge */
+  --badge-padding-y: 0.5rem;
+  --badge-padding-x: 0.875rem;
+  --badge-gap: 0.5rem;
+  --badge-radius: 9999px;
+  --badge-font-size: 0.75rem;
+  --badge-font-weight: 600;
+  --badge-border-width: 1px;
+  --badge-transition:
+    background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
-
 .theme-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .375rem;
-
-    min-height: 28px;
-    min-width: 68px;
-
-    padding: 4px 12px;
-
-    border-radius: var(--radius-full);
-
-    font-size: .75rem;
-    font-weight: 600;
-    line-height: 1;
-
-    white-space: nowrap;
-
-    transition:
-        background-color var(--transition),
-        color var(--transition);
-
-    user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 28px;
+  min-width: 68px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color var(--transition),
+    color var(--transition);
+  user-select: none;
 }
-
 /* ===========================
    SYSTEM
 =========================== */
 .theme-badge-online {
-    background: var(--success-soft);
-    color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
 }
-
 .theme-badge-offline {
-    background: var(--danger-soft);
-    color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
-
 .theme-badge-waiting {
-    background: var(--surface-hover);
-    color: var(--text-secondary);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
 }
-
 /* ===========================
    DUST
 =========================== */
 .theme-badge-normal {
-    background: var(--success-soft);
-    color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
 }
-
 .theme-badge-warning {
-    background: var(--warning-soft);
-    color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
 }
-
 .theme-badge-danger {
-    background: var(--danger-soft);
-    color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
-
 /* ===========================
    LIGHT
 =========================== */
 .theme-badge-ideal {
-    background: var(--success-soft);
-    color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
 }
-
 .theme-badge-too-bright {
-    background: var(--primary-soft);
-    color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
-
 .theme-badge-poor {
-    background: var(--danger-soft);
-    color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
-
 /* ===========================
    NEUTRAL
 =========================== */
 .theme-badge-neutral {
-    background: var(--surface-hover);
-    color: var(--text-secondary);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
 }
-
 /* =====================================================
    DASHBOARD TREND STATE
 ===================================================== */
 .theme-badge-live {
-    background: var(--success-soft);
-    color: var(--success);
-    border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
+  background: var(--success-soft);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
 }
-
 .theme-badge-explore {
-    background: var(--primary-soft);
-    color: var(--primary);
-    border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
 }
-
 .theme-badge-dot {
-    display: inline-block;
-    width: .5rem;
-    height: .5rem;
-    min-width: .5rem;
-    min-height: .5rem;
-    flex: 0 0 auto;
-    flex-shrink: 0;
-    border-radius: 50%;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  min-width: 0.5rem;
+  min-height: 0.5rem;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
-
 .theme-badge-dot-live {
-    background: var(--success);
+  background: var(--success);
 }
-
 .theme-badge-dot-explore {
-    background: var(--primary);
+  background: var(--primary);
 }

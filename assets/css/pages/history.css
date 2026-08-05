@@ -4,24 +4,21 @@
 #sensorFilter:disabled,
 #startDateFilter:disabled,
 #endDateFilter:disabled {
-    opacity: 1;
-    cursor: not-allowed;
+  opacity: 1;
+  cursor: not-allowed;
 }
-
 /* =====================================================
    HISTORY STATUS
 ===================================================== */
 .history-normal {
-    background: var(--success-soft);
-    color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
 }
-
 .history-warning {
-    background: var(--warning-soft);
-    color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
 }
-
 .history-danger {
-    background: var(--danger-soft);
-    color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }

@@ -2,31 +2,26 @@
    TABLE
 ===================================================== */
 table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
-
 thead {
-    background: var(--surface-hover);
+  background: var(--surface-hover);
 }
-
 thead th {
-    padding: 18px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
+  padding: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
-
 tbody td {
-    padding: 18px;
-    border-top: 1px solid var(--border);
-    font-size: 15px;
+  padding: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
 }
-
 tbody tr {
-    transition: .25s;
+  transition: 0.25s;
 }
-
 tbody tr:hover {
-    background: var(--surface-hover);
+  background: var(--surface-hover);
 }

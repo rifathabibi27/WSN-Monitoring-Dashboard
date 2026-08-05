@@ -2,29 +2,27 @@
    TOAST
 ===================================================== */
 .toast {
-    position: fixed;
-    top: 25px;
-    right: 25px;
-    background: var(--surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 18px 22px;
-    box-shadow: var(--shadow);
-    z-index: 999;
-    animation: toast .35s;
-    transition:
-        background-color .30s ease,
-        color .30s ease,
-        border-color .30s ease;
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+  z-index: 999;
+  animation: toast 0.35s;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
-
 @keyframes toast {
-    from {
-        transform: translateX(120%);
-    }
-
-    to {
-        transform: translateX(0);
-    }
+  from {
+    transform: translateX(120%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }

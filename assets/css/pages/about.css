@@ -2,14 +2,12 @@
    ABOUT PAGE
    THEME LINK
 ===================================================== */
-
 #aboutPage .theme-link {
-    color: var(--primary);
-    text-decoration: none;
-    transition: color var(--transition-fast);
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
-
 #aboutPage .theme-link:hover {
-    color: color-mix(in srgb, var(--primary) 75%, white);
-    text-decoration: underline;
+  color: color-mix(in srgb, var(--primary) 75%, white);
+  text-decoration: underline;
 }

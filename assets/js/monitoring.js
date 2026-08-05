@@ -6,130 +6,122 @@
     CONNECTION STATE
 =========================================================== */
 const CONNECTION_STATE = Object.freeze({
-    WAITING: "waiting",
-    ONLINE: "online",
-    OFFLINE: "offline"
+  WAITING: "waiting",
+  ONLINE: "online",
+  OFFLINE: "offline",
 });
 const Monitoring = {
-    currentRoom: "nodeA",
-    state: {
-        room: "nodeA",
-        trend: {
-            nodeA: {
-                mode: "averageDust",
-                sensor: null
-            },
-            nodeB: {
-                mode: "averageDust",
-                sensor: null
-            }
-        }
+  currentRoom: "nodeA",
+  state: {
+    room: "nodeA",
+    trend: {
+      nodeA: {
+        mode: "averageDust",
+        sensor: null,
+      },
+      nodeB: {
+        mode: "averageDust",
+        sensor: null,
+      },
     },
-    interaction: {
-        roomChart: {
-            nodeA: {
-                mode: "live",
-                limit: 10
-            },
-            nodeB: {
-                mode: "live",
-                limit: 10
-            }
-        },
-        trendChart: {
-            nodeA: {
-                mode: "live",
-                limit: 10
-            },
-            nodeB: {
-                mode: "live",
-                limit: 10
-            }
-        }
+  },
+  interaction: {
+    roomChart: {
+      nodeA: {
+        mode: "live",
+        limit: 10,
+      },
+      nodeB: {
+        mode: "live",
+        limit: 10,
+      },
     },
-    charts: {},
-    chartHistory: {
-        nodeA: {
-            labels: [],
-            dust: [],
-            light: []
-        },
-        nodeB: {
-            labels: [],
-            dust: [],
-            light: []
-        }
+    trendChart: {
+      nodeA: {
+        mode: "live",
+        limit: 10,
+      },
+      nodeB: {
+        mode: "live",
+        limit: 10,
+      },
     },
-    sensors: {},
-    roomData: {},
-    historyData: {
-        nodeA: [],
-        nodeB: []
-    },
-    historyLoaded: {
-        nodeA: false,
-        nodeB: false
-    },
-    connection: {
-        nodeA: {
-        state: CONNECTION_STATE.WAITING,
-        lastReceive: 0,
-        received: false,
-        startedAt: Date.now()
+  },
+  charts: {},
+  chartHistory: {
+    nodeA: {
+      labels: [],
+      dust: [],
+      light: [],
     },
     nodeB: {
-        state: CONNECTION_STATE.WAITING,
-        lastReceive: 0,
-        received: false,
-        startedAt: Date.now()
-    }
-},
-    initialized: false,
-    listener: null,
-    subscribedRoom: null
+      labels: [],
+      dust: [],
+      light: [],
+    },
+  },
+  sensors: {},
+  roomData: {},
+  historyData: {
+    nodeA: [],
+    nodeB: [],
+  },
+  historyLoaded: {
+    nodeA: false,
+    nodeB: false,
+  },
+  connection: {
+    nodeA: {
+      state: CONNECTION_STATE.WAITING,
+      lastReceive: 0,
+      received: false,
+      startedAt: Date.now(),
+    },
+    nodeB: {
+      state: CONNECTION_STATE.WAITING,
+      lastReceive: 0,
+      received: false,
+      startedAt: Date.now(),
+    },
+  },
+  initialized: false,
+  listener: null,
+  subscribedRoom: null,
 };
 /* ===========================================================
    CURRENT ROOM HELPER STATE (TREND ANALYSIS)
 =========================================================== */
 function getCurrentRoomID() {
-    return Monitoring.state.room;
+  return Monitoring.state.room;
 }
 function setCurrentRoom(roomID) {
-    Monitoring.state.room = roomID;
-    // Sinkronisasi sementara
-    // Akan dihapus pada fase refactor akhir.
-    Monitoring.currentRoom = roomID;
+  Monitoring.state.room = roomID;
+  // Sinkronisasi sementara
+  // Akan dihapus pada fase refactor akhir.
+  Monitoring.currentRoom = roomID;
 }
 function getTrendMode() {
-    return Monitoring.state.trend[
-        getCurrentRoomID()
-    ].mode;
+  return Monitoring.state.trend[getCurrentRoomID()].mode;
 }
 function setTrendMode(mode) {
-    Monitoring.state.trend[
-        getCurrentRoomID()
-    ].mode = mode;
+  Monitoring.state.trend[getCurrentRoomID()].mode = mode;
 }
 function getTrendSensor() {
-    return Monitoring.state.trend[
-        getCurrentRoomID()
-    ].sensor;
+  return Monitoring.state.trend[getCurrentRoomID()].sensor;
 }
 function setTrendSensor(sensor) {
-    Monitoring.state.trend[
-        getCurrentRoomID()
-    ].sensor = sensor;
+  Monitoring.state.trend[getCurrentRoomID()].sensor = sensor;
 }
 /* ===========================================================
     UPDATE TREND MODE DROPDOWN
 =========================================================== */
 function updateTrendModeDropdown() {
-    const mode = document.getElementById("chartMode");
-    if (!mode) {
-        return;
-    }
-    const currentValue = getTrendMode();
-    mode.innerHTML = `
+  const mode = document.getElementById("chartMode");
+  if (!mode) {
+    return;
+  }
+  const currentValue = getTrendMode();
+  mode.innerHTML = `
         <option value="averageDust">
             ${Language.get("monitoring.trend.averageDust")}
         </option>
@@ -143,767 +135,568 @@ function updateTrendModeDropdown() {
             ${Language.get("monitoring.trend.lightOnly")}
         </option>
     `;
-    mode.value = currentValue;
+  mode.value = currentValue;
 }
 /* ===========================================================
     SYNC TREND UI
 =========================================================== */
 function syncTrendControls() {
-    const mode = document.getElementById(
-        "chartMode"
-    );
-    const sensor = document.getElementById(
-        "chartSensor"
-    );
-    if (!mode || !sensor) {
-        return;
-    }
-    updateTrendModeDropdown();
-    updateTrendSensorDropdown();
-    mode.value = getTrendMode();
-    if (getTrendSensor()) {
-        sensor.value = getTrendSensor();
-    }
+  const mode = document.getElementById("chartMode");
+  const sensor = document.getElementById("chartSensor");
+  if (!mode || !sensor) {
+    return;
+  }
+  updateTrendModeDropdown();
+  updateTrendSensorDropdown();
+  mode.value = getTrendMode();
+  if (getTrendSensor()) {
+    sensor.value = getTrendSensor();
+  }
 }
 function getRealtimeChart() {
-    return Monitoring.charts.room;
+  return Monitoring.charts.room;
 }
 /* ===========================================================
     APPEND REALTIME HISTORY
 =========================================================== */
-function appendRealtimeHistory(
-    averageDust,
-    averageLight) {
-    const history =
-        currentChartHistory();
-    const now =
-        new Date();
-    history.labels.push(
-        now.toLocaleTimeString(
-            getDashboardLocale(),
-            {
-                hour12: false
-            }
-        )
-    );
-    history.dust.push(
-        Number(averageDust)
-    );
-    history.light.push(
-        Number(averageLight)
-    );
-    while (
-        history.labels.length >
-        CONFIG.chart.maxPoints
-    ) {
-        history.labels.shift();
-        history.dust.shift();
-        history.light.shift();
-    }
+function appendRealtimeHistory(averageDust, averageLight) {
+  const history = currentChartHistory();
+  const now = new Date();
+  history.labels.push(
+    now.toLocaleTimeString(getDashboardLocale(), {
+      hour12: false,
+    }),
+  );
+  history.dust.push(Number(averageDust));
+  history.light.push(Number(averageLight));
+  while (history.labels.length > CONFIG.chart.maxPoints) {
+    history.labels.shift();
+    history.dust.shift();
+    history.light.shift();
+  }
 }
 /* ===========================================================
     REFRESH REALTIME CHART
 =========================================================== */
 function refreshRealtimeChart() {
-    if (
-        isRoomChartExploreMode()
-    ) {
-        return;
-    }
-    const chart =
-        getRealtimeChart();
-    if (!chart) {
-        return;
-    }
-    const history =
-        getRealtimeRenderHistory();
-    chart.data.labels =
-        [...history.labels];
-    chart.data.datasets[0].data =
-        [...history.dust];
-    chart.data.datasets[1].data =
-        [...history.light];
-    chart.update("none")
+  if (isRoomChartExploreMode()) {
+    return;
+  }
+  const chart = getRealtimeChart();
+  if (!chart) {
+    return;
+  }
+  const history = getRealtimeRenderHistory();
+  chart.data.labels = [...history.labels];
+  chart.data.datasets[0].data = [...history.dust];
+  chart.data.datasets[1].data = [...history.light];
+  chart.update("none");
 }
 /* ===========================================================
     GET REALTIME RENDER HISTORY
 =========================================================== */
 function getRealtimeRenderHistory() {
-    const history =
-        currentChartHistory();
-    const limit =
-        getRoomChartInteraction().limit;
-    return {
-        labels:
-            history.labels.slice(-limit),
-        dust:
-            history.dust.slice(-limit),
-        light:
-            history.light.slice(-limit)
-    };
+  const history = currentChartHistory();
+  const limit = getRoomChartInteraction().limit;
+  return {
+    labels: history.labels.slice(-limit),
+    dust: history.dust.slice(-limit),
+    light: history.light.slice(-limit),
+  };
 }
 /* ===========================================================
     GET TREND CHART
 =========================================================== */
 function getTrendChart() {
-    return Monitoring.charts.trend || null;
+  return Monitoring.charts.trend || null;
 }
 /* ===========================================================
     ROOM CHART INTERACTION
 =========================================================== */
 function getRoomChartInteraction() {
-    return Monitoring
-        .interaction
-        .roomChart[
-        getCurrentRoomID()
-    ];
+  return Monitoring.interaction.roomChart[getCurrentRoomID()];
 }
 function isRoomChartLiveMode() {
-    return getRoomChartInteraction()
-        .mode === "live";
+  return getRoomChartInteraction().mode === "live";
 }
 function isRoomChartExploreMode() {
-    return getRoomChartInteraction()
-        .mode === "explore";
+  return getRoomChartInteraction().mode === "explore";
 }
 function setRoomChartInteractionMode(mode) {
-    getRoomChartInteraction().mode =
-        mode;
+  getRoomChartInteraction().mode = mode;
 }
 /* ===========================================================
     TREND CHART INTERACTION
 =========================================================== */
 function getTrendChartInteraction() {
-    return Monitoring
-        .interaction
-        .trendChart[
-        getCurrentRoomID()
-    ];
+  return Monitoring.interaction.trendChart[getCurrentRoomID()];
 }
 function isTrendChartLiveMode() {
-    return getTrendChartInteraction()
-        .mode === "live";
+  return getTrendChartInteraction().mode === "live";
 }
 function isTrendChartExploreMode() {
-    return getTrendChartInteraction()
-        .mode === "explore";
+  return getTrendChartInteraction().mode === "explore";
 }
 function setTrendChartInteractionMode(mode) {
-    getTrendChartInteraction().mode =
-        mode;
+  getTrendChartInteraction().mode = mode;
 }
 /* ===========================================================
     ROOM CHART INTERACTION ENGINE
 =========================================================== */
 function applyRoomChartInteraction() {
-    const chart = getRealtimeChart();
-    if (!chart) {
-        return;
-    }
-    const explore = isRoomChartExploreMode();
-    chart.options.plugins.zoom.pan.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.wheel.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.pinch.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.drag.enabled =
-        false;
-    chart.update("none");
+  const chart = getRealtimeChart();
+  if (!chart) {
+    return;
+  }
+  const explore = isRoomChartExploreMode();
+  chart.options.plugins.zoom.pan.enabled = explore;
+  chart.options.plugins.zoom.zoom.wheel.enabled = explore;
+  chart.options.plugins.zoom.zoom.pinch.enabled = explore;
+  chart.options.plugins.zoom.zoom.drag.enabled = false;
+  chart.update("none");
 }
 /* ===========================================================
     TREND CHART INTERACTION ENGINE
 =========================================================== */
 function applyTrendChartInteraction() {
-    const chart = getTrendChart();
-    if (!chart) {
-        return;
-    }
-    const explore = isTrendChartExploreMode();
-    chart.options.plugins.zoom.pan.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.wheel.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.pinch.enabled =
-        explore;
-    chart.options.plugins.zoom.zoom.drag.enabled =
-        false;
-    chart.update("none");
+  const chart = getTrendChart();
+  if (!chart) {
+    return;
+  }
+  const explore = isTrendChartExploreMode();
+  chart.options.plugins.zoom.pan.enabled = explore;
+  chart.options.plugins.zoom.zoom.wheel.enabled = explore;
+  chart.options.plugins.zoom.zoom.pinch.enabled = explore;
+  chart.options.plugins.zoom.zoom.drag.enabled = false;
+  chart.update("none");
 }
 /* ===========================================================
     ROOM CHART CONTROLLER
 =========================================================== */
 function enableRoomChartExploreMode() {
-    if (isRoomChartExploreMode()) {
-        return;
-    }
-    setRoomChartInteractionMode("explore");
-    applyRoomChartInteraction();
-    updateRoomChartZoomButton();
-    updateRoomChartToolbarState();
+  if (isRoomChartExploreMode()) {
+    return;
+  }
+  setRoomChartInteractionMode("explore");
+  applyRoomChartInteraction();
+  updateRoomChartZoomButton();
+  updateRoomChartToolbarState();
 }
 function enableRoomChartLiveMode() {
-    const chart =
-        getRealtimeChart();
-    if (chart) {
-        chart.resetZoom();
-    }
-    setRoomChartInteractionMode("live");
-    refreshRealtimeChart();
-    restoreRoomChart();
+  const chart = getRealtimeChart();
+  if (chart) {
+    chart.resetZoom();
+  }
+  setRoomChartInteractionMode("live");
+  refreshRealtimeChart();
+  restoreRoomChart();
 }
 /* ===========================================================
     RESET ROOM CHART VIEW
 =========================================================== */
 function resetRoomChartView() {
-    const chart =
-        getRealtimeChart();
-    if (chart) {
-        chart.resetZoom();
-    }
-    setRoomChartInteractionMode(
-        "live"
-    );
-    applyRoomChartInteraction();
-    refreshRealtimeChart();
-    updateRoomChartZoomButton();
-    updateRoomChartToolbarState();
+  const chart = getRealtimeChart();
+  if (chart) {
+    chart.resetZoom();
+  }
+  setRoomChartInteractionMode("live");
+  applyRoomChartInteraction();
+  refreshRealtimeChart();
+  updateRoomChartZoomButton();
+  updateRoomChartToolbarState();
 }
 /* ===========================================================
     EXIT MONITORING EXPLORE MODE
 =========================================================== */
 function exitMonitoringExploreMode() {
-    Object.values(
-        Monitoring.interaction.roomChart
-    ).forEach(interaction => {
-        interaction.mode = "live";
-    });
-    Object.values(
-        Monitoring.interaction.trendChart
-    ).forEach(interaction => {
-        interaction.mode = "live";
-    });
+  Object.values(Monitoring.interaction.roomChart).forEach((interaction) => {
+    interaction.mode = "live";
+  });
+  Object.values(Monitoring.interaction.trendChart).forEach((interaction) => {
+    interaction.mode = "live";
+  });
 }
 /* ===========================================================
     TREND CHART CONTROLLER
 =========================================================== */
 function enableTrendChartExploreMode() {
-    if (isTrendChartExploreMode()) {
-        return;
-    }
-    setTrendChartInteractionMode("explore");
-    applyTrendChartInteraction();
-    updateTrendChartZoomButton();
-    updateTrendChartToolbarState();
+  if (isTrendChartExploreMode()) {
+    return;
+  }
+  setTrendChartInteractionMode("explore");
+  applyTrendChartInteraction();
+  updateTrendChartZoomButton();
+  updateTrendChartToolbarState();
 }
 function enableTrendChartLiveMode() {
-    const chart =
-        getTrendChart();
-    if (chart) {
-        chart.resetZoom();
-    }
-    setTrendChartInteractionMode("live");
-    refreshTrendAnalysis();
-    restoreTrendChart();
+  const chart = getTrendChart();
+  if (chart) {
+    chart.resetZoom();
+  }
+  setTrendChartInteractionMode("live");
+  refreshTrendAnalysis();
+  restoreTrendChart();
 }
 /* ===========================================================
     RESET TREND CHART VIEW
 =========================================================== */
 function resetTrendChartView() {
-    const chart =
-        getTrendChart();
-    if (chart) {
-        chart.resetZoom();
-    }
-    setTrendChartInteractionMode(
-        "live"
-    );
-    applyTrendChartInteraction();
-    refreshTrendAnalysis();
-    updateTrendChartZoomButton();
-    updateTrendChartToolbarState();
+  const chart = getTrendChart();
+  if (chart) {
+    chart.resetZoom();
+  }
+  setTrendChartInteractionMode("live");
+  applyTrendChartInteraction();
+  refreshTrendAnalysis();
+  updateTrendChartZoomButton();
+  updateTrendChartToolbarState();
 }
 /* ===========================================================
     ROOM CHART BUTTON
 =========================================================== */
 function updateRoomChartZoomButton() {
-    const button =
-        document.getElementById(
-            "roomTrendZoom"
-        );
-    if (!button) {
-        return;
-    }
-    button.classList.remove(
-        "theme-button-primary"
-    );
-    if (isRoomChartExploreMode()) {
-        button.classList.add(
-            "theme-button-primary"
-        );
-    }
+  const button = document.getElementById("roomTrendZoom");
+  if (!button) {
+    return;
+  }
+  button.classList.remove("theme-button-primary");
+  if (isRoomChartExploreMode()) {
+    button.classList.add("theme-button-primary");
+  }
 }
 /* ===========================================================
     ROOM CHART TOOLBAR STATE
 =========================================================== */
 function updateRoomChartToolbarState() {
-    const explore =
-        isRoomChartExploreMode();
-    [
-        "roomTrend10Btn",
-        "roomTrend20Btn",
-        "roomTrend50Btn"
-    ].forEach(id => {
-        const button =
-            document.getElementById(id);
-        if (!button)
-            return;
-        button.disabled =
-            explore;
-        button.classList.toggle(
-            "opacity-50",
-            explore
-        );
-        button.classList.toggle(
-            "cursor-not-allowed",
-            explore
-        );
-    });
+  const explore = isRoomChartExploreMode();
+  ["roomTrend10Btn", "roomTrend20Btn", "roomTrend50Btn"].forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.disabled = explore;
+    button.classList.toggle("opacity-50", explore);
+    button.classList.toggle("cursor-not-allowed", explore);
+  });
 }
 /* ===========================================================
     ROOM CHART LIMIT
 =========================================================== */
 function setRoomChartLimit(limit) {
-    getRoomChartInteraction().limit =
-        limit;
-    updateRoomChartLimitButton();
-    refreshRealtimeChart();
+  getRoomChartInteraction().limit = limit;
+  updateRoomChartLimitButton();
+  refreshRealtimeChart();
 }
 /* ===========================================================
     ROOM CHART LIMIT BUTTON
 =========================================================== */
 function updateRoomChartLimitButton() {
-    const limit =
-        getRoomChartInteraction().limit;
-    const buttons = {
-        10:
-            "roomTrend10Btn",
-        20:
-            "roomTrend20Btn",
-        50:
-            "roomTrend50Btn"
-    };
-    Object.entries(buttons)
-        .forEach(([value, id]) => {
-            const button =
-                document.getElementById(id);
-            if (!button)
-                return;
-            button.classList.remove(
-                "theme-button-primary"
-            );
-            if (
-                Number(value) === limit
-            ) {
-                button.classList.add(
-                    "theme-button-primary"
-                );
-            }
-        });
+  const limit = getRoomChartInteraction().limit;
+  const buttons = {
+    10: "roomTrend10Btn",
+    20: "roomTrend20Btn",
+    50: "roomTrend50Btn",
+  };
+  Object.entries(buttons).forEach(([value, id]) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.classList.remove("theme-button-primary");
+    if (Number(value) === limit) {
+      button.classList.add("theme-button-primary");
+    }
+  });
 }
 /* ===========================================================
     TREND CHART TOOLBAR STATE
 =========================================================== */
 function updateTrendChartToolbarState() {
-    const explore =
-        isTrendChartExploreMode();
-    [
-        "analysisTrend10Btn",
-        "analysisTrend20Btn",
-        "analysisTrend50Btn"
-    ].forEach(id => {
-        const button =
-            document.getElementById(id);
-        if (!button)
-            return;
-        button.disabled =
-            explore;
-        button.classList.toggle(
-            "opacity-50",
-            explore
-        );
-        button.classList.toggle(
-            "cursor-not-allowed",
-            explore
-        );
-    });
+  const explore = isTrendChartExploreMode();
+  ["analysisTrend10Btn", "analysisTrend20Btn", "analysisTrend50Btn"].forEach(
+    (id) => {
+      const button = document.getElementById(id);
+      if (!button) return;
+      button.disabled = explore;
+      button.classList.toggle("opacity-50", explore);
+      button.classList.toggle("cursor-not-allowed", explore);
+    },
+  );
 }
 /* ===========================================================
     TREND CHART BUTTON
 =========================================================== */
 function updateTrendChartZoomButton() {
-    const button =
-        document.getElementById(
-            "analysisTrendZoom"
-        );
-    if (!button) {
-        return;
-    }
-    button.classList.remove(
-        "theme-button-primary"
-    );
-    if (isTrendChartExploreMode()) {
-        button.classList.add(
-            "theme-button-primary"
-        );
-    }
+  const button = document.getElementById("analysisTrendZoom");
+  if (!button) {
+    return;
+  }
+  button.classList.remove("theme-button-primary");
+  if (isTrendChartExploreMode()) {
+    button.classList.add("theme-button-primary");
+  }
 }
 /* ===========================================================
     INITIALIZE MONITORING CHART TOOLBAR
 =========================================================== */
 function initializeMonitoringChartToolbar() {
-    document
-        .getElementById("roomTrend10Btn")
-        ?.addEventListener(
-            "click",
-            () => setRoomChartLimit(10)
-        );
-    document
-        .getElementById("roomTrend20Btn")
-        ?.addEventListener(
-            "click",
-            () => setRoomChartLimit(20)
-        );
-    document
-        .getElementById("roomTrend50Btn")
-        ?.addEventListener(
-            "click",
-            () => setRoomChartLimit(50)
-        );
-    document
-        .getElementById("roomTrendReset")
-        ?.addEventListener(
-            "click",
-            resetRoomChartView
-        );
-    document
-        .getElementById("roomTrendZoom")
-        ?.addEventListener(
-            "click",
-            enableRoomChartExploreMode
-        );
-    document
-        .getElementById("analysisTrendZoom")
-        ?.addEventListener(
-            "click",
-            enableTrendChartExploreMode
-        );
-    document
-        .getElementById(
-            "analysisTrendReset"
-        )
-        ?.addEventListener(
-            "click",
-            resetTrendChartView
-        );
-    document
-        .getElementById("analysisTrend10Btn")
-        ?.addEventListener(
-            "click",
-            () => setTrendChartLimit(10)
-        );
-    document
-        .getElementById("analysisTrend20Btn")
-        ?.addEventListener(
-            "click",
-            () => setTrendChartLimit(20)
-        );
-    document
-        .getElementById("analysisTrend50Btn")
-        ?.addEventListener(
-            "click",
-            () => setTrendChartLimit(50)
-        );
+  document
+    .getElementById("roomTrend10Btn")
+    ?.addEventListener("click", () => setRoomChartLimit(10));
+  document
+    .getElementById("roomTrend20Btn")
+    ?.addEventListener("click", () => setRoomChartLimit(20));
+  document
+    .getElementById("roomTrend50Btn")
+    ?.addEventListener("click", () => setRoomChartLimit(50));
+  document
+    .getElementById("roomTrendReset")
+    ?.addEventListener("click", resetRoomChartView);
+  document
+    .getElementById("roomTrendZoom")
+    ?.addEventListener("click", enableRoomChartExploreMode);
+  document
+    .getElementById("analysisTrendZoom")
+    ?.addEventListener("click", enableTrendChartExploreMode);
+  document
+    .getElementById("analysisTrendReset")
+    ?.addEventListener("click", resetTrendChartView);
+  document
+    .getElementById("analysisTrend10Btn")
+    ?.addEventListener("click", () => setTrendChartLimit(10));
+  document
+    .getElementById("analysisTrend20Btn")
+    ?.addEventListener("click", () => setTrendChartLimit(20));
+  document
+    .getElementById("analysisTrend50Btn")
+    ?.addEventListener("click", () => setTrendChartLimit(50));
 }
 /* ===========================================================
     INITIALIZE CHART INTERACTION
 =========================================================== */
 function initializeChartInteraction() {
-    applyRoomChartInteraction();
-    applyTrendChartInteraction();
-    updateRoomChartZoomButton();
-    updateTrendChartZoomButton();
-    updateRoomChartToolbarState();
-    updateTrendChartToolbarState();
-    updateRoomChartLimitButton();
-    updateTrendChartLimitButton();
+  applyRoomChartInteraction();
+  applyTrendChartInteraction();
+  updateRoomChartZoomButton();
+  updateTrendChartZoomButton();
+  updateRoomChartToolbarState();
+  updateTrendChartToolbarState();
+  updateRoomChartLimitButton();
+  updateTrendChartLimitButton();
 }
 /* ===========================================================
     UPDATE TREND CHART
 =========================================================== */
 function updateTrendChart(dataset) {
-    if (isTrendChartExploreMode()) {
-        return;
-    }
-    const chart = getTrendChart();
-    if (!chart) {
-        return;
-    }
-    chart.data.labels = [...dataset.labels];
-    const chartDataset = chart.data.datasets[0];
-    const config = getTrendConfiguration();
-    chartDataset.label = dataset.datasets[0].label;
-    chartDataset.borderColor = config.color;
-    chartDataset.backgroundColor = config.color + "33";
-    chartDataset.unit = config.unit;
-    chartDataset.decimals = config.decimals;
-    chartDataset.category = config.category;
-    ChartDesignSystem.setDatasetData(
-        chart.data.datasets,
-        [dataset.datasets[0].data]
-    );
-    chart.update("none");
+  if (isTrendChartExploreMode()) {
+    return;
+  }
+  const chart = getTrendChart();
+  if (!chart) {
+    return;
+  }
+  chart.data.labels = [...dataset.labels];
+  const chartDataset = chart.data.datasets[0];
+  const config = getTrendConfiguration();
+  chartDataset.label = dataset.datasets[0].label;
+  chartDataset.borderColor = config.color;
+  chartDataset.backgroundColor = config.color + "33";
+  chartDataset.unit = config.unit;
+  chartDataset.decimals = config.decimals;
+  chartDataset.category = config.category;
+  ChartDesignSystem.setDatasetData(chart.data.datasets, [
+    dataset.datasets[0].data,
+  ]);
+  chart.update("none");
 }
 function getCurrentRoomData() {
-    return Monitoring.roomData[
-        getCurrentRoomID()
-    ];
+  return Monitoring.roomData[getCurrentRoomID()];
 }
 function setCurrentRoomData(data) {
-    Monitoring.roomData[
-        getCurrentRoomID()
-    ] = data;
+  Monitoring.roomData[getCurrentRoomID()] = data;
 }
 function currentRoom() {
-    return CONFIG.rooms.find(
-        room => room.id === getCurrentRoomID()
-    );
+  return CONFIG.rooms.find((room) => room.id === getCurrentRoomID());
 }
 function currentChartHistory() {
-    return Monitoring.chartHistory[
-        getCurrentRoomID()
-    ];
+  return Monitoring.chartHistory[getCurrentRoomID()];
 }
 function currentHistory() {
-    return Monitoring.historyData[
-        getCurrentRoomID()
-    ];
+  return Monitoring.historyData[getCurrentRoomID()];
 }
 /* ===========================================================
     CONNECTION HELPER
 =========================================================== */
 function getConnection(roomID) {
-    return Monitoring.connection[roomID];
+  return Monitoring.connection[roomID];
 }
 function hasReceivedPacket(roomID) {
-    return getConnection(roomID).received;
+  return getConnection(roomID).received;
 }
 function getLastReceive(roomID) {
-    return getConnection(roomID).lastReceive;
+  return getConnection(roomID).lastReceive;
 }
 function getConnectionAge(roomID) {
-    return Date.now() -
-        getConnection(roomID).startedAt;
+  return Date.now() - getConnection(roomID).startedAt;
 }
 function updateLastReceive(roomID) {
-    const connection = getConnection(roomID);
-    connection.lastReceive = Date.now();
-    connection.received = true;
+  const connection = getConnection(roomID);
+  connection.lastReceive = Date.now();
+  connection.received = true;
 }
 function getConnectionState(roomID) {
-    return getConnection(roomID).state;
+  return getConnection(roomID).state;
 }
 function setConnectionState(roomID, state) {
-    getConnection(roomID).state = state;
+  getConnection(roomID).state = state;
 }
 /* ===========================================================
     CONNECTION ENGINE
 =========================================================== */
 function calculateConnectionState(roomID) {
-    const connection =
-        getConnection(roomID);
-    /*
+  const connection = getConnection(roomID);
+  /*
     ====================================================
     BELUM PERNAH MENERIMA PAKET
     ====================================================
     */
-    if (!connection.received) {
-        if (
-            getConnectionAge(roomID) <=
-            CONFIG.communication.waiting
-        ) {
-            return CONNECTION_STATE.WAITING;
-        }
-        return CONNECTION_STATE.OFFLINE;
+  if (!connection.received) {
+    if (getConnectionAge(roomID) <= CONFIG.communication.waiting) {
+      return CONNECTION_STATE.WAITING;
     }
-    /*
+    return CONNECTION_STATE.OFFLINE;
+  }
+  /*
     ====================================================
     SUDAH PERNAH MENERIMA PAKET
     ====================================================
     */
-    const diff =
-        Date.now() -
-        connection.lastReceive;
-    if (
-        diff <=
-        CONFIG.communication.online
-    ) {
-        return CONNECTION_STATE.ONLINE;
-    }
-    if (
-        diff <=
-        CONFIG.communication.waiting
-    ) {
-        return CONNECTION_STATE.WAITING;
-    }
-    return CONNECTION_STATE.OFFLINE;
+  const diff = Date.now() - connection.lastReceive;
+  if (diff <= CONFIG.communication.online) {
+    return CONNECTION_STATE.ONLINE;
+  }
+  if (diff <= CONFIG.communication.waiting) {
+    return CONNECTION_STATE.WAITING;
+  }
+  return CONNECTION_STATE.OFFLINE;
 }
 function receivePacket(roomID) {
-    updateLastReceive(roomID);
-    return syncConnectionState(roomID);
+  updateLastReceive(roomID);
+  return syncConnectionState(roomID);
 }
 function syncConnectionState(roomID) {
-    const state =
-        calculateConnectionState(roomID);
-    setConnectionState(
-        roomID,
-        state
-    );
-    return state;
+  const state = calculateConnectionState(roomID);
+  setConnectionState(roomID, state);
+  return state;
 }
 /* ===========================================================
     TREND DATA PROVIDER
 =========================================================== */
 function getTrendProviderData() {
-    const history = currentHistory();
-    if (!Array.isArray(history)) {
-        return [];
-    }
-    return history;
+  const history = currentHistory();
+  if (!Array.isArray(history)) {
+    return [];
+  }
+  return history;
 }
 /* ===========================================================
     TREND DATASET BUILDER
 =========================================================== */
 function buildTrendDataset() {
-    const history = getTrendProviderData();
-    const mode = getTrendMode();
-    const sensor = getTrendSensor();
-    const labels = [];
-    const values = [];
-    history.forEach(item => {
-        labels.push(
-            new Date(item.waktu).toLocaleTimeString(
-                getDashboardLocale(),
-                {
-                    hour12: false
-                }
-            )
-        );
-        switch (mode) {
-            case "averageDust":
-                values.push(
-                    Number(item.debu?.rata ?? 0)
-                );
-                break;
-            case "averageLight":
-                values.push(
-                    Number(item.cahaya?.rata ?? 0)
-                );
-                break;
-            case "dust":
-                values.push(
-                    Number(item.debu?.["S" + (sensor - 1)] ?? 0)
-                );
-                break;
-            case "light":
-                values.push(
-                    Number(item.cahaya?.["S" + (sensor - 1)] ?? 0)
-                );
-                break;
-            default:
-                values.push(0);
-        }
-    });
-    return {
-        labels,
-        values
-    };
+  const history = getTrendProviderData();
+  const mode = getTrendMode();
+  const sensor = getTrendSensor();
+  const labels = [];
+  const values = [];
+  history.forEach((item) => {
+    labels.push(
+      new Date(item.waktu).toLocaleTimeString(getDashboardLocale(), {
+        hour12: false,
+      }),
+    );
+    switch (mode) {
+      case "averageDust":
+        values.push(Number(item.debu?.rata ?? 0));
+        break;
+      case "averageLight":
+        values.push(Number(item.cahaya?.rata ?? 0));
+        break;
+      case "dust":
+        values.push(Number(item.debu?.["S" + (sensor - 1)] ?? 0));
+        break;
+      case "light":
+        values.push(Number(item.cahaya?.["S" + (sensor - 1)] ?? 0));
+        break;
+      default:
+        values.push(0);
+    }
+  });
+  return {
+    labels,
+    values,
+  };
 }
 /* ===========================================================
     RENDER CURRENT ROOM
 =========================================================== */
 function renderCurrentRoom() {
-    const data = getCurrentRoomData();
-    if (!data) return;
-    renderRoom(data);
-    updateMonitoringSummary(data);
-    restoreRoomChart();
+  const data = getCurrentRoomData();
+  if (!data) return;
+  renderRoom(data);
+  updateMonitoringSummary(data);
+  restoreRoomChart();
 }
 function refreshMonitoringLanguage() {
-    createMonitoringCards();
-    createMonitoringInformation();
-    syncTrendControls();
-    renderCurrentRoom();
-    refreshTrendAnalysis();
-    restoreTrendChart();
+  createMonitoringCards();
+  createMonitoringInformation();
+  syncTrendControls();
+  renderCurrentRoom();
+  refreshTrendAnalysis();
+  restoreTrendChart();
 }
 /* ===========================================================
     INITIALIZE
 =========================================================== */
 function initializeMonitoring() {
-    if (Monitoring.initialized)
-        return;
-    createMonitoringCards();
-    createMonitoringInformation();
-    createRoomChart();
-    createTrendChart();
-    initializeChartInteraction();
-    initializeMonitoringChartToolbar();
-    initializeRoomMenu();
-    initializeTrendAnalysis();
-    syncTrendUI();
-    refreshTrendAnalysis();
-    setInterval(
-        checkConnectionStatus,
-        1000
-    );
-    subscribeRoom(
-        getCurrentRoomID()
-    );
-    Monitoring.initialized = true;
+  if (Monitoring.initialized) return;
+  createMonitoringCards();
+  createMonitoringInformation();
+  createRoomChart();
+  createTrendChart();
+  initializeChartInteraction();
+  initializeMonitoringChartToolbar();
+  initializeRoomMenu();
+  initializeTrendAnalysis();
+  syncTrendUI();
+  refreshTrendAnalysis();
+  setInterval(checkConnectionStatus, 1000);
+  subscribeRoom(getCurrentRoomID());
+  Monitoring.initialized = true;
+  Bootstrap.markReady(Bootstrap.Module.MONITORING);
+  console.log("[MONITORING] Ready");
 }
 /* ===========================================================
     CREATE
 =========================================================== */
 function createMonitoringCards() {
-    createDustCards();
-    createLightCards();
+  createDustCards();
+  createLightCards();
 }
 function createDustCards() {
-    const room = currentRoom();
-    const container =
-        document.getElementById(
-            "dustCards"
-        );
-    if (!container) return;
-    let html = "";
-    for (
-        let i = 1;
-        i <= room.dustSensors;
-        i++
-    ) {
-        html += dustCardTemplate(i);
-    }
-    container.innerHTML = html;
+  const room = currentRoom();
+  const container = document.getElementById("dustCards");
+  if (!container) return;
+  let html = "";
+  for (let i = 1; i <= room.dustSensors; i++) {
+    html += dustCardTemplate(i);
+  }
+  container.innerHTML = html;
 }
 function dustCardTemplate(index) {
-    return `
+  return `
 <div class="theme-card rounded-2xl p-6">
     <div class="flex justify-between items-start">
         <div>
             <h4 class="theme-card-value text-lg font-semibold">
-                ${Language.replace(Language.get("monitoring.sensor.dust"),
-        { index })}
+                ${Language.replace(Language.get("monitoring.sensor.dust"), {
+                  index,
+                })}
             </h4>
             <p class="theme-card-caption text-sm mt-1">
                 ${CONFIG.sensor.dustName}
@@ -930,30 +723,24 @@ function dustCardTemplate(index) {
 `;
 }
 function createLightCards() {
-    const room = currentRoom();
-    const container =
-        document.getElementById(
-            "lightCards"
-        );
-    if (!container) return;
-    let html = "";
-    for (
-        let i = 1;
-        i <= room.lightSensors;
-        i++
-    ) {
-        html += lightCardTemplate(i);
-    }
-    container.innerHTML = html;
+  const room = currentRoom();
+  const container = document.getElementById("lightCards");
+  if (!container) return;
+  let html = "";
+  for (let i = 1; i <= room.lightSensors; i++) {
+    html += lightCardTemplate(i);
+  }
+  container.innerHTML = html;
 }
 function lightCardTemplate(index) {
-    return `
+  return `
 <div class="theme-card rounded-2xl p-6">
     <div class="flex justify-between items-start">
         <div>
             <h4 class="theme-card-value text-lg font-semibold">
-                ${Language.replace(Language.get("monitoring.sensor.light"),
-        { index })}
+                ${Language.replace(Language.get("monitoring.sensor.light"), {
+                  index,
+                })}
             </h4>
             <p class="theme-card-caption text-sm mt-1">
                 ${CONFIG.sensor.lightName}
@@ -983,424 +770,362 @@ function lightCardTemplate(index) {
     ROOM INFORMATION
 =========================================================== */
 function createMonitoringInformation() {
-    const room = currentRoom();
-    const title = document.getElementById("roomTitle");
-    if (title) { title.textContent = Language.get(`room.${room.id}`); }
-    const subtitle =
-        document.getElementById("roomSubtitle");
-    if (subtitle) {
-        subtitle.textContent = Language.replace(Language.get("monitoring.room.subtitle"),
-            {
-                dust: room.dustSensors,
-                light: room.lightSensors
-            }
-        );
-    }
+  const room = currentRoom();
+  const title = document.getElementById("roomTitle");
+  if (title) {
+    title.textContent = Language.get(`room.${room.id}`);
+  }
+  const subtitle = document.getElementById("roomSubtitle");
+  if (subtitle) {
+    subtitle.textContent = Language.replace(
+      Language.get("monitoring.room.subtitle"),
+      {
+        dust: room.dustSensors,
+        light: room.lightSensors,
+      },
+    );
+  }
 }
 /* ===========================================================
     RESET MONITORING
 =========================================================== */
 function resetMonitoringView() {
-    const room = currentRoom();
-    for (let i = 1; i <= room.dustSensors; i++) {
-        updateSensor(
-            "dust-" + i,
-            "--"
-        );
-        updateBadge(
-            "dust-status-" + i,
-            {
-                text: CONFIG.status.system.waiting,
-                class: "theme-badge-neutral"
-            }
-        );
-    }
-    for (let i = 1; i <= room.lightSensors; i++) {
-        updateSensor(
-            "light-" + i,
-            "--"
-        );
-        updateBadge(
-            "light-status-" + i,
-            {
-                text: CONFIG.status.system.waiting,
-                class: "theme-badge-neutral"
-            }
-        );
-    }
-    document.getElementById(
-        "averageDust"
-    ).textContent = "--";
-    document.getElementById(
-        "averageLight"
-    ).textContent = "--";
-    document.getElementById(
-        "lastUpdate"
-    ).textContent = "--";
+  const room = currentRoom();
+  for (let i = 1; i <= room.dustSensors; i++) {
+    updateSensor("dust-" + i, "--");
+    updateBadge("dust-status-" + i, {
+      text: CONFIG.status.system.waiting,
+      class: "theme-badge-neutral",
+    });
+  }
+  for (let i = 1; i <= room.lightSensors; i++) {
+    updateSensor("light-" + i, "--");
+    updateBadge("light-status-" + i, {
+      text: CONFIG.status.system.waiting,
+      class: "theme-badge-neutral",
+    });
+  }
+  document.getElementById("averageDust").textContent = "--";
+  document.getElementById("averageLight").textContent = "--";
+  document.getElementById("lastUpdate").textContent = "--";
 }
 /* ===========================================================
     CHANGE ROOM
 =========================================================== */
 function changeRoom(roomID) {
-    if (
-        getCurrentRoomID() === roomID
-    ) {
-        loadCurrentRoom();
-        restoreRoomChart();
-        restoreTrendChart();
-        renderConnection(roomID);
-        return;
-    }
-    setCurrentRoom(roomID);
-    if (typeof scrollToTop === "function") {
-        scrollToTop();
-    }
-    unsubscribeRoom();
-    createMonitoringCards();
-    createMonitoringInformation();
-    resetMonitoringView();
+  if (getCurrentRoomID() === roomID) {
     loadCurrentRoom();
-    getRealtimeChart()?.resetZoom();
-    getTrendChart()?.resetZoom();
     restoreRoomChart();
-    syncTrendUI();
     restoreTrendChart();
-    refreshTrendAnalysis();
-    subscribeRoom(roomID);
     renderConnection(roomID);
+    return;
+  }
+  setCurrentRoom(roomID);
+  if (typeof scrollToTop === "function") {
+    scrollToTop();
+  }
+  unsubscribeRoom();
+  createMonitoringCards();
+  createMonitoringInformation();
+  resetMonitoringView();
+  loadCurrentRoom();
+  getRealtimeChart()?.resetZoom();
+  getTrendChart()?.resetZoom();
+  restoreRoomChart();
+  syncTrendUI();
+  restoreTrendChart();
+  refreshTrendAnalysis();
+  subscribeRoom(roomID);
+  renderConnection(roomID);
 }
 /* ===========================================================
     LOAD ROOM DATA
 =========================================================== */
 function loadCurrentRoom() {
-    const data = getCurrentRoomData();
-    if (!data) {
-        resetMonitoringView();
-        updateMonitoringSummary({
-            averageDust: null,
-            averageLight: null,
-            timestamp: null
-        });
-        return;
-    }
-    updateRoomData(data);
+  const data = getCurrentRoomData();
+  if (!data) {
+    resetMonitoringView();
+    updateMonitoringSummary({
+      averageDust: null,
+      averageLight: null,
+      timestamp: null,
+    });
+    return;
+  }
+  updateRoomData(data);
 }
 /* ===========================================================
     SUBSCRIBE ROOM
 =========================================================== */
 function subscribeRoom(roomID) {
-    Monitoring.subscribedRoom =
-        roomID;
-    if (
-        typeof window.subscribeFirebaseRoom ===
-        "function"
-    ) {
-        window.subscribeFirebaseRoom(
-            roomID
-        );
-    }
+  Monitoring.subscribedRoom = roomID;
+  if (typeof window.subscribeFirebaseRoom === "function") {
+    window.subscribeFirebaseRoom(roomID);
+  }
 }
 /* ===========================================================
     UNSUBSCRIBE ROOM
 =========================================================== */
 function unsubscribeRoom() {
-    if (
-        typeof window.unsubscribeFirebaseRoom ===
-        "function"
-    ) {
-        window.unsubscribeFirebaseRoom();
-    }
-    Monitoring.subscribedRoom =
-        null;
+  if (typeof window.unsubscribeFirebaseRoom === "function") {
+    window.unsubscribeFirebaseRoom();
+  }
+  Monitoring.subscribedRoom = null;
 }
 /* ===========================================================
     ROOM MENU
 =========================================================== */
 function initializeRoomMenu() {
-    // Sidebar sepenuhnya dikontrol oleh app.js
+  // Sidebar sepenuhnya dikontrol oleh app.js
 }
 /* ===========================================================
     TREND ANALYSIS
 =========================================================== */
 function initializeTrendAnalysis() {
-    const mode =
-        document.getElementById("chartMode");
-    const sensor =
-        document.getElementById("chartSensor");
-    if (!mode || !sensor)
-        return;
-    mode.addEventListener("change", () => {
-        setTrendMode(mode.value);
-        updateTrendSensorDropdown();
-        refreshTrendAnalysis();
-    });
-    sensor.addEventListener(
-        "change",
-        () => {
-            setTrendSensor(sensor.value);
-            refreshTrendAnalysis();
-        }
-    );
-    syncTrendControls();
+  const mode = document.getElementById("chartMode");
+  const sensor = document.getElementById("chartSensor");
+  if (!mode || !sensor) return;
+  mode.addEventListener("change", () => {
+    setTrendMode(mode.value);
+    updateTrendSensorDropdown();
     refreshTrendAnalysis();
+  });
+  sensor.addEventListener("change", () => {
+    setTrendSensor(sensor.value);
+    refreshTrendAnalysis();
+  });
+  syncTrendControls();
+  refreshTrendAnalysis();
 }
 function refreshTrendAnalysis() {
-    const dataset = getTrendRenderDataset();
-    updateTrendBadge();
-    updateTrendSubtitle();
-    updateTrendChart(dataset);
+  const dataset = getTrendRenderDataset();
+  updateTrendBadge();
+  updateTrendSubtitle();
+  updateTrendChart(dataset);
 }
 /* ===========================================================
     RESTORE TREND CHART
 =========================================================== */
 function restoreTrendChart() {
-    updateTrendChartLimitButton();
-    updateTrendChartZoomButton();
-    updateTrendChartToolbarState();
-    applyTrendChartInteraction();
-    const dataset = getTrendRenderDataset();
-    updateTrendChart(dataset);
+  updateTrendChartLimitButton();
+  updateTrendChartZoomButton();
+  updateTrendChartToolbarState();
+  applyTrendChartInteraction();
+  const dataset = getTrendRenderDataset();
+  updateTrendChart(dataset);
 }
 function updateTrendSensorDropdown() {
-    const sensor =
-        document.getElementById("chartSensor");
-    if (!sensor)
-        return;
-    const room = currentRoom();
-    sensor.innerHTML = "";
-    const mode = getTrendMode();
-    if (mode === "averageDust" || mode === "averageLight") {
-        sensor.disabled = true;
-        sensor.classList.add("bg-slate-100");
-        sensor.innerHTML = `
+  const sensor = document.getElementById("chartSensor");
+  if (!sensor) return;
+  const room = currentRoom();
+  sensor.innerHTML = "";
+  const mode = getTrendMode();
+  if (mode === "averageDust" || mode === "averageLight") {
+    sensor.disabled = true;
+    sensor.classList.add("bg-slate-100");
+    sensor.innerHTML = `
         <option>
             ${Language.get("monitoring.sensor.notRequired")}
         </option>
     `;
-        setTrendSensor(null);
-        return;
-    }
-    sensor.disabled = false;
-    sensor.classList.remove("bg-slate-100");
-    const totalSensor = getTrendMode() === "dust"
-        ? room.dustSensors
-        : room.lightSensors;
-    const prefix =
-        getTrendMode() === "dust"
-            ? Language.get("monitoring.sensor.prefix.dust")
-            : Language.get("monitoring.sensor.prefix.light");
-    for (let i = 1; i <= totalSensor; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = `${prefix} ${i}`;
-        sensor.appendChild(option);
-    }
-    const currentSensor = getTrendSensor();
-    if (currentSensor) {
-        sensor.value = currentSensor;
-    } else {
-        sensor.selectedIndex = 0;
-        setTrendSensor(sensor.value);
-    }
+    setTrendSensor(null);
+    return;
+  }
+  sensor.disabled = false;
+  sensor.classList.remove("bg-slate-100");
+  const totalSensor =
+    getTrendMode() === "dust" ? room.dustSensors : room.lightSensors;
+  const prefix =
+    getTrendMode() === "dust"
+      ? Language.get("monitoring.sensor.prefix.dust")
+      : Language.get("monitoring.sensor.prefix.light");
+  for (let i = 1; i <= totalSensor; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = `${prefix} ${i}`;
+    sensor.appendChild(option);
+  }
+  const currentSensor = getTrendSensor();
+  if (currentSensor) {
+    sensor.value = currentSensor;
+  } else {
+    sensor.selectedIndex = 0;
+    setTrendSensor(sensor.value);
+  }
 }
 function getTrendConfiguration() {
-    const mode = getTrendMode();
-    const sensor = getTrendSensor();
-    switch (mode) {
-        case "averageDust":
-            return {
-                mode,
-                sensor: null,
-                label: Language.get("monitoring.trend.averageDust"),
-                unit: "µg/m³",
-                decimals: 2,
-                category: "dust",
-                color: "#F97316"
-            };
-        case "averageLight":
-            return {
-                mode,
-                sensor: null,
-                label: Language.get("monitoring.trend.averageLight"),
-                unit: "Lux",
-                decimals: 1,
-                category: "light",
-                color: "#FACC15"
-            };
-        case "dust":
-            return {
-                mode,
-                sensor,
-                label: Language.replace(Language.get("monitoring.trend.dust"), { sensor }),
-                unit: "µg/m³",
-                decimals: 2,
-                category: "dust",
-                color: "#F97316"
-            };
-        case "light":
-            return {
-                mode,
-                sensor,
-                label: Language.replace(Language.get("monitoring.trend.light"), { sensor }),
-                unit: "Lux",
-                decimals: 1,
-                category: "light",
-                color: "#FACC15"
-            };
-        default:
-            return {
-                mode: "averageDust",
-                sensor: null,
-                label: Language.get("monitoring.trend.averageDust"),
-                unit: "µg/m³",
-                decimals: 2,
-                category: "dust",
-                color: "#F97316"
-            };
-    }
+  const mode = getTrendMode();
+  const sensor = getTrendSensor();
+  switch (mode) {
+    case "averageDust":
+      return {
+        mode,
+        sensor: null,
+        label: Language.get("monitoring.trend.averageDust"),
+        unit: "µg/m³",
+        decimals: 2,
+        category: "dust",
+        color: "#F97316",
+      };
+    case "averageLight":
+      return {
+        mode,
+        sensor: null,
+        label: Language.get("monitoring.trend.averageLight"),
+        unit: "Lux",
+        decimals: 1,
+        category: "light",
+        color: "#FACC15",
+      };
+    case "dust":
+      return {
+        mode,
+        sensor,
+        label: Language.replace(Language.get("monitoring.trend.dust"), {
+          sensor,
+        }),
+        unit: "µg/m³",
+        decimals: 2,
+        category: "dust",
+        color: "#F97316",
+      };
+    case "light":
+      return {
+        mode,
+        sensor,
+        label: Language.replace(Language.get("monitoring.trend.light"), {
+          sensor,
+        }),
+        unit: "Lux",
+        decimals: 1,
+        category: "light",
+        color: "#FACC15",
+      };
+    default:
+      return {
+        mode: "averageDust",
+        sensor: null,
+        label: Language.get("monitoring.trend.averageDust"),
+        unit: "µg/m³",
+        decimals: 2,
+        category: "dust",
+        color: "#F97316",
+      };
+  }
 }
 /* ===========================================================
     UPDATE TREND BADGE
 =========================================================== */
 function updateTrendBadge() {
-    const badge = document.getElementById(
-        "trendChartBadge"
-    );
-    if (!badge) {
-        return;
-    }
-    const config = getTrendConfiguration();
-    badge.textContent = config.label;
-    badge.className =
-        "px-3 py-1 rounded-full text-sm font-medium";
-    if (
-        config.mode === "averageDust" ||
-        config.mode === "dust"
-    ) {
-        badge.classList.add(
-            "bg-orange-100",
-            "text-orange-700"
-        );
-    } else {
-        badge.classList.add(
-            "bg-yellow-100",
-            "text-yellow-700"
-        );
-    }
+  const badge = document.getElementById("trendChartBadge");
+  if (!badge) {
+    return;
+  }
+  const config = getTrendConfiguration();
+  badge.textContent = config.label;
+  badge.className = "px-3 py-1 rounded-full text-sm font-medium";
+  if (config.mode === "averageDust" || config.mode === "dust") {
+    badge.classList.add("bg-orange-100", "text-orange-700");
+  } else {
+    badge.classList.add("bg-yellow-100", "text-yellow-700");
+  }
 }
 /* ===========================================================
     UPDATE TREND SUBTITLE
 =========================================================== */
 function updateTrendSubtitle() {
-    const subtitle = document.getElementById(
-        "trendChartSubtitle"
-    );
-    if (!subtitle) {
-        return;
-    }
-    const config = getTrendConfiguration();
-    switch (config.mode) {
-        case "averageDust":
-            subtitle.textContent = Language.get("monitoring.trend.subtitle.averageDust");
-            break;
-        case "averageLight":
-            subtitle.textContent = Language.get("monitoring.trend.subtitle.averageLight");
-            break;
-        case "dust":
-            subtitle.textContent = Language.replace(
-                Language.get("monitoring.trend.subtitle.dust"), {
-                sensor: config.sensor
-            }
-            );
-            break;
-        case "light":
-            subtitle.textContent = Language.replace(
-                Language.get("monitoring.trend.subtitle.light"), {
-                sensor: config.sensor
-            }
-            );
-            break;
-        default:
-            subtitle.textContent = Language.get("monitoring.trend.subtitle.default");
-    }
+  const subtitle = document.getElementById("trendChartSubtitle");
+  if (!subtitle) {
+    return;
+  }
+  const config = getTrendConfiguration();
+  switch (config.mode) {
+    case "averageDust":
+      subtitle.textContent = Language.get(
+        "monitoring.trend.subtitle.averageDust",
+      );
+      break;
+    case "averageLight":
+      subtitle.textContent = Language.get(
+        "monitoring.trend.subtitle.averageLight",
+      );
+      break;
+    case "dust":
+      subtitle.textContent = Language.replace(
+        Language.get("monitoring.trend.subtitle.dust"),
+        {
+          sensor: config.sensor,
+        },
+      );
+      break;
+    case "light":
+      subtitle.textContent = Language.replace(
+        Language.get("monitoring.trend.subtitle.light"),
+        {
+          sensor: config.sensor,
+        },
+      );
+      break;
+    default:
+      subtitle.textContent = Language.get("monitoring.trend.subtitle.default");
+  }
 }
 function getTrendDataset() {
-    const config = getTrendConfiguration();
-    const trend = buildTrendDataset();
-    return {
-        labels: trend.labels,
-        datasets: [
-            {
-                label: config.label,
-                data: trend.values
-            }
-        ]
-    };
+  const config = getTrendConfiguration();
+  const trend = buildTrendDataset();
+  return {
+    labels: trend.labels,
+    datasets: [
+      {
+        label: config.label,
+        data: trend.values,
+      },
+    ],
+  };
 }
 /* ===========================================================
     GET TREND RENDER DATASET
 =========================================================== */
 function getTrendRenderDataset() {
-    const dataset =
-        getTrendDataset();
-    const limit =
-        getTrendChartInteraction()
-            .limit;
-    return {
-        labels:
-            dataset.labels.slice(-limit),
-        datasets: [
-            {
-                ...dataset.datasets[0],
-                data:
-                    dataset.datasets[0]
-                        .data
-                        .slice(-limit)
-            }
-        ]
-    };
+  const dataset = getTrendDataset();
+  const limit = getTrendChartInteraction().limit;
+  return {
+    labels: dataset.labels.slice(-limit),
+    datasets: [
+      {
+        ...dataset.datasets[0],
+        data: dataset.datasets[0].data.slice(-limit),
+      },
+    ],
+  };
 }
 /* ===========================================================
     TREND CHART LIMIT
 =========================================================== */
 function setTrendChartLimit(limit) {
-    getTrendChartInteraction().limit =
-        limit;
-    updateTrendChartLimitButton();
-    const dataset = getTrendRenderDataset();
-    updateTrendChart(dataset);
+  getTrendChartInteraction().limit = limit;
+  updateTrendChartLimitButton();
+  const dataset = getTrendRenderDataset();
+  updateTrendChart(dataset);
 }
 /* ===========================================================
     TREND CHART LIMIT BUTTON
 =========================================================== */
 function updateTrendChartLimitButton() {
-    const limit =
-        getTrendChartInteraction().limit;
-    const buttons = {
-        10:
-            "analysisTrend10Btn",
-        20:
-            "analysisTrend20Btn",
-        50:
-            "analysisTrend50Btn"
-    };
-    Object.entries(buttons)
-        .forEach(([value, id]) => {
-            const button =
-                document.getElementById(id);
-            if (!button)
-                return;
-            button.classList.remove(
-                "theme-button-primary"
-            );
-            if (
-                Number(value) === limit
-            ) {
-                button.classList.add(
-                    "theme-button-primary"
-                );
-            }
-        });
+  const limit = getTrendChartInteraction().limit;
+  const buttons = {
+    10: "analysisTrend10Btn",
+    20: "analysisTrend20Btn",
+    50: "analysisTrend50Btn",
+  };
+  Object.entries(buttons).forEach(([value, id]) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.classList.remove("theme-button-primary");
+    if (Number(value) === limit) {
+      button.classList.add("theme-button-primary");
+    }
+  });
 }
 /* ===========================================================
     APPLY CHART DATASET
@@ -1410,440 +1135,386 @@ function updateTrendChartLimitButton() {
 // Tidak lagi digunakan oleh Monitoring Runtime.
 // Akan dihapus setelah Monitoring LOCK.
 function applyChartDataset(dataset) {
-    const chart = getRealtimeChart();
-    if (!chart) {
-        return;
-    }
-    chart.data.labels = [...dataset.labels];
-    chart.data.datasets = [...dataset.datasets];
-    chart.update("none");
+  const chart = getRealtimeChart();
+  if (!chart) {
+    return;
+  }
+  chart.data.labels = [...dataset.labels];
+  chart.data.datasets = [...dataset.datasets];
+  chart.update("none");
 }
 /* ===========================================================
     SYNC TREND UI
 =========================================================== */
 function syncTrendUI() {
-    const mode =
-        document.getElementById("chartMode");
-    if (!mode)
-        return;
-    mode.value = getTrendMode();
-    updateTrendSensorDropdown();
+  const mode = document.getElementById("chartMode");
+  if (!mode) return;
+  mode.value = getTrendMode();
+  updateTrendSensorDropdown();
 }
 /* ===========================================================
     VALIDATE SENSOR VALUE
 =========================================================== */
 function normalizeValue(value) {
-    const number = Number(value);
-    if (
-        value === null ||
-        value === undefined ||
-        Number.isNaN(number)
-    ) {
-        return null;
-    }
-    return number;
+  const number = Number(value);
+  if (value === null || value === undefined || Number.isNaN(number)) {
+    return null;
+  }
+  return number;
 }
 /* ===========================================================
     FORMAT TIME
 =========================================================== */
 function currentTime() {
-    return new Date()
-        .toLocaleTimeString(
-            getDashboardLocale(),
-            {
-                hour12: false
-            }
-        );
+  return new Date().toLocaleTimeString(getDashboardLocale(), {
+    hour12: false,
+  });
 }
 /* ===========================================================
     FORMAT MONITORING TIME
 =========================================================== */
 function formatMonitoringTime(timestamp) {
-    if (!timestamp) {
-        return "--";
-    }
-    const date = new Date(timestamp);
-    return date
-        .toLocaleTimeString("id-ID", {
-            hour12: false
-        })
-        .replace(/:/g, ".");
+  if (!timestamp) {
+    return "--";
+  }
+  const date = new Date(timestamp);
+  return date
+    .toLocaleTimeString("id-ID", {
+      hour12: false,
+    })
+    .replace(/:/g, ".");
 }
 /* ===========================================================
     UPDATE SENSOR
 =========================================================== */
 function updateSensor(id, value) {
-    renderSensorValue(id, value);
+  renderSensorValue(id, value);
 }
 /* ===========================================================
     RENDER SENSOR VALUE
 =========================================================== */
 function renderSensorValue(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-        element.textContent = "--";
-        return;
-    }
-    element.textContent = number.toFixed(2);
+  const element = document.getElementById(id);
+  if (!element) return;
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    element.textContent = "--";
+    return;
+  }
+  element.textContent = number.toFixed(2);
 }
 /* ===========================================================
     SENSOR STATUS
 =========================================================== */
 function getDustStatus(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-        return {
-            text: CONFIG.status.system.waiting,
-            class: "theme-badge-neutral"
-        };
-    }
-    if (number <= CONFIG.threshold.dust.normal) {
-        return {
-            text: CONFIG.status.dust.normal,
-            class: "theme-badge-normal"
-        };
-    }
-    if (number <= CONFIG.threshold.dust.warning) {
-        return {
-            text: CONFIG.status.dust.warning,
-            class: "theme-badge-warning"
-        };
-    }
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
     return {
-        text: CONFIG.status.dust.danger,
-        class: "theme-badge-danger"
+      text: CONFIG.status.system.waiting,
+      class: "theme-badge-neutral",
     };
+  }
+  if (number <= CONFIG.threshold.dust.normal) {
+    return {
+      text: CONFIG.status.dust.normal,
+      class: "theme-badge-normal",
+    };
+  }
+  if (number <= CONFIG.threshold.dust.warning) {
+    return {
+      text: CONFIG.status.dust.warning,
+      class: "theme-badge-warning",
+    };
+  }
+  return {
+    text: CONFIG.status.dust.danger,
+    class: "theme-badge-danger",
+  };
 }
 function getLightStatus(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-        return {
-            text: CONFIG.status.system.waiting,
-            class: "theme-badge-neutral"
-        };
-    }
-    if (number >= CONFIG.threshold.light.minimum &&
-        number <= CONFIG.threshold.light.maximum) {
-        return {
-            text: CONFIG.status.light.ideal,
-            class: "theme-badge-ideal"
-        };
-    } if (number < CONFIG.threshold.light.minimum) {
-        return {
-            text: CONFIG.status.light.poor,
-            class: "theme-badge-poor"
-        };
-    } return {
-        text: CONFIG.status.light.tooBright,
-        class: "theme-badge-warning"
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return {
+      text: CONFIG.status.system.waiting,
+      class: "theme-badge-neutral",
     };
+  }
+  if (
+    number >= CONFIG.threshold.light.minimum &&
+    number <= CONFIG.threshold.light.maximum
+  ) {
+    return {
+      text: CONFIG.status.light.ideal,
+      class: "theme-badge-ideal",
+    };
+  }
+  if (number < CONFIG.threshold.light.minimum) {
+    return {
+      text: CONFIG.status.light.poor,
+      class: "theme-badge-poor",
+    };
+  }
+  return {
+    text: CONFIG.status.light.tooBright,
+    class: "theme-badge-warning",
+  };
 }
 /* ===========================================================
     UPDATE DUST
 =========================================================== */
 function updateDust(index, value) {
-    updateDustValue(index, value);
-    updateDustStatus(index, value);
+  updateDustValue(index, value);
+  updateDustStatus(index, value);
 }
 /* ===========================================================
     UPDATE DUST VALUE
 =========================================================== */
 function updateDustValue(index, value) {
-    updateSensor(
-        "dust-" + index,
-        value
-    );
+  updateSensor("dust-" + index, value);
 }
 /* ===========================================================
     UPDATE DUST STATUS
 =========================================================== */
 function updateDustStatus(index, value) {
-    renderSensorStatus(
-        "dust-status-" + index,
-        getDustStatus(value)
-    );
+  renderSensorStatus("dust-status-" + index, getDustStatus(value));
 }
 /* ===========================================================
     UPDATE LIGHT
 =========================================================== */
 function updateLight(index, value) {
-    updateLightValue(index, value);
-    updateLightStatus(index, value);
+  updateLightValue(index, value);
+  updateLightStatus(index, value);
 }
 /* ===========================================================
     UPDATE LIGHT VALUE
 =========================================================== */
 function updateLightValue(index, value) {
-    updateSensor(
-        "light-" + index,
-        value
-    );
+  updateSensor("light-" + index, value);
 }
 /* ===========================================================
     UPDATE LIGHT STATUS
 =========================================================== */
 function updateLightStatus(index, value) {
-    renderSensorStatus(
-        "light-status-" + index,
-        getLightStatus(value)
-    );
+  renderSensorStatus("light-status-" + index, getLightStatus(value));
 }
 /* ===========================================================
     RENDER SENSOR STATUS
 =========================================================== */
 function renderSensorStatus(id, status) {
-    updateBadge(id, status);
+  updateBadge(id, status);
 }
 /* ===========================================================
     RENDER ROOM
 =========================================================== */
 function renderRoom(data) {
-    renderDustCards(data);
-    renderLightCards(data);
+  renderDustCards(data);
+  renderLightCards(data);
 }
 /* ===========================================================
     RENDER DUST CARDS
 =========================================================== */
 function renderDustCards(data) {
-    const room = currentRoom();
-    for (let i = 0; i < room.dustSensors; i++) {
-        updateDust(
-            i + 1,
-            data.dust?.[i]
-        );
-    }
+  const room = currentRoom();
+  for (let i = 0; i < room.dustSensors; i++) {
+    updateDust(i + 1, data.dust?.[i]);
+  }
 }
 /* ===========================================================
     RENDER LIGHT CARDS
 =========================================================== */
 function renderLightCards(data) {
-    const room = currentRoom();
-    for (let i = 0; i < room.lightSensors; i++) {
-        updateLight(
-            i + 1,
-            data.light?.[i]
-        );
-    }
+  const room = currentRoom();
+  for (let i = 0; i < room.lightSensors; i++) {
+    updateLight(i + 1, data.light?.[i]);
+  }
 }
 /* ===========================================================
     UPDATE STATISTICS
 =========================================================== */
 function updateStatistics(data) {
-    updateMonitoringSummary(data);
+  updateMonitoringSummary(data);
 }
 /* ===========================================================
     APPEND REALTIME CHART
 =========================================================== */
 function appendRealtimeChart(data) {
-    updateRoomChart(
-        data.averageDust,
-        data.averageLight
-    );
+  updateRoomChart(data.averageDust, data.averageLight);
 }
 /* ===========================================================
     UPDATE ROOM
 =========================================================== */
 function updateRoomData(data) {
-    if (!data) {
-        return;
-    }
-    if (typeof data !== "object") {
-        return;
-    }
-    renderRoom(data);
-    updateStatistics(data);
+  if (!data) {
+    return;
+  }
+  if (typeof data !== "object") {
+    return;
+  }
+  renderRoom(data);
+  updateStatistics(data);
 }
 /* ===========================================================
     CHART FACTORY
 =========================================================== */
-function createLineChart(
-    canvasId,
-    datasets,
-    customOptions = {}
-) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        return null;
-    }
-    const needZoom =
-        customOptions?.plugins?.zoom !== undefined;
-    return new Chart(canvas, {
-        type: "line",
-        data: {
-            labels: [],
-            datasets
-        },
-        options: ChartDesignSystem.mergeOptions(
-            ChartDesignSystem.createOptions({
-                zoom: needZoom
-            }),
-            customOptions
-        )
-    });
+function createLineChart(canvasId, datasets, customOptions = {}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) {
+    return null;
+  }
+  const needZoom = customOptions?.plugins?.zoom !== undefined;
+  return new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets,
+    },
+    options: ChartDesignSystem.mergeOptions(
+      ChartDesignSystem.createOptions({
+        zoom: needZoom,
+      }),
+      customOptions,
+    ),
+  });
 }
 /* ===========================================================
     CHART
 =========================================================== */
 function createRoomChart() {
-    const canvas = document.getElementById(
-        "roomChart"
-    );
-    if (!canvas) return;
-    const ctx =
-        canvas.getContext("2d");
-    if (Monitoring.charts.room) {
-        Monitoring.charts.room.destroy();
-    }
-    Monitoring.charts.room =
-        createLineChart(
-            "roomChart",
-            [
-                ChartDesignSystem.createDataset(
-                    "Average Dust",
-                    ChartDesignSystem.DATASET.MONITORING.AVERAGE_DUST
-                ),
-                ChartDesignSystem.createDataset(
-                    "Average Light",
-                    ChartDesignSystem.DATASET.MONITORING.AVERAGE_LIGHT
-                )
-            ],
-            {
-                plugins: {
-                    zoom: {
-                        pan: {
-                            enabled: false,
-                            mode: "x"
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: false
-                            },
-                            pinch: {
-                                enabled: false
-                            },
-                            drag: {
-                                enabled: false
-                            },
-                            mode: "x"
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grace: "10%",
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        );
+  const canvas = document.getElementById("roomChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (Monitoring.charts.room) {
+    Monitoring.charts.room.destroy();
+  }
+  Monitoring.charts.room = createLineChart(
+    "roomChart",
+    [
+      ChartDesignSystem.createDataset(
+        "Average Dust",
+        ChartDesignSystem.DATASET.MONITORING.AVERAGE_DUST,
+      ),
+      ChartDesignSystem.createDataset(
+        "Average Light",
+        ChartDesignSystem.DATASET.MONITORING.AVERAGE_LIGHT,
+      ),
+    ],
+    {
+      plugins: {
+        zoom: {
+          pan: {
+            enabled: false,
+            mode: "x",
+          },
+          zoom: {
+            wheel: {
+              enabled: false,
+            },
+            pinch: {
+              enabled: false,
+            },
+            drag: {
+              enabled: false,
+            },
+            mode: "x",
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grace: "10%",
+          ticks: {
+            precision: 0,
+          },
+        },
+      },
+    },
+  );
 }
 /* ===========================================================
     CREATE TREND CHART
 =========================================================== */
 function createTrendChart() {
-    const canvas = document.getElementById(
-        "trendChart"
-    );
-    if (!canvas) {
-        return;
-    }
-    const ctx = canvas.getContext("2d");
-    if (Monitoring.charts.trend) {
-        Monitoring.charts.trend.destroy();
-    }
-    Monitoring.charts.trend =
-        createLineChart(
-            "trendChart",
-            [
-                ChartDesignSystem.createDataset(
-                    Language.get("monitoring.trend.chart"),
-                    ChartDesignSystem.DATASET.MONITORING.TREND
-                )
-            ],
-            {
-                plugins: {
-                    zoom: {
-                        pan: {
-                            enabled: false,
-                            mode: "x"
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: false
-                            },
-                            pinch: {
-                                enabled: false
-                            },
-                            drag: {
-                                enabled: false
-                            },
-                            mode: "x"
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grace: "10%",
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        );
+  const canvas = document.getElementById("trendChart");
+  if (!canvas) {
+    return;
+  }
+  const ctx = canvas.getContext("2d");
+  if (Monitoring.charts.trend) {
+    Monitoring.charts.trend.destroy();
+  }
+  Monitoring.charts.trend = createLineChart(
+    "trendChart",
+    [
+      ChartDesignSystem.createDataset(
+        Language.get("monitoring.trend.chart"),
+        ChartDesignSystem.DATASET.MONITORING.TREND,
+      ),
+    ],
+    {
+      plugins: {
+        zoom: {
+          pan: {
+            enabled: false,
+            mode: "x",
+          },
+          zoom: {
+            wheel: {
+              enabled: false,
+            },
+            pinch: {
+              enabled: false,
+            },
+            drag: {
+              enabled: false,
+            },
+            mode: "x",
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grace: "10%",
+          ticks: {
+            precision: 0,
+          },
+        },
+      },
+    },
+  );
 }
 /* ===========================================================
     UPDATE CHART
 =========================================================== */
-function updateRoomChart(
-    averageDust,
-    averageLight
-) {
-    const chart =
-        getRealtimeChart();
-    if (!chart)
-        return;
-    const history =
-        currentChartHistory();
-    // Simpan histori sesuai node aktif
-    history.labels.push(
-        currentTime()
-    );
-    history.dust.push(
-        averageDust
-    );
-    history.light.push(
-        averageLight
-    );
-    // Maksimal jumlah titik
-    while (
-        history.labels.length >
-        CONFIG.chart.maxPoints
-    ) {
-        history.labels.shift();
-        history.dust.shift();
-        history.light.shift();
-    }
-    if (isRoomChartExploreMode()) {
-        return;
-    }
-    refreshRealtimeChart();
+function updateRoomChart(averageDust, averageLight) {
+  const chart = getRealtimeChart();
+  if (!chart) return;
+  const history = currentChartHistory();
+  // Simpan histori sesuai node aktif
+  history.labels.push(currentTime());
+  history.dust.push(averageDust);
+  history.light.push(averageLight);
+  // Maksimal jumlah titik
+  while (history.labels.length > CONFIG.chart.maxPoints) {
+    history.labels.shift();
+    history.dust.shift();
+    history.light.shift();
+  }
+  if (isRoomChartExploreMode()) {
+    return;
+  }
+  refreshRealtimeChart();
 }
 /* ===========================================================
     RESTORE CHART
 =========================================================== */
 function restoreRoomChart() {
-    updateRoomChartLimitButton();
-    updateRoomChartZoomButton();
-    updateRoomChartToolbarState();
-    applyRoomChartInteraction();
-    refreshRealtimeChart();
+  updateRoomChartLimitButton();
+  updateRoomChartZoomButton();
+  updateRoomChartToolbarState();
+  applyRoomChartInteraction();
+  refreshRealtimeChart();
 }
 /* ===========================================================
     AVERAGE
@@ -1851,286 +1522,236 @@ function restoreRoomChart() {
 // Deprecated
 // Sudah digantikan oleh average dari Firebase
 function calculateAverage(data) {
-    const room = currentRoom();
-    let dustTotal = 0;
-    let dustCount = 0;
-    let lightTotal = 0;
-    let lightCount = 0;
-    for (
-        let i = 1;
-        i <= room.dustSensors;
-        i++
-    ) {
-        const value =
-            normalizeValue(
-                data["dust" + i]
-            );
-        if (value !== null) {
-            dustTotal += value;
-            dustCount++;
-        }
+  const room = currentRoom();
+  let dustTotal = 0;
+  let dustCount = 0;
+  let lightTotal = 0;
+  let lightCount = 0;
+  for (let i = 1; i <= room.dustSensors; i++) {
+    const value = normalizeValue(data["dust" + i]);
+    if (value !== null) {
+      dustTotal += value;
+      dustCount++;
     }
-    for (
-        let i = 1;
-        i <= room.lightSensors;
-        i++
-    ) {
-        const value =
-            normalizeValue(
-                data["light" + i]
-            );
-        if (value !== null) {
-            lightTotal += value;
-            lightCount++;
-        }
+  }
+  for (let i = 1; i <= room.lightSensors; i++) {
+    const value = normalizeValue(data["light" + i]);
+    if (value !== null) {
+      lightTotal += value;
+      lightCount++;
     }
-    return {
-        dust:
-            dustCount > 0
-                ? dustTotal / dustCount
-                : 0,
-        light:
-            lightCount > 0
-                ? lightTotal / lightCount
-                : 0
-    };
+  }
+  return {
+    dust: dustCount > 0 ? dustTotal / dustCount : 0,
+    light: lightCount > 0 ? lightTotal / lightCount : 0,
+  };
 }
 /* ===========================================================
     UPDATE SUMMARY
 =========================================================== */
 function updateMonitoringSummary(data) {
-    const avgDust = document.getElementById("averageDust");
-    const avgLight = document.getElementById("averageLight");
-    const dustCount = document.getElementById("dustCount");
-    const lightCount = document.getElementById("lightCount");
-    const lastUpdate = document.getElementById("lastUpdate");
-    const room = currentRoom();
-    const dustValue = data?.averageDust;
-    const lightValue = data?.averageLight;
-    if (avgDust) {
-        avgDust.textContent = dustValue == null
-            ? "--"
-            : Number(dustValue)
-                .toFixed(2);
-    }
-    if (avgLight) {
-        avgLight.textContent = lightValue == null
-            ? "--"
-            : Number(lightValue)
-                .toFixed(2);
-    }
-    if (dustCount) {
-        dustCount.textContent =
-            room.dustSensors;
-    }
-    if (lightCount) {
-        lightCount.textContent =
-            room.lightSensors;
-    }
-    if (lastUpdate) {
-        lastUpdate.textContent =
-            data?.timestamp
-                ? formatMonitoringTime(
-                    data.timestamp
-                )
-                : "--";
-    }
+  const avgDust = document.getElementById("averageDust");
+  const avgLight = document.getElementById("averageLight");
+  const dustCount = document.getElementById("dustCount");
+  const lightCount = document.getElementById("lightCount");
+  const lastUpdate = document.getElementById("lastUpdate");
+  const room = currentRoom();
+  const dustValue = data?.averageDust;
+  const lightValue = data?.averageLight;
+  if (avgDust) {
+    avgDust.textContent =
+      dustValue == null ? "--" : Number(dustValue).toFixed(2);
+  }
+  if (avgLight) {
+    avgLight.textContent =
+      lightValue == null ? "--" : Number(lightValue).toFixed(2);
+  }
+  if (dustCount) {
+    dustCount.textContent = room.dustSensors;
+  }
+  if (lightCount) {
+    lightCount.textContent = room.lightSensors;
+  }
+  if (lastUpdate) {
+    lastUpdate.textContent = data?.timestamp
+      ? formatMonitoringTime(data.timestamp)
+      : "--";
+  }
 }
 /* ===========================================================
     UPDATE BADGE
 =========================================================== */
 function updateBadge(id, status) {
-    const badge = document.getElementById(id);
-    if (!badge || !status) {
-        return;
-    }
-    badge.textContent = status.text;
-    badge.classList.remove(
-        "theme-badge-online",
-        "theme-badge-offline",
-        "theme-badge-waiting",
-        "theme-badge-normal",
-        "theme-badge-warning",
-        "theme-badge-danger",
-        "theme-badge-ideal",
-        "theme-badge-too-bright",
-        "theme-badge-poor",
-        "theme-badge-neutral"
-    );
-    if (status.class) {
-        badge.classList.add(status.class);
-    }
+  const badge = document.getElementById(id);
+  if (!badge || !status) {
+    return;
+  }
+  badge.textContent = status.text;
+  badge.classList.remove(
+    "theme-badge-online",
+    "theme-badge-offline",
+    "theme-badge-waiting",
+    "theme-badge-normal",
+    "theme-badge-warning",
+    "theme-badge-danger",
+    "theme-badge-ideal",
+    "theme-badge-too-bright",
+    "theme-badge-poor",
+    "theme-badge-neutral",
+  );
+  if (status.class) {
+    badge.classList.add(status.class);
+  }
 }
 /* ===========================================================
     UPDATE NODE STATUS
 =========================================================== */
 function updateNodeStatus(state) {
-    switch (state) {
-        case CONNECTION_STATE.ONLINE:
-            updateBadge("nodeStatus", {
-                text: CONFIG.status.system.online,
-                class: "theme-badge-online"
-            });
-            break;
-        case CONNECTION_STATE.WAITING:
-            updateBadge("nodeStatus", {
-                text: CONFIG.status.system.waiting,
-                class: "theme-badge-waiting"
-            });
-            break;
-        case CONNECTION_STATE.OFFLINE:
-            updateBadge("nodeStatus", {
-                text: CONFIG.status.system.offline,
-                class: "theme-badge-offline"
-            });
-            break;
-    }
+  switch (state) {
+    case CONNECTION_STATE.ONLINE:
+      updateBadge("nodeStatus", {
+        text: CONFIG.status.system.online,
+        class: "theme-badge-online",
+      });
+      break;
+    case CONNECTION_STATE.WAITING:
+      updateBadge("nodeStatus", {
+        text: CONFIG.status.system.waiting,
+        class: "theme-badge-waiting",
+      });
+      break;
+    case CONNECTION_STATE.OFFLINE:
+      updateBadge("nodeStatus", {
+        text: CONFIG.status.system.offline,
+        class: "theme-badge-offline",
+      });
+      break;
+  }
 }
 /* ===========================================================
     CONNECTION RENDERER
 =========================================================== */
 function renderConnection(roomID) {
-    const state =
-        getConnectionState(roomID);
-    if (
-        roomID === getCurrentRoomID()
-    ) {
-        updateNodeStatus(state);
-    }
+  const state = getConnectionState(roomID);
+  if (roomID === getCurrentRoomID()) {
+    updateNodeStatus(state);
+  }
 }
 /* ===========================================================
     CONNECTION STATUS
 =========================================================== */
 function checkConnectionStatus() {
-    CONFIG.rooms.forEach(room => {
-        if (!getConnection(room.id)) {
-            return;
-        }
-        syncConnectionState(room.id);
-        renderConnection(room.id);
-    });
-    if (
-        typeof refreshDashboard ===
-        "function"
-    ) {
-        refreshDashboard();
+  CONFIG.rooms.forEach((room) => {
+    if (!getConnection(room.id)) {
+      return;
     }
+    syncConnectionState(room.id);
+    renderConnection(room.id);
+  });
+  if (typeof refreshDashboard === "function") {
+    refreshDashboard();
+  }
 }
 /* ===========================================================
     FIREBASE BRIDGE
 =========================================================== */
-function updateMonitoringNodeA(
-    data,
-    isInitialSnapshot = false
-) {
-    if (!data) {
-        return;
-    }
-    Monitoring.roomData.nodeA = data;
-    /*
+function updateMonitoringNodeA(data, isInitialSnapshot = false) {
+  if (!data) {
+    return;
+  }
+  Monitoring.roomData.nodeA = data;
+  /*
     =====================================================
     Seluruh snapshot Firebase dianggap sebagai paket yang
     diterima, termasuk initial snapshot.
     =====================================================
     */
-    receivePacket("nodeA");
-    if (getCurrentRoomID() === "nodeA") {
-        updateRoomData(data);
-        appendRealtimeChart(data);
-    }
-    if (typeof refreshDashboard === "function") {
-        refreshDashboard();
-    }
+  receivePacket("nodeA");
+  if (getCurrentRoomID() === "nodeA") {
+    updateRoomData(data);
+    appendRealtimeChart(data);
+  }
+  if (typeof refreshDashboard === "function") {
+    refreshDashboard();
+  }
 }
-function updateMonitoringNodeB(
-    data,
-    isInitialSnapshot = false
-) {
-    if (!data) {
-        return;
-    }
-    Monitoring.roomData.nodeB = data;
-    /*
+function updateMonitoringNodeB(data, isInitialSnapshot = false) {
+  if (!data) {
+    return;
+  }
+  Monitoring.roomData.nodeB = data;
+  /*
     =====================================================
     Initial snapshot juga dianggap paket valid.
     =====================================================
     */
-    receivePacket("nodeB");
-    if (getCurrentRoomID() === "nodeB") {
-        updateRoomData(data);
-        appendRealtimeChart(data);
-    }
-    if (typeof refreshDashboard === "function") {
-        refreshDashboard();
-    }
+  receivePacket("nodeB");
+  if (getCurrentRoomID() === "nodeB") {
+    updateRoomData(data);
+    appendRealtimeChart(data);
+  }
+  if (typeof refreshDashboard === "function") {
+    refreshDashboard();
+  }
 }
 /* ===========================================================
     HISTORY BRIDGE
 =========================================================== */
 function updateHistoryNodeA(data) {
-    Monitoring.historyData.nodeA = data;
-    if (!Monitoring.historyLoaded.nodeA) {
-        loadHistoryChart("nodeA");
-        Monitoring.historyLoaded.nodeA = true;
-    }
-    // if (typeof onHistoryUpdated === "function") {
-    //     onHistoryUpdated();
-    // }
+  Monitoring.historyData.nodeA = data;
+  if (!Monitoring.historyLoaded.nodeA) {
+    loadHistoryChart("nodeA");
+    Monitoring.historyLoaded.nodeA = true;
+  }
+  // if (typeof onHistoryUpdated === "function") {
+  //     onHistoryUpdated();
+  // }
 }
 function updateHistoryNodeB(data) {
-    Monitoring.historyData.nodeB = data;
-    if (!Monitoring.historyLoaded.nodeB) {
-        loadHistoryChart("nodeB");
-        Monitoring.historyLoaded.nodeB = true;
-    }
-    // if (typeof onHistoryUpdated === "function") {
-    //     onHistoryUpdated();
-    // }
+  Monitoring.historyData.nodeB = data;
+  if (!Monitoring.historyLoaded.nodeB) {
+    loadHistoryChart("nodeB");
+    Monitoring.historyLoaded.nodeB = true;
+  }
+  // if (typeof onHistoryUpdated === "function") {
+  //     onHistoryUpdated();
+  // }
 }
 /* ===========================================================
     LOAD HISTORY TO CHART
 =========================================================== */
 function loadHistoryChart(roomID) {
-    const chart =
-        getRealtimeChart();
-    if (!chart) return;
-    const history = Monitoring.historyData[roomID];
-    if (!history || history.length === 0) {
-        console.warn("History kosong :", roomID);
-        return;
-    }
-    const chartHistory = Monitoring.chartHistory[roomID];
-    chartHistory.labels = [];
-    chartHistory.dust = [];
-    chartHistory.light = [];
-    history.forEach(item => {
-        const waktu = new Date(item.waktu);
-        chartHistory.labels.push(
-            waktu.toLocaleTimeString(
-                getDashboardLocale(), {
-                hour12: false
-            })
-        );
-        chartHistory.dust.push(
-            Number(item.debu?.rata ?? 0)
-        );
-        chartHistory.light.push(
-            Number(item.cahaya?.rata ?? 0)
-        );
-    });
-    const maxPoints = CONFIG.chart.maxPoints;
-    if (chartHistory.labels.length > maxPoints) {
-        chartHistory.labels =
-            chartHistory.labels.slice(-maxPoints);
-        chartHistory.dust =
-            chartHistory.dust.slice(-maxPoints);
-        chartHistory.light =
-            chartHistory.light.slice(-maxPoints);
-    }
-    restoreRoomChart();
-    // Jika history yang selesai dimuat adalah room yang sedang aktif,
-    // langsung bangun ulang Trend Chart.
-    if (roomID === getCurrentRoomID()) {
-        refreshTrendAnalysis();
-    }
+  const chart = getRealtimeChart();
+  if (!chart) return;
+  const history = Monitoring.historyData[roomID];
+  if (!history || history.length === 0) {
+    console.warn("History kosong :", roomID);
+    return;
+  }
+  const chartHistory = Monitoring.chartHistory[roomID];
+  chartHistory.labels = [];
+  chartHistory.dust = [];
+  chartHistory.light = [];
+  history.forEach((item) => {
+    const waktu = new Date(item.waktu);
+    chartHistory.labels.push(
+      waktu.toLocaleTimeString(getDashboardLocale(), {
+        hour12: false,
+      }),
+    );
+    chartHistory.dust.push(Number(item.debu?.rata ?? 0));
+    chartHistory.light.push(Number(item.cahaya?.rata ?? 0));
+  });
+  const maxPoints = CONFIG.chart.maxPoints;
+  if (chartHistory.labels.length > maxPoints) {
+    chartHistory.labels = chartHistory.labels.slice(-maxPoints);
+    chartHistory.dust = chartHistory.dust.slice(-maxPoints);
+    chartHistory.light = chartHistory.light.slice(-maxPoints);
+  }
+  restoreRoomChart();
+  // Jika history yang selesai dimuat adalah room yang sedang aktif,
+  // langsung bangun ulang Trend Chart.
+  if (roomID === getCurrentRoomID()) {
+    refreshTrendAnalysis();
+  }
 }

@@ -2,158 +2,129 @@
    STATUS COMPONENT
 ===================================================== */
 .theme-status {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    font-size: .875rem;
-    font-weight: 600;
-    color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
 .theme-status-dot {
-    width: .625rem;
-    height: .625rem;
-    border-radius: 9999px;
-    flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
 }
-
 /* =====================================================
    TABLE COMPONENT
 ===================================================== */
 .theme-table {
-    width: 100%;
-    border-collapse: collapse;
-    color: var(--text-primary);
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-primary);
 }
-
 .theme-table thead {
-    background: var(--surface-hover);
+  background: var(--surface-hover);
 }
-
 .theme-table th {
-    padding: 1rem;
-    text-align: left;
-    vertical-align: middle;
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
 }
-
 .theme-table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
 }
-
 .theme-table tbody tr {
-    transition:
-        background-color var(--transition);
+  transition: background-color var(--transition);
 }
-
 .theme-table tbody tr:hover {
-    background: var(--surface-hover) !important;
+  background: var(--surface-hover) !important;
 }
-
 .theme-table tbody tr:hover td {
-    background: transparent;
+  background: transparent;
 }
-
 .theme-table-striped tbody tr:nth-child(even) {
-    background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, 0.02);
 }
-
 body:not(.dark) .theme-table-striped tbody tr:nth-child(even) {
-    background: #F8FAFC;
+  background: #f8fafc;
 }
-
 .theme-table-cell {
-    padding: 1rem;
+  padding: 1rem;
 }
-
 .theme-table-cell-center {
-    text-align: center;
-    vertical-align: middle;
+  text-align: center;
+  vertical-align: middle;
 }
-
 .theme-table-head-center {
-    text-align: center !important;
+  text-align: center !important;
 }
-
 .theme-table-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
 .theme-table-cell-number {
-    font-weight: 600;
+  font-weight: 600;
 }
-
 .theme-table-empty {
-    padding: 3rem;
-    text-align: center;
-    color: var(--text-muted);
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
 }
-
 /* ===========================
    SYSTEM
 =========================== */
 .theme-status-online {
-    background: var(--success);
+  background: var(--success);
 }
-
 .theme-status-offline {
-    background: var(--danger);
+  background: var(--danger);
 }
-
 .theme-status-waiting {
-    background: var(--text-muted);
+  background: var(--text-muted);
 }
-
 /* ===========================
    DUST
 =========================== */
 .theme-status-normal {
-    background: var(--success);
+  background: var(--success);
 }
-
 .theme-status-warning {
-    background: var(--warning);
+  background: var(--warning);
 }
-
 .theme-status-danger {
-    background: var(--danger);
+  background: var(--danger);
 }
-
 /* ===========================
    LIGHT
 =========================== */
 .theme-status-ideal {
-    background: var(--success);
+  background: var(--success);
 }
-
 .theme-status-acceptable {
-    background: var(--primary);
+  background: var(--primary);
 }
-
 .theme-status-poor {
-    background: var(--danger);
+  background: var(--danger);
 }
-
 /* =====================================================
    STATUS
 ===================================================== */
 .status-normal {
-    color: white;
-    background: var(--success);
+  color: white;
+  background: var(--success);
 }
-
 .status-warning {
-    color: white;
-    background: var(--warning);
+  color: white;
+  background: var(--warning);
 }
-
 .status-danger {
-    color: white;
-    background: var(--danger);
+  color: white;
+  background: var(--danger);
 }

@@ -1,17 +1,148 @@
 /* =====================================================
-   LOADING
+   APPLICATION LOADER
 ===================================================== */
-.loading {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: 6px solid var(--border);
-    border-top: 6px solid var(--primary);
-    animation: spin 1s linear infinite;
+.app-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  background: var(--background);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    opacity 0.3s ease;
 }
-
-@keyframes spin {
-    100% {
-        transform: rotate(360deg);
-    }
+/* ketika loader selesai */
+.app-loader.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+/* =====================================================
+   CONTENT
+===================================================== */
+.app-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.app-loader-logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  margin-bottom: 18px;
+}
+.app-loader-title {
+  font-size: 2.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.app-loader-subtitle {
+  margin-top: 8px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+.app-loader-status {
+  margin-top: 28px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+/* =====================================================
+   SPINNER
+===================================================== */
+.app-loader-spinner {
+  width: 58px;
+  height: 58px;
+  margin-top: 34px;
+  will-change: transform;
+}
+.app-loader-spinner svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: loaderRotate 2s linear infinite;
+}
+.spinner-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 4;
+}
+.spinner-indicator {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: center;
+  stroke-dasharray: 1 126;
+  stroke-dashoffset: 0;
+  animation: loaderDash 1.5s ease-in-out infinite;
+}
+@keyframes loaderRotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loaderDash {
+  0% {
+    stroke-dasharray: 1 126;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90 126;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90 126;
+    stroke-dashoffset: -124;
+  }
+}
+/* =====================================================
+   APP LOADER TRANSITION
+===================================================== */
+.app-loader {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.45s ease,
+    visibility 0.45s ease,
+    background-color 0.25s ease;
+}
+.app-loader.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#app {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+#app.ready {
+  opacity: 1;
+}
+/* =====================================================
+   LOADER PROGRESS
+===================================================== */
+.app-loader-progress {
+  width: 280px;
+  height: 8px;
+  margin-top: 22px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.app-loader-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #60a5fa);
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+.app-loader-percent {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
 }
