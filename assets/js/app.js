@@ -5,9 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeApp();
 });
 function initializeApp() {
+  Bootstrap.initialize();
+  [
+    Bootstrap.Module.THEME,
+    Bootstrap.Module.LANGUAGE,
+    Bootstrap.Module.FIREBASE,
+    Bootstrap.Module.DASHBOARD,
+    Bootstrap.Module.MONITORING,
+    Bootstrap.Module.HISTORY,
+  ].forEach(Bootstrap.register.bind(Bootstrap));
+  Bootstrap.setStage(Bootstrap.Stage.UI);
     Theme.initialize();
     Language.initialize();
     initializeMonitoring();
+  initializeDashboard();
+  initializeHistory();
+  initializeScrollbar();
     initializeClock();
     initializeSidebar();
     initializeNavigation();
@@ -18,9 +31,27 @@ function initializeApp() {
     updateSidebarState(null);
     toggleMonitoringMenu(false);
 }
-function isMobileLayout() {
-    return window.innerWidth < mobileBreakpoint;
-}
+const Scrollbar = {
+  timer: null,
+  initialize() {
+    const showScrollbar = () => {
+      document.body.classList.add("scrollbar-active");
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        document.body.classList.remove("scrollbar-active");
+      }, 1200);
+    };
+    window.addEventListener("scroll", showScrollbar, {
+      passive: true,
+    });
+    window.addEventListener("wheel", showScrollbar, {
+      passive: true,
+    });
+    window.addEventListener("touchmove", showScrollbar, {
+      passive: true,
+    });
+  },
+};
 /* =====================================================
     SIDEBAR
 ===================================================== */
