@@ -460,12 +460,13 @@ function renderNodeCard(node, room, connectionState) {
   const dust = document.getElementById("nodeADust");
   const light = document.getElementById("nodeALight");
   const lastUpdate = document.getElementById("nodeALastUpdate");
-  /*
-    =====================================================
-    NODE OFFLINE / BELUM ADA DATA
-    =====================================================
-    */
-  if (!node || connectionState !== CONNECTION_STATE.ONLINE) {
+  if (!status) {
+    return;
+  }
+  /* ==========================================
+      BELUM ADA DATA SAMA SEKALI
+  ========================================== */
+  if (!node) {
     if (dust) {
       dust.textContent = "--";
     }
@@ -475,18 +476,15 @@ function renderNodeCard(node, room, connectionState) {
     if (lastUpdate) {
       lastUpdate.textContent = "--";
     }
-    if (status) {
-      status.className = "theme-badge";
-      status.classList.add("theme-badge-offline");
-      status.textContent = CONFIG.status.system.offline;
-    }
+    status.className = "theme-badge";
+    status.classList.add("theme-badge-neutral");
+    status.textContent = CONFIG.status.system.waiting;
     return;
   }
-  /*
-    =====================================================
-    NODE ONLINE
-    =====================================================
-    */
+  /* ==========================================
+      LAST KNOWN VALUE
+      (Selalu tampil jika data tersedia)
+  ========================================== */
   if (dust) {
     dust.textContent = Number(node.averageDust).toFixed(2) + " μg/m³";
   }
@@ -496,17 +494,34 @@ function renderNodeCard(node, room, connectionState) {
   if (lastUpdate) {
     lastUpdate.textContent = formatDashboardDate(node.timestamp);
   }
-  if (!status) {
-    return;
-  }
   status.className = "theme-badge";
-  const nodeStatus = String(node.status ?? "").toUpperCase();
-  if (nodeStatus === "NORMAL") {
-    status.classList.add("theme-badge-success");
-    status.textContent = Language.get("dashboard.dynamic.status.normal");
-  } else {
-    status.classList.add("theme-badge-danger");
-    status.textContent = Language.get("dashboard.dynamic.status.abnormal");
+  /* ==========================================
+      CONNECTION STATE
+  ========================================== */
+  switch (connectionState) {
+    case CONNECTION_STATE.WAITING:
+      status.classList.add("theme-badge-neutral");
+      status.textContent = CONFIG.status.system.waiting;
+      return;
+    case CONNECTION_STATE.OFFLINE:
+      status.classList.add("theme-badge-offline");
+      status.textContent = CONFIG.status.system.offline;
+      return;
+    case CONNECTION_STATE.ONLINE: {
+      const nodeStatus = String(node.status ?? "").toUpperCase();
+      if (nodeStatus === "NORMAL") {
+        status.classList.add("theme-badge-success");
+        status.textContent = Language.get("dashboard.dynamic.status.normal");
+      } else {
+        status.classList.add("theme-badge-danger");
+        status.textContent = Language.get("dashboard.dynamic.status.abnormal");
+      }
+      return;
+    }
+    default:
+      status.classList.add("theme-badge-neutral");
+      status.textContent = CONFIG.status.system.waiting;
+      return;
   }
 }
 /* =====================================================

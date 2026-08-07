@@ -1489,6 +1489,9 @@
               </div>
             </div>
             <div class="theme-card rounded-3xl p-8 mt-8">
+              <!-- ===================================== -->
+              <!-- HEADER -->
+              <!-- ===================================== -->
               <div class="flex items-center gap-3 mb-8">
                 <div class="theme-about-icon-box">
                   <i class="bi bi-diagram-3 theme-icon-primary text-xl"></i>
@@ -1504,11 +1507,17 @@
                     class="theme-text-muted"
                     data-i18n="about.architecture.subtitle"
                   >
-                    Alur komunikasi data pada sistem
+                    System Communication Flow
                   </p>
                 </div>
               </div>
-              <div class="grid lg:grid-cols-5 gap-5 text-center">
+              <!-- ===================================== -->
+              <!-- COMMUNICATION FLOW -->
+              <!-- ===================================== -->
+              <div class="grid lg:grid-cols-5 gap-5 text-center items-center">
+                <!-- ================================= -->
+                <!-- SENSOR NODE -->
+                <!-- ================================= -->
                 <div class="theme-about-node">
                   <i class="bi bi-cpu text-5xl theme-icon-primary"></i>
                   <h3
@@ -1517,20 +1526,43 @@
                   >
                     Sensor Node
                   </h3>
-                  <p
-                    class="text-sm theme-text-muted mt-2"
-                    data-i18n="about.architecture.sensorNodeDescription"
-                  >
-                    Node A & Node B
-                  </p>
-                </div>
-                <div class="flex items-center justify-center">
-                  <div>
-                    <i class="bi bi-arrow-right text-4xl theme-text-muted"></i>
-                    <p class="font-semibold mt-2 text-blue-600">ESP-NOW</p>
+                  <div class="theme-about-sensor-list">
+                    <!-- Node A -->
+                    <div class="theme-about-flow">
+                      <div class="theme-about-sensor-name">Node A</div>
+                      <div class="theme-about-sensor-room">Laboratory</div>
+                    </div>
+                    <div class="theme-about-sensor-divider"></div>
+                    <!-- Node B -->
+                    <div class="theme-about-flow">
+                      <div class="theme-about-sensor-name">Node B</div>
+                      <div class="theme-about-sensor-room">Container</div>
+                    </div>
                   </div>
                 </div>
-                <div class="theme-about-node">
+                <!-- ================================= -->
+                <!-- ARROW -->
+                <!-- ================================= -->
+                <div class="theme-about-connector">
+                  <!-- Node A -->
+                  <div class="theme-about-flow-line">
+                    <span class="theme-about-protocol-http">
+                      HTTP / Wi-Fi
+                    </span>
+                    <div class="theme-about-line"></div>
+                    <i class="bi bi-arrow-right"></i>
+                  </div>
+                  <!-- Node B -->
+                  <div class="theme-about-flow-line">
+                    <span class="theme-about-protocol-esp"> ESP-NOW </span>
+                    <div class="theme-about-line"></div>
+                    <i class="bi bi-arrow-right"></i>
+                  </div>
+                </div>
+                <!-- ================================= -->
+                <!-- GATEWAY -->
+                <!-- ================================= -->
+                <div class="theme-about-node -translate-y-6">
                   <i class="bi bi-hdd-network text-5xl theme-icon-success"></i>
                   <h3
                     class="font-bold mt-4"
@@ -1545,12 +1577,18 @@
                     ESP32 Main Node
                   </p>
                 </div>
+                <!-- ================================= -->
+                <!-- ARROW -->
+                <!-- ================================= -->
                 <div class="flex items-center justify-center">
                   <div>
                     <i class="bi bi-arrow-right text-4xl theme-text-muted"></i>
                     <p class="font-semibold mt-2 text-orange-600">HTTP</p>
                   </div>
                 </div>
+                <!-- ================================= -->
+                <!-- FIREBASE -->
+                <!-- ================================= -->
                 <div class="theme-about-node">
                   <i class="bi bi-cloud-check text-5xl text-cyan-600"></i>
                   <h3
@@ -1567,19 +1605,28 @@
                   </p>
                 </div>
               </div>
+              <!-- ===================================== -->
+              <!-- DESCRIPTION -->
+              <!-- ===================================== -->
               <div class="theme-about-description mt-8">
                 <p
                   class="leading-8 theme-text-secondary"
                   data-i18n="about.architecture.description"
                 >
-                  <strong>ESP-NOW</strong> digunakan sebagai media komunikasi
-                  antara Sensor Node dan Gateway karena memiliki latensi rendah
-                  dan tidak memerlukan akses internet. Selanjutnya Gateway
-                  mengirimkan data menuju
+                  Node A mengirimkan data sensor secara langsung menuju
                   <strong>Firebase Realtime Database</strong>
                   menggunakan protokol
-                  <strong>HTTP</strong>, kemudian website melakukan sinkronisasi
-                  data secara realtime melalui Firebase Listener.
+                  <strong>HTTP melalui jaringan Wi-Fi</strong>. Sementara itu
+                  Node B menggunakan
+                  <strong>ESP-NOW</strong>
+                  untuk mengirimkan data ke
+                  <strong>Gateway (ESP32 Main Node)</strong>. Gateway kemudian
+                  meneruskan data Node B ke
+                  <strong>Firebase Realtime Database</strong>
+                  menggunakan protokol
+                  <strong>HTTP</strong>. Website melakukan sinkronisasi seluruh
+                  data secara realtime melalui
+                  <strong>Firebase Realtime Database Listener</strong>.
                 </p>
               </div>
             </div>

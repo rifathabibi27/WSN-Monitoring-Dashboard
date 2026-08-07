@@ -1660,13 +1660,10 @@ function updateMonitoringNodeA(data, isInitialSnapshot = false) {
     return;
   }
   Monitoring.roomData.nodeA = data;
-  /*
-    =====================================================
-    Seluruh snapshot Firebase dianggap sebagai paket yang
-    diterima, termasuk initial snapshot.
-    =====================================================
-    */
-  receivePacket("nodeA");
+  // Hanya paket realtime yang dianggap komunikasi baru
+  if (!isInitialSnapshot) {
+    receivePacket("nodeA");
+  }
   if (getCurrentRoomID() === "nodeA") {
     updateRoomData(data);
     appendRealtimeChart(data);
@@ -1680,12 +1677,10 @@ function updateMonitoringNodeB(data, isInitialSnapshot = false) {
     return;
   }
   Monitoring.roomData.nodeB = data;
-  /*
-    =====================================================
-    Initial snapshot juga dianggap paket valid.
-    =====================================================
-    */
-  receivePacket("nodeB");
+  // Hanya paket realtime yang dianggap komunikasi baru
+  if (!isInitialSnapshot) {
+    receivePacket("nodeB");
+  }
   if (getCurrentRoomID() === "nodeB") {
     updateRoomData(data);
     appendRealtimeChart(data);
