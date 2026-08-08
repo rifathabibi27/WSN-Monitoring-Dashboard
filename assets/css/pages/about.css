@@ -1,262 +1,197 @@
 /* =====================================================
-   ABOUT PAGE
-   THEME LINK
+ABOUT PAGE THEME LINK
 ===================================================== */
 #aboutPage .theme-link {
-  color: var(--primary);
+  color: #3b82f6;
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: 0.2s;
 }
 #aboutPage .theme-link:hover {
-  color: color-mix(in srgb, var(--primary) 75%, white);
+  color: #60a5fa;
   text-decoration: underline;
 }
 /* =====================================================
-   COMMUNICATION ARCHITECTURE
+ABOUT PAGE ARCHITECTURE
 ===================================================== */
-.architecture-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 140px 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 2rem;
-  align-items: center;
-  justify-items: center;
-}
-/* ==========================
-   BOX
-========================== */
-.architecture-box {
-  width: 100%;
-  max-width: 260px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.25s ease;
-}
-.architecture-box:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-}
-.architecture-box i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-.architecture-box h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-.architecture-box p {
-  margin-top: 0.4rem;
-  color: var(--text-muted);
-}
-/* ==========================
-   ICON COLOR
-========================== */
-.node-a i,
-.node-b i {
-  color: #2563eb;
-}
-.gateway i {
-  color: #22c55e;
-}
-.firebase i {
-  color: #06b6d4;
-}
-/* ==========================
-   POSITION
-========================== */
-.node-a {
-  grid-column: 1;
-  grid-row: 1;
-}
-.gateway {
-  grid-column: 1;
-  grid-row: 3;
-}
-.firebase {
-  grid-column: 3;
-  grid-row: 2;
-}
-.node-b {
-  grid-column: 1;
-  grid-row: 5;
-}
-/* ==========================
-   LABEL
-========================== */
-.architecture-label {
-  position: relative;
-  z-index: 2;
-  padding: 0.35rem 0.75rem;
-  background: var(--surface);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  border-radius: var(--radius-full);
-}
-/* Node A → Firebase */
-.http-a {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  color: #f97316;
-}
-/* Gateway → Firebase */
-.http-b {
-  grid-column: 2;
-  grid-row: 3;
-  color: #f97316;
-}
-/* Node B → Gateway */
-.espnow {
-  grid-column: 1;
-  grid-row: 4;
-  color: var(--primary);
-}
-/* =====================================================
-   ARCHITECTURE CONNECTORS
-===================================================== */
-/* Node B → Gateway */
-.espnow::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 100%;
-  width: 2px;
-  height: 2rem;
-  background: var(--border);
-  transform: translateX(-50%);
-}
-.espnow::after {
-  content: "↑";
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 1.55rem);
-  transform: translateX(-50%);
-  color: var(--text-muted);
-  font-size: 1.25rem;
-}
-/* Gateway → Firebase */
-.http-b::before {
-  content: "";
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  width: 5rem;
-  height: 2px;
-  background: var(--border);
-  transform: translateY(-50%);
-}
-.http-b::after {
-  content: "→";
-  position: absolute;
-  left: calc(100% + 4.5rem);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 1.35rem;
-}
-/* Node A → Firebase */
-.http-a::before {
-  content: "";
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  width: 5rem;
-  height: 2px;
-  background: var(--border);
-  transform: translateY(-50%);
-}
-.http-a::after {
-  content: "→";
-  position: absolute;
-  left: calc(100% + 4.5rem);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 1.35rem;
-}
-/* =====================================================
-   SENSOR FLOW
-===================================================== */
-.theme-about-sensor-row {
+.theme-about-architecture {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-.theme-about-sensor-info {
-  text-align: left;
-}
-.theme-about-sensor-line {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-}
-.theme-about-sensor-line::after {
-  content: "";
-  width: 28px;
-  height: 2px;
-  background: var(--border);
-}
-.theme-about-sensor-line::before {
-  content: "→";
-  order: 2;
-  color: var(--text-muted);
-  font-size: 1rem;
-  margin-left: 0.4rem;
-}
-.theme-about-protocol-http {
-  color: #ea580c;
-  font-weight: 700;
-}
-.theme-about-protocol-esp {
-  color: #2563eb;
-  font-weight: 700;
-}
-.theme-about-sensor-divider {
-  margin: 1rem 0;
-  border-top: 1px dashed var(--border);
+  gap: 32px;
+  width: 100%;
 }
 /* =====================================================
-   COMMUNICATION CONNECTOR
+SENSOR NODE
 ===================================================== */
-.theme-about-connector {
+#aboutPage .theme-about-node--group {
+  flex: 1.25;
+  max-width: 260px;
+  min-width: 220px;
+  min-height: 230px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 230px;
-  margin-left: -10px;
-  padding-top: 72px;
-  padding-bottom: 28px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 18px;
 }
-.theme-about-flow-line {
+.theme-about-node-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-width: 280px;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
 }
-.theme-about-line {
+.theme-about-node-header i {
+  font-size: 28px;
+}
+.theme-about-node-header h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1;
+}
+#aboutPage .theme-about-subnode {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.2s;
+}
+#aboutPage .theme-about-subnode:hover {
+  border-color: rgba(148, 163, 184, 0.6);
+}
+#aboutPage .theme-about-subnode + .theme-about-subnode {
+  margin-top: 12px;
+}
+#aboutPage .theme-about-subnode p {
+  margin: 0;
+}
+#aboutPage .theme-about-subnode p:first-child {
+  margin-bottom: 3px;
+}
+/* =====================================================
+CONNECTOR KIRI
+===================================================== */
+#aboutPage .theme-about-arrow-col {
+  flex: 0.95;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+.theme-about-flow {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.theme-about-flow-label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+.theme-about-flow-arrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.theme-about-flow-line {
   flex: 1;
   height: 2px;
-  background: var(--border);
-  min-width: 110px;
+  background: #d7dee9;
 }
-.theme-about-flow-line i {
-  color: var(--text-muted);
-  font-size: 1.35rem;
+.theme-about-flow-arrow i {
+  margin-left: 10px;
+  font-size: 20px;
+  color: #94a3b8;
 }
-.theme-about-protocol-http {
+/* =====================================================
+GATEWAY & FIREBASE
+===================================================== */
+#aboutPage .theme-about-node {
+  flex: 1;
+  max-width: 240px;
+  min-width: 210px;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 22px;
+}
+#aboutPage .theme-about-node > i {
+  font-size: 48px !important;
+  margin-bottom: 16px;
+}
+#aboutPage .theme-about-node > h3 {
+  margin: 0;
+  line-height: 1.2;
+}
+#aboutPage .theme-about-node > p {
+  margin-top: 8px;
+}
+/* =====================================================
+CONNECTOR KANAN
+===================================================== */
+.theme-about-flow-center {
+  flex: 0.95;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.theme-about-flow-center .theme-about-flow-label {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1px;
+}
+.theme-about-flow-center .theme-about-flow-arrow {
+  width: 100%;
+}
+/* =====================================================
+COLOR
+===================================================== */
+.theme-about-http {
   color: #ea580c;
-  font-weight: 700;
-  white-space: nowrap;
 }
-.theme-about-protocol-esp {
-  color: var(--primary);
-  font-weight: 700;
-  white-space: nowrap;
+.theme-about-esp {
+  color: #2563eb;
+}
+/* =====================================================
+RESPONSIVE
+===================================================== */
+@media (max-width: 1200px) {
+  .theme-about-architecture {
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  #aboutPage .theme-about-node--group,
+  #aboutPage .theme-about-node {
+    width: 260px;
+    max-width: 260px;
+  }
+  #aboutPage .theme-about-arrow-col,
+  .theme-about-flow-center {
+    width: 240px;
+  }
+  .theme-about-flow {
+    width: 240px;
+  }
+  .theme-about-flow-label,
+  .theme-about-flow-arrow {
+    width: 100%;
+  }
+}
+/* =====================================================
+PROJECT SPECIFICATION
+===================================================== */
+#aboutPage .theme-specification-value {
+  font-size: 13px;
+  line-height: 1.55;
+  margin-top: 10px;
 }

@@ -256,23 +256,27 @@ Language.dictionaries = {
     "about.system.subtitle": "Ringkasan penelitian",
     "about.system.background.title": "Latar Belakang",
     "about.system.background.description":
-      "Sistem ini dikembangkan untuk melakukan monitoring konsentrasi debu PM2.5 dan intensitas cahaya pada beberapa ruangan menggunakan konsep Wireless Sensor Network sehingga kondisi lingkungan dapat dipantau secara realtime.",
+      "Sistem ini dikembangkan untuk memantau konsentrasi debu PM2.5 dan intensitas cahaya pada beberapa ruangan menggunakan konsep Wireless Sensor Network (WSN), sehingga kondisi lingkungan dapat dipantau secara realtime melalui website monitoring.",
     "about.system.objective.title": "Tujuan",
     "about.system.objective.description":
-      "Menghasilkan sistem monitoring berbasis ESP32 yang mampu mengirimkan data sensor secara realtime menuju website melalui Gateway dan Firebase Realtime Database.",
+      "Mengembangkan sistem monitoring berbasis ESP32 yang mampu mengirimkan data sensor secara realtime melalui Gateway menuju Firebase Realtime Database untuk divisualisasikan pada website monitoring.",
     "about.system.benefit.title": "Manfaat",
     "about.system.benefit.description":
-      "Membantu proses monitoring kondisi lingkungan laboratorium dan kontainer secara realtime sehingga data dapat digunakan sebagai dasar pengambilan keputusan.",
+      "Membantu proses pemantauan kondisi lingkungan laboratorium secara realtime serta menyediakan informasi yang dapat digunakan sebagai dasar evaluasi dan pengambilan keputusan.",
     "about.architecture.title": "Arsitektur Komunikasi",
     "about.architecture.subtitle": "Alur komunikasi data pada sistem",
-    "about.architecture.sensorNode": "Sensor Node",
+    "about.architecture.sensorNode": "Node Sensor",
+    "about.architecture.nodeA": "Node A",
+    "about.architecture.nodeALocation": "LAB. KIK JTE",
+    "about.architecture.nodeB": "Node B",
+    "about.architecture.nodeBLocation": "LAB. Kontainer",
     "about.architecture.sensorNodeDescription": "Node A & Node B",
     "about.architecture.gateway": "Gateway",
     "about.architecture.gatewayDescription": "ESP32 Main Node",
     "about.architecture.database": "Firebase",
     "about.architecture.databaseDescription": "Realtime Database",
     "about.architecture.description":
-      "ESP-NOW digunakan sebagai media komunikasi antara Sensor Node dan Gateway karena memiliki latensi rendah dan tidak memerlukan akses internet. Selanjutnya Gateway mengirimkan data menuju Firebase Realtime Database menggunakan protokol HTTP, kemudian website melakukan sinkronisasi data secara realtime melalui Firebase Listener.",
+      "Arsitektur komunikasi terdiri atas dua jalur pengiriman data. Node A mengirimkan data sensor ke Gateway menggunakan protokol HTTP, sedangkan Node B menggunakan ESP-NOW sebagai media komunikasi lokal berlatensi rendah. Seluruh data yang diterima Gateway kemudian diteruskan ke Firebase Realtime Database melalui protokol HTTP. Website selanjutnya melakukan sinkronisasi dan menampilkan pembaruan data secara realtime menggunakan Firebase Realtime Listener.",
     "about.tech.title": "Technology Stack",
     "about.tech.subtitle":
       "Perangkat lunak yang digunakan pada website monitoring.",
@@ -283,7 +287,9 @@ Language.dictionaries = {
     "about.tech.chart.description": "Visualisasi data secara realtime.",
     "about.tech.firebase.description": "Database cloud realtime.",
     "about.tech.bootstrap.description": "Library ikon yang konsisten.",
-    "about.hardware.title": "Hardware yang Digunakan",
+    "about.hardware.title": "Perangkat Keras yang Digunakan",
+    "about.hardware.subtitle":
+      "Komponen perangkat keras yang digunakan pada sistem monitoring.",
     "about.hardware.esp32.description":
       "Mikrokontroler utama untuk Sensor Node dan Gateway.",
     "about.hardware.gp2y.description": "Sensor optik konsentrasi debu (PM2.5).",
@@ -296,10 +302,13 @@ Language.dictionaries = {
     "about.hardware.router.description":
       "Access point jaringan nirkabel untuk konektivitas gateway.",
     "about.specification.title": "Spesifikasi Proyek",
+    "about.specification.subtitle":
+      "Konfigurasi teknis dan karakteristik sistem monitoring.",
     "about.specification.topology.title": "Topologi",
     "about.specification.topology.value": "Wireless Sensor Network (WSN)",
     "about.specification.nodeCommunication.title": "Komunikasi Node",
-    "about.specification.nodeCommunication.value": "ESP-NOW",
+    "about.specification.nodeCommunication.value":
+      "HTTP (Node A) + ESP-NOW (Node B)",
     "about.specification.gatewayCommunication.title": "Komunikasi Gateway",
     "about.specification.gatewayCommunication.value": "HTTP",
     "about.specification.database.title": "Database",
@@ -549,23 +558,27 @@ Language.dictionaries = {
     "about.system.subtitle": "Research overview",
     "about.system.background.title": "Background",
     "about.system.background.description":
-      "This system was developed to monitor PM2.5 dust concentration and light intensity across multiple rooms using the Wireless Sensor Network concept, enabling real-time environmental monitoring.",
+      "This system was developed to monitor PM2.5 concentration and light intensity in multiple rooms using a Wireless Sensor Network (WSN), enabling environmental conditions to be monitored in real time through the monitoring website.",
     "about.system.objective.title": "Objective",
     "about.system.objective.description":
-      "To develop an ESP32-based monitoring system capable of transmitting sensor data in real time to the website through the Gateway and Firebase Realtime Database.",
+      "To develop an ESP32-based monitoring system capable of transmitting sensor data in real time through the Gateway to Firebase Realtime Database for visualization on the monitoring website.",
     "about.system.benefit.title": "Benefits",
     "about.system.benefit.description":
-      "Supports real-time monitoring of laboratory and container environments, providing reliable data for analysis and decision-making.",
+      "To support real-time environmental monitoring by providing reliable information for environmental evaluation and decision-making.",
     "about.architecture.title": "Communication Architecture",
     "about.architecture.subtitle": "System data communication flow",
-    "about.architecture.sensorNode": "Sensor Node",
     "about.architecture.sensorNodeDescription": "Node A & Node B",
+    "about.architecture.sensorNode": "Sensor Node",
+    "about.architecture.nodeA": "Node A",
+    "about.architecture.nodeALocation": "KIK JTE Laboratory",
+    "about.architecture.nodeB": "Node B",
+    "about.architecture.nodeBLocation": "Container",
     "about.architecture.gateway": "Gateway",
     "about.architecture.gatewayDescription": "ESP32 Main Node",
     "about.architecture.database": "Firebase",
     "about.architecture.databaseDescription": "Realtime Database",
     "about.architecture.description":
-      "ESP-NOW is used as the communication medium between the Sensor Nodes and the Gateway because it provides low latency and does not require internet access. The Gateway then sends the data to Firebase Realtime Database using the HTTP protocol, while the website synchronizes the data in real time through Firebase Listeners.",
+      "The communication architecture consists of two data transmission paths. Node A sends sensor data to the Gateway using the HTTP protocol, while Node B uses ESP-NOW as a low-latency local communication protocol. All data received by the Gateway is then forwarded to Firebase Realtime Database via HTTP. The website subsequently synchronizes and displays real-time data updates using the Firebase Realtime Listener.",
     "about.tech.title": "Technology Stack",
     "about.tech.subtitle": "Software used in the monitoring website.",
     "about.tech.html.description": "Website structure and semantic markup.",
@@ -575,6 +588,8 @@ Language.dictionaries = {
     "about.tech.firebase.description": "Cloud real-time database.",
     "about.tech.bootstrap.description": "Consistent icon library.",
     "about.hardware.title": "Hardware Used",
+    "about.hardware.subtitle":
+      "Hardware components used in the monitoring system.",
     "about.hardware.esp32.description":
       "Main microcontroller for Sensor Node and Gateway.",
     "about.hardware.gp2y.description":
@@ -588,10 +603,13 @@ Language.dictionaries = {
     "about.hardware.router.description":
       "Wireless network access point for gateway connectivity.",
     "about.specification.title": "Project Specification",
+    "about.specification.subtitle":
+      "Technical configuration and characteristics of the monitoring system.",
     "about.specification.topology.title": "Topology",
     "about.specification.topology.value": "Wireless Sensor Network (WSN)",
     "about.specification.nodeCommunication.title": "Node Communication",
-    "about.specification.nodeCommunication.value": "ESP-NOW",
+    "about.specification.nodeCommunication.value":
+      "HTTP (Node A) + ESP-NOW (Node B)",
     "about.specification.gatewayCommunication.title": "Gateway Communication",
     "about.specification.gatewayCommunication.value": "HTTP",
     "about.specification.database.title": "Database",

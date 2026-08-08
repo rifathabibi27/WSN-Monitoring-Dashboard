@@ -1437,6 +1437,7 @@
                 </div>
               </div>
               <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Latar Belakang -->
                 <div>
                   <h3
                     class="font-semibold text-lg mb-3"
@@ -1448,12 +1449,15 @@
                     class="theme-text-secondary leading-8"
                     data-i18n="about.system.background.description"
                   >
-                    Sistem ini dikembangkan untuk melakukan monitoring
-                    konsentrasi debu PM2.5 dan intensitas cahaya pada beberapa
-                    ruangan menggunakan konsep Wireless Sensor Network sehingga
-                    kondisi lingkungan dapat dipantau secara realtime.
+                    Sistem ini dikembangkan untuk memantau konsentrasi debu
+                    PM2.5 dan intensitas cahaya pada beberapa ruangan
+                    menggunakan konsep
+                    <strong>Wireless Sensor Network (WSN)</strong>, sehingga
+                    kondisi lingkungan dapat dipantau secara realtime melalui
+                    website monitoring.
                   </p>
                 </div>
+                <!-- Tujuan -->
                 <div>
                   <h3
                     class="font-semibold text-lg mb-3"
@@ -1465,11 +1469,14 @@
                     class="theme-text-secondary leading-8"
                     data-i18n="about.system.objective.description"
                   >
-                    Menghasilkan sistem monitoring berbasis ESP32 yang mampu
-                    mengirimkan data sensor secara realtime menuju website
-                    melalui Gateway dan Firebase Realtime Database.
+                    Mengembangkan sistem monitoring berbasis
+                    <strong>ESP32</strong> yang mampu mengirimkan data sensor
+                    secara realtime melalui <strong>Gateway</strong> menuju
+                    <strong>Firebase Realtime Database</strong> untuk
+                    ditampilkan pada website monitoring.
                   </p>
                 </div>
+                <!-- Manfaat -->
                 <div>
                   <h3
                     class="font-semibold text-lg mb-3"
@@ -1481,17 +1488,15 @@
                     class="theme-text-secondary leading-8"
                     data-i18n="about.system.benefit.description"
                   >
-                    Membantu proses monitoring kondisi lingkungan laboratorium
-                    dan kontainer secara realtime sehingga data dapat digunakan
-                    sebagai dasar pengambilan keputusan.
+                    Membantu proses pemantauan kondisi lingkungan laboratorium
+                    secara realtime serta menyediakan informasi yang dapat
+                    digunakan sebagai dasar pengambilan keputusan dan evaluasi
+                    kondisi lingkungan.
                   </p>
                 </div>
               </div>
             </div>
             <div class="theme-card rounded-3xl p-8 mt-8">
-              <!-- ===================================== -->
-              <!-- HEADER -->
-              <!-- ===================================== -->
               <div class="flex items-center gap-3 mb-8">
                 <div class="theme-about-icon-box">
                   <i class="bi bi-diagram-3 theme-icon-primary text-xl"></i>
@@ -1507,62 +1512,76 @@
                     class="theme-text-muted"
                     data-i18n="about.architecture.subtitle"
                   >
-                    System Communication Flow
+                    Alur komunikasi data pada sistem
                   </p>
                 </div>
               </div>
-              <!-- ===================================== -->
-              <!-- COMMUNICATION FLOW -->
-              <!-- ===================================== -->
-              <div class="grid lg:grid-cols-5 gap-5 text-center items-center">
-                <!-- ================================= -->
-                <!-- SENSOR NODE -->
-                <!-- ================================= -->
-                <div class="theme-about-node">
-                  <i class="bi bi-cpu text-5xl theme-icon-primary"></i>
-                  <h3
-                    class="font-bold mt-4"
-                    data-i18n="about.architecture.sensorNode"
-                  >
-                    Sensor Node
-                  </h3>
-                  <div class="theme-about-sensor-list">
-                    <!-- Node A -->
-                    <div class="theme-about-flow">
-                      <div class="theme-about-sensor-name">Node A</div>
-                      <div class="theme-about-sensor-room">Laboratory</div>
-                    </div>
-                    <div class="theme-about-sensor-divider"></div>
-                    <!-- Node B -->
-                    <div class="theme-about-flow">
-                      <div class="theme-about-sensor-name">Node B</div>
-                      <div class="theme-about-sensor-room">Container</div>
-                    </div>
+              <div class="theme-about-architecture">
+                <!-- SENSOR NODE (Node A & Node B) -->
+                <div
+                  class="theme-about-node theme-about-node--group text-center"
+                >
+                  <div class="theme-about-node-header">
+                    <i class="bi bi-cpu text-2xl theme-icon-primary"></i>
+                    <h3
+                      class="font-bold text-sm"
+                      data-i18n="about.architecture.sensorNode"
+                    >
+                      Sensor Node
+                    </h3>
+                  </div>
+                  <div class="theme-about-subnode mb-2">
+                    <p
+                      class="font-semibold text-sm"
+                      data-i18n="about.architecture.nodeA"
+                    >
+                      Node A
+                    </p>
+                    <p
+                      class="text-xs theme-text-muted"
+                      data-i18n="about.architecture.nodeALocation"
+                    >
+                      Lab. KIK JTE
+                    </p>
+                  </div>
+                  <div class="theme-about-subnode">
+                    <p
+                      class="font-semibold text-sm"
+                      data-i18n="about.architecture.nodeB"
+                    >
+                      Node B
+                    </p>
+                    <p
+                      class="text-xs theme-text-muted"
+                      data-i18n="about.architecture.nodeBLocation"
+                    >
+                      Lab. Kontainer
+                    </p>
                   </div>
                 </div>
-                <!-- ================================= -->
-                <!-- ARROW -->
-                <!-- ================================= -->
-                <div class="theme-about-connector">
-                  <!-- Node A -->
-                  <div class="theme-about-flow-line">
-                    <span class="theme-about-protocol-http">
-                      HTTP / Wi-Fi
+                <!-- ARROWS: Node A -> HTTP, Node B -> ESP-NOW -->
+                <div class="theme-about-arrow-col">
+                  <div class="theme-about-flow">
+                    <span class="theme-about-flow-label theme-about-http">
+                      HTTP (Node A)
                     </span>
-                    <div class="theme-about-line"></div>
-                    <i class="bi bi-arrow-right"></i>
+                    <div class="theme-about-flow-arrow">
+                      <span class="theme-about-flow-line"></span>
+                      <i class="bi bi-arrow-right"></i>
+                    </div>
                   </div>
-                  <!-- Node B -->
-                  <div class="theme-about-flow-line">
-                    <span class="theme-about-protocol-esp"> ESP-NOW </span>
-                    <div class="theme-about-line"></div>
-                    <i class="bi bi-arrow-right"></i>
+                  <div class="theme-about-flow">
+                    <span class="theme-about-flow-label theme-about-esp">
+                      ESP-NOW (Node B)
+                    </span>
+                    <div class="theme-about-flow-arrow">
+                      <span class="theme-about-flow-line"></span>
+                      <i class="bi bi-arrow-right"></i>
+                    </div>
                   </div>
                 </div>
-                <!-- ================================= -->
                 <!-- GATEWAY -->
-                <!-- ================================= -->
-                <div class="theme-about-node -translate-y-6">
+                <div class="theme-about-node">
                   <i class="bi bi-hdd-network text-5xl theme-icon-success"></i>
                   <h3
                     class="font-bold mt-4"
@@ -1577,18 +1596,17 @@
                     ESP32 Main Node
                   </p>
                 </div>
-                <!-- ================================= -->
-                <!-- ARROW -->
-                <!-- ================================= -->
-                <div class="flex items-center justify-center">
-                  <div>
-                    <i class="bi bi-arrow-right text-4xl theme-text-muted"></i>
-                    <p class="font-semibold mt-2 text-orange-600">HTTP</p>
+                <!-- ARROW: Gateway -> Firebase (tidak berubah) -->
+                <div class="theme-about-flow theme-about-flow-center">
+                  <span class="theme-about-flow-label theme-about-http">
+                    HTTP
+                  </span>
+                  <div class="theme-about-flow-arrow">
+                    <span class="theme-about-flow-line"></span>
+                    <i class="bi bi-arrow-right"></i>
                   </div>
                 </div>
-                <!-- ================================= -->
                 <!-- FIREBASE -->
-                <!-- ================================= -->
                 <div class="theme-about-node">
                   <i class="bi bi-cloud-check text-5xl text-cyan-600"></i>
                   <h3
@@ -1605,28 +1623,19 @@
                   </p>
                 </div>
               </div>
-              <!-- ===================================== -->
-              <!-- DESCRIPTION -->
-              <!-- ===================================== -->
               <div class="theme-about-description mt-8">
                 <p
                   class="leading-8 theme-text-secondary"
                   data-i18n="about.architecture.description"
                 >
-                  Node A mengirimkan data sensor secara langsung menuju
-                  <strong>Firebase Realtime Database</strong>
-                  menggunakan protokol
-                  <strong>HTTP melalui jaringan Wi-Fi</strong>. Sementara itu
-                  Node B menggunakan
-                  <strong>ESP-NOW</strong>
-                  untuk mengirimkan data ke
-                  <strong>Gateway (ESP32 Main Node)</strong>. Gateway kemudian
-                  meneruskan data Node B ke
-                  <strong>Firebase Realtime Database</strong>
-                  menggunakan protokol
-                  <strong>HTTP</strong>. Website melakukan sinkronisasi seluruh
-                  data secara realtime melalui
-                  <strong>Firebase Realtime Database Listener</strong>.
+                  Arsitektur komunikasi terdiri atas dua jalur pengiriman data.
+                  Node A mengirimkan data sensor ke Gateway menggunakan protokol
+                  HTTP, sedangkan Node B menggunakan ESP-NOW untuk komunikasi
+                  lokal berlatensi rendah. Seluruh data yang diterima Gateway
+                  kemudian dikirimkan ke Firebase Realtime Database melalui
+                  protokol HTTP, sehingga website dapat melakukan sinkronisasi
+                  dan menampilkan data secara realtime melalui Firebase Realtime
+                  Listener.
                 </p>
               </div>
             </div>
@@ -1746,12 +1755,27 @@
             <!-- HARDWARE USED -->
             <!-- ===================================================== -->
             <div class="theme-card rounded-3xl p-8 mt-8">
-              <h2
-                class="text-2xl font-bold mb-8"
-                data-i18n="about.hardware.title"
-              >
-                Hardware Used
-              </h2>
+              <div class="flex items-center gap-3 mb-6">
+                <div
+                  class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"
+                >
+                  <i class="bi bi-cpu theme-icon-primary text-xl"></i>
+                </div>
+                <div>
+                  <h2
+                    class="text-2xl font-bold"
+                    data-i18n="about.hardware.title"
+                  >
+                    Hardware Used
+                  </h2>
+                  <p
+                    class="theme-text-muted"
+                    data-i18n="about.hardware.subtitle"
+                  >
+                    Hardware components used in the monitoring system
+                  </p>
+                </div>
+              </div>
               <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
                 <!-- ESP32 -->
                 <div class="theme-info-card">
@@ -1845,13 +1869,30 @@
             <!-- PROJECT SPECIFICATION -->
             <!-- ===================================================== -->
             <div class="theme-card rounded-3xl p-8 mt-8">
-              <h2
-                class="text-2xl font-bold mb-8"
-                data-i18n="about.specification.title"
+              <div class="flex items-center gap-3 mb-6">
+                <div
+                  class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"
+                >
+                  <i class="bi bi-sliders theme-icon-primary text-xl"></i>
+                </div>
+                <div>
+                  <h2
+                    class="text-2xl font-bold"
+                    data-i18n="about.specification.title"
+                  >
+                    Project Specification
+                  </h2>
+                  <p
+                    class="theme-text-muted"
+                    data-i18n="about.specification.subtitle"
+                  >
+                    Technical configuration of the monitoring system
+                  </p>
+                </div>
+              </div>
+              <div
+                class="grid md:grid-cols-2 xl:grid-cols-4 gap-5 theme-specification-grid"
               >
-                Project Specification
-              </h2>
-              <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
                 <!-- Topology -->
                 <div class="theme-info-card">
                   <div class="flex items-center gap-3">
@@ -1864,7 +1905,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted mt-3"
                     data-i18n="about.specification.topology.value"
                   >
                     Wireless Sensor Network (WSN)
@@ -1882,10 +1923,10 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.nodeCommunication.value"
                   >
-                    ESP-NOW
+                    HTTP (Node A) + ESP-NOW (Node B)
                   </p>
                 </div>
                 <!-- Gateway Communication -->
@@ -1900,7 +1941,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.gatewayCommunication.value"
                   >
                     HTTP
@@ -1918,7 +1959,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.database.value"
                   >
                     Firebase Realtime Database
@@ -1938,7 +1979,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.interval.value"
                   >
                     Every 10 Seconds
@@ -1958,7 +1999,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.totalNode.value"
                   >
                     2 Sensor Nodes + 1 Gateway Node
@@ -1976,7 +2017,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.dustSensor.value"
                   >
                     10 × GP2Y1010AU0F
@@ -1996,7 +2037,7 @@
                     </h4>
                   </div>
                   <p
-                    class="text-sm theme-text-muted mt-3 leading-6"
+                    class="theme-specification-value theme-text-muted"
                     data-i18n="about.specification.lightSensor.value"
                   >
                     10 × BH1750
