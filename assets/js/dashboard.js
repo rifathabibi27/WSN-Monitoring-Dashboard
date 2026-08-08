@@ -933,8 +933,8 @@ function refreshRecentActivity() {
 ===================================================== */
 function buildRecentActivities() {
   const activities = [];
-  collectNodeActivity(activities, "nodeA", "LAB. KIK JTE");
-  collectNodeActivity(activities, "nodeB", "Kontainer");
+  collectNodeActivity(activities, "nodeA", Language.get("room.nodeA"));
+  collectNodeActivity(activities, "nodeB", Language.get("room.nodeB"));
   activities.sort((a, b) => b.timestamp - a.timestamp);
   return activities.slice(0, 20);
 }
@@ -955,8 +955,8 @@ function collectNodeActivity(nodeId, roomName) {
     COLLECT RECENT ACTIVITIES
 ===================================================== */
 function collectRecentActivities() {
-  collectCommunicationEvent("nodeA", "LAB. KIK JTE");
-  collectCommunicationEvent("nodeB", "Kontainer");
+  collectCommunicationEvent("nodeA", Language.get("room.nodeA"));
+  collectCommunicationEvent("nodeB", Language.get("room.nodeB"));
   collectMonitoringEvents();
 }
 function getDashboardConnection(roomID) {
@@ -1017,10 +1017,10 @@ function collectCommunicationEvent(nodeId, roomName) {
     MONITORING EVENTS
 ===================================================== */
 function collectMonitoringEvents() {
-  collectDustEvent("nodeA", "LAB. KIK JTE");
-  collectDustEvent("nodeB", "Kontainer");
-  collectLightEvent("nodeA", "LAB. KIK JTE");
-  collectLightEvent("nodeB", "Kontainer");
+  collectDustEvent("nodeA", Language.get("room.nodeA"));
+  collectDustEvent("nodeB", Language.get("room.nodeB"));
+  collectLightEvent("nodeA", Language.get("room.nodeA"));
+  collectLightEvent("nodeB", Language.get("room.nodeB"));
 }
 function collectDustEvent(nodeId, roomName) {
   const node = Monitoring.roomData[nodeId];

@@ -112,6 +112,7 @@ function getRoomSensorConfig(roomID) {
 }
 let historyData = [];
 let filteredData = [];
+let rawHistoryData = [];
 const rowsPerPage = 20;
 let currentPage = 1;
 // Menandakan data sudah siap diterima
@@ -304,6 +305,14 @@ function refreshHistory() {
   return request;
 }
 /* ============================================================
+    REFRESH HISTORY LANGUAGE
+============================================================ */
+function refreshHistoryLanguage() {
+  if (!historyData.length) return;
+  updateHistoryLanguage();
+  filterHistory();
+}
+/* ============================================================
     HISTORY UPDATED
 ============================================================ */
 function onHistoryUpdated() {
@@ -351,7 +360,8 @@ function loadHistory() {
     .then((results) => {
       const history = results[0].concat(results[1]);
       history.sort((a, b) => b.waktu - a.waktu);
-      const tableData = convertHistoryForTable(history);
+      rawHistoryData = history;
+      const tableData = convertHistoryForTable(rawHistoryData);
       setHistoryData(tableData);
       historyInitialized = true;
     })
@@ -405,83 +415,162 @@ function formatTimestamp(timestamp) {
   return `${day}-${month}-${year} ${hour}:${minute}:${second}`;
 }
 /* ============================================================
-    CONVERT HISTORY FOR TABLE
+    CONVERT HISTORY FOR TABLE (OPTIMIZED)
 ============================================================ */
 function convertHistoryForTable(history) {
   if (!Array.isArray(history)) {
     return [];
   }
   const records = [];
-  history.forEach((item) => {
+  /* ============================================================
+      LANGUAGE CACHE
+  ============================================================ */
+  const roomNames = {
+    nodeA: Language.get("room.nodeA"),
+    nodeB: Language.get("room.nodeB"),
+  };
+  const averageLabel = Language.get("history.sensor.average") || "Average";
+  const dustTemplate = Language.get("monitoring.sensor.dust");
+  const lightTemplate = Language.get("monitoring.sensor.light");
+  /* ============================================================
+      SENSOR LABEL CACHE
+  ============================================================ */
+  const dustLabels = [];
+  const lightLabels = [];
+  for (let i = 1; i <= 6; i++) {
+    dustLabels[i] = Language.replace(dustTemplate, {
+      index: i,
+    });
+  }
+  for (let i = 1; i <= 6; i++) {
+    lightLabels[i] = Language.replace(lightTemplate, {
+      index: i,
+    });
+  }
+  /* ============================================================
+      BUILD RECORDS
+  ============================================================ */
+  for (const item of history) {
     const waktu = new Date(item.waktu);
     const roomID = item.roomID;
-    const roomName = Language.get(`room.${roomID}`);
-    function createRecord(sensorID, sensorLabel, dustValue, lightValue) {
+    const roomName = roomNames[roomID] || roomID;
+    const timeText = formatTimestamp(item.waktu);
+    const dateText = waktu.toLocaleDateString("sv-SE");
+    const timestamp = waktu.getTime();
+    function pushRecord(sensorID, sensorLabel, dustValue, lightValue) {
       const dust = Number(dustValue ?? 0);
       const light = Number(lightValue ?? 0);
+      const dustText = dust.toFixed(2);
+      const lightText = light.toFixed(2);
       const dustCondition = calculateCondition(dust, "dust");
       const lightCondition = calculateCondition(light, "light");
       records.push({
-        time: formatTimestamp(item.waktu),
-        timestamp: waktu.getTime(),
-        date: waktu.toLocaleDateString("sv-SE"),
+        time: timeText,
+        timestamp,
+        date: dateText,
         roomID,
         room: roomName,
         sensorID,
         sensor: sensorLabel,
-        dust: dust.toFixed(2),
-        light: light.toFixed(2),
+        dust: dustText,
+        light: lightText,
         dustStatus: dustCondition.status,
         dustBadge: dustCondition.badge,
         lightStatus: lightCondition.status,
         lightBadge: lightCondition.badge,
-        searchText: [
-          formatTimestamp(item.waktu),
-          roomName,
-          sensorLabel,
-          dustCondition.status,
-          lightCondition.status,
-          dust.toFixed(2),
-          light.toFixed(2),
-        ]
-          .join(" ")
-          .toLowerCase(),
+        searchText: (
+          timeText +
+          " " +
+          roomName +
+          " " +
+          sensorLabel +
+          " " +
+          dustCondition.status +
+          " " +
+          lightCondition.status +
+          " " +
+          dustText +
+          " " +
+          lightText
+        ).toLowerCase(),
       });
     }
-    createRecord(
-      "average",
-      Language.get("history.sensor.average") || "Rata-rata",
-      item.debu?.rata,
-      item.cahaya?.rata,
-    );
-    Object.keys(item.debu || {})
-      .filter((key) => key.startsWith("S"))
-      .sort()
-      .forEach((key, index) => {
-        createRecord(
-          `dust${index + 1}`,
-          Language.replace(Language.get("monitoring.sensor.dust"), {
-            index: index + 1,
-          }),
-          item.debu[key],
-          0,
-        );
-      });
-    Object.keys(item.cahaya || {})
-      .filter((key) => key.startsWith("S"))
-      .sort()
-      .forEach((key, index) => {
-        createRecord(
-          `light${index + 1}`,
-          Language.replace(Language.get("monitoring.sensor.light"), {
-            index: index + 1,
-          }),
-          0,
-          item.cahaya[key],
-        );
-      });
-  });
+    /* ============================================================
+        AVERAGE
+    ============================================================ */
+    pushRecord("average", averageLabel, item.debu?.rata, item.cahaya?.rata);
+    /* ============================================================
+        DUST
+    ============================================================ */
+    const dust = item.debu;
+    if (dust) {
+      let index = 1;
+      while (dust["S" + index] !== undefined) {
+        pushRecord("dust" + index, dustLabels[index], dust["S" + index], 0);
+        index++;
+      }
+    }
+    /* ============================================================
+        LIGHT
+    ============================================================ */
+    const light = item.cahaya;
+    if (light) {
+      let index = 1;
+      while (light["S" + index] !== undefined) {
+        pushRecord("light" + index, lightLabels[index], 0, light["S" + index]);
+        index++;
+      }
+    }
+  }
   return records;
+}
+/* ============================================================
+    UPDATE HISTORY LANGUAGE
+============================================================ */
+function updateHistoryLanguage() {
+  const roomNames = {
+    nodeA: Language.get("room.nodeA"),
+    nodeB: Language.get("room.nodeB"),
+  };
+  const averageLabel = Language.get("history.sensor.average");
+  const dustTemplate = Language.get("monitoring.sensor.dust");
+  const lightTemplate = Language.get("monitoring.sensor.light");
+  for (const record of historyData) {
+    /* ----------------------------
+       Room
+    ----------------------------- */
+    record.room = roomNames[record.roomID] || record.room;
+    /* ----------------------------
+       Sensor
+    ----------------------------- */
+    if (record.sensorID === "average") {
+      record.sensor = averageLabel;
+    } else if (record.sensorID.startsWith("dust")) {
+      const index = Number(record.sensorID.replace("dust", ""));
+      record.sensor = Language.replace(dustTemplate, {
+        index,
+      });
+    } else if (record.sensorID.startsWith("light")) {
+      const index = Number(record.sensorID.replace("light", ""));
+      record.sensor = Language.replace(lightTemplate, {
+        index,
+      });
+    }
+    /* ----------------------------
+       Search Text
+    ----------------------------- */
+    record.searchText = [
+      record.time,
+      record.room,
+      record.sensor,
+      record.dustStatus,
+      record.lightStatus,
+      record.dust,
+      record.light,
+    ]
+      .join(" ")
+      .toLowerCase();
+  }
 }
 /* ============================================================
     FILTER : SEARCH
@@ -540,6 +629,7 @@ function filterHistory() {
     HISTORY TABLE
 ============================================================ */
 function renderHistoryTable() {
+  console.time("Render History Table");
   const table = document.getElementById("historyTable");
   if (!table) return;
   table.innerHTML = "";
@@ -623,6 +713,7 @@ function renderHistoryTable() {
         </tr>
         `;
   });
+  console.timeEnd("Render History Table");
   updatePagination();
 }
 /* ============================================================
@@ -974,6 +1065,7 @@ function renderRoomCondition(containerId, rooms, type) {
     UPDATE HISTORY SUMMARY
 ============================================================ */
 function updateHistorySummary() {
+  console.time("Summary");
   const summary = calculateHistorySummary();
   const total = document.getElementById("summaryTotalRecord");
   const dust = document.getElementById("summaryAverageDust");
@@ -1012,6 +1104,7 @@ function updateHistorySummary() {
   renderRoomCondition("summaryDustCondition", summary.rooms, "dust");
   renderRoomCondition("summaryLightCondition", summary.rooms, "light");
   updateHistorySummaryTitle();
+  console.timeEnd("Summary");
 }
 /* ============================================================
     PAGINATION

@@ -13,6 +13,10 @@
 /* =====================================================
    DASHBOARD CAROUSEL
 ===================================================== */
+.theme-node-title {
+  font-size: 1.6rem;
+  line-height: 1.15;
+}
 #dashboardPrevNode,
 #dashboardNextNode {
   transition:

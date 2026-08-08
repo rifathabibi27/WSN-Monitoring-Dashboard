@@ -352,15 +352,21 @@ pinInput?.addEventListener("keydown", (event) => {
     OPEN MODAL
 ===================================================== */
 downloadButton?.addEventListener("click", () => {
-  pinModal.classList.remove("hidden");
-  pinForm.classList.remove("hidden");
-  downloadLoading.classList.add("hidden");
-  pinSubtitle.innerHTML = "Masukkan PIN Administrator.";
-  pinInput.value = "";
-  pinError.classList.add("hidden");
-  pinError.innerHTML = "";
-  pinInput.classList.remove("border-red-500", "ring-red-500");
-  pinInput.focus();
+  pinModal?.classList.remove("hidden");
+  pinForm?.classList.remove("hidden");
+  downloadLoading?.classList.add("hidden");
+  if (pinSubtitle) {
+    pinSubtitle.innerHTML = "Masukkan PIN Administrator.";
+  }
+  if (pinInput) {
+    pinInput.value = "";
+    pinInput.classList.remove("border-red-500", "ring-red-500");
+    pinInput.focus();
+  }
+  if (pinError) {
+    pinError.classList.add("hidden");
+    pinError.innerHTML = "";
+  }
 });
 /* =====================================================
     CANCEL

@@ -67,6 +67,12 @@ const Language = {
       if (typeof refreshMonitoringLanguage === "function") {
         refreshMonitoringLanguage();
       }
+      /* =====================================================
+       HISTORY
+      ===================================================== */
+      if (typeof refreshHistoryLanguage === "function") {
+        refreshHistoryLanguage();
+      }
     }
   },
   apply() {
@@ -131,9 +137,9 @@ Language.dictionaries = {
     "sidebar.history": "History Data",
     "sidebar.about": "About",
     "room.nodeA": "LAB. KIK JTE",
-    "room.nodeB": "Kontainer",
+    "room.nodeB": "LAB. Kontainer",
     "monitoring.nodeA": "LAB. KIK JTE",
-    "monitoring.nodeB": "Kontainer",
+    "monitoring.nodeB": "LAB. Kontainer",
     /* =====================================================
           HEADER
         ===================================================== */
@@ -225,7 +231,7 @@ Language.dictionaries = {
     "history.time.manual": "Rentang Manual",
     "history.room.all": "Semua Ruangan",
     "history.room.nodeA": "LAB. KIK JTE",
-    "history.room.nodeB": "Kontainer",
+    "history.room.nodeB": "LAB. Kontainer",
     "history.sensor.selectRoom": "Pilih ruangan terlebih dahulu",
     "history.sensor.average": "Rata-rata",
     "history.reset": "Reset",
@@ -434,9 +440,9 @@ Language.dictionaries = {
     "sidebar.history": "History",
     "sidebar.about": "About",
     "room.nodeA": "KIK JTE Laboratory",
-    "room.nodeB": "Container",
+    "room.nodeB": "Container Laboratory",
     "monitoring.nodeA": "KIK JTE Laboratory",
-    "monitoring.nodeB": "Container",
+    "monitoring.nodeB": "Container Laboratory",
     /* =====================================================
           HEADER
         ===================================================== */
@@ -528,7 +534,7 @@ Language.dictionaries = {
     "history.time.manual": "Manual Range",
     "history.room.all": "All Rooms",
     "history.room.nodeA": "KIK JTE Laboratory",
-    "history.room.nodeB": "Container",
+    "history.room.nodeB": "Container Laboratory",
     "history.sensor.selectRoom": "Select a room first",
     "history.reset": "Reset",
     "history.summary.totalRecords": "Total Data Records",
@@ -572,7 +578,7 @@ Language.dictionaries = {
     "about.architecture.nodeA": "Node A",
     "about.architecture.nodeALocation": "KIK JTE Laboratory",
     "about.architecture.nodeB": "Node B",
-    "about.architecture.nodeBLocation": "Container",
+    "about.architecture.nodeBLocation": "Container Laboratory",
     "about.architecture.gateway": "Gateway",
     "about.architecture.gatewayDescription": "ESP32 Main Node",
     "about.architecture.database": "Firebase",
