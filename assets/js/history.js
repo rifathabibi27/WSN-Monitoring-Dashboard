@@ -304,10 +304,12 @@ function initializeHistory() {
 /* ============================================================
     SET HISTORY DATA
 ============================================================ */
-function setHistoryData(data) {
+function setHistoryData(data, resetPage = true) {
   historyData = [...data];
   filteredData = [...data];
-  currentPage = 1;
+  if (resetPage) {
+    currentPage = 1;
+  }
 }
 /* ============================================================
     REFRESH HISTORY
@@ -458,11 +460,11 @@ function rebuildHistoryFromRealtime() {
   /* ============================================================
       UPDATE HISTORY DATA
   ============================================================ */
-  setHistoryData(tableData);
+  setHistoryData(tableData, false);
   /* ============================================================
       APPLY CURRENT FILTER
   ============================================================ */
-  filterHistory();
+  filterHistory(false);
   historyInitialized = true;
 }
 /* ============================================================
@@ -478,6 +480,14 @@ function loadHistory() {
     return Promise.resolve();
   }
   const startAt = start.getTime();
+  /* ============================================================
+    RESET PAGINATION FOR NEW HISTORY QUERY
+  ============================================================ */
+  currentPage = 1;
+  /* ============================================================
+    GENERATE NEW LISTENER GENERATION
+  ============================================================ */
+  historyRealtimeState.generation++;
   /* ============================================================
       GENERATE NEW LISTENER GENERATION
   ============================================================ */
@@ -637,10 +647,20 @@ function convertHistoryForTable(history) {
     ============================================================ */
     const dust = item.debu;
     if (dust) {
-      let index = 1;
-      while (dust["S" + index] !== undefined) {
-        pushRecord("dust" + index, dustLabels[index], dust["S" + index], 0);
-        index++;
+      const roomConfig = CONFIG.rooms.find((room) => room.id === roomID);
+      const dustCount = roomConfig?.dustSensors || 0;
+      for (let index = 0; index < dustCount; index++) {
+        const value = dust["S" + index];
+        if (value === undefined || value === null) {
+          continue;
+        }
+        const sensorNumber = index + 1;
+        pushRecord(
+          "dust" + sensorNumber,
+          dustLabels[sensorNumber],
+          value,
+          null,
+        );
       }
     }
     /* ============================================================
@@ -648,10 +668,20 @@ function convertHistoryForTable(history) {
     ============================================================ */
     const light = item.cahaya;
     if (light) {
-      let index = 1;
-      while (light["S" + index] !== undefined) {
-        pushRecord("light" + index, lightLabels[index], 0, light["S" + index]);
-        index++;
+      const roomConfig = CONFIG.rooms.find((room) => room.id === roomID);
+      const lightCount = roomConfig?.lightSensors || 0;
+      for (let index = 0; index < lightCount; index++) {
+        const value = light["S" + index];
+        if (value === undefined || value === null) {
+          continue;
+        }
+        const sensorNumber = index + 1;
+        pushRecord(
+          "light" + sensorNumber,
+          lightLabels[sensorNumber],
+          null,
+          value,
+        );
       }
     }
   }
@@ -735,7 +765,7 @@ function filterSensor(data, sensorID) {
 /* ============================================================
     FILTER HISTORY
 ============================================================ */
-function filterHistory() {
+function filterHistory(resetPage = true) {
   const keyword = historyFilterState.search;
   const room = historyFilterState.room;
   const sensor = (historyFilterState.sensor || "average").toLowerCase();
@@ -754,7 +784,18 @@ function filterHistory() {
     data = filterSensor(data, sensor);
   }
   filteredData = data;
-  currentPage = 1;
+  if (resetPage) {
+    // Filter berubah karena aksi pengguna → mulai dari Page 1.
+    currentPage = 1;
+  } else {
+    // Realtime update → pertahankan halaman aktif.
+    const totalPage = Math.ceil(filteredData.length / rowsPerPage);
+    if (totalPage === 0) {
+      currentPage = 1;
+    } else if (currentPage > totalPage) {
+      currentPage = totalPage;
+    }
+  }
   updateHistorySummary();
   renderHistoryTable();
 }
@@ -773,14 +814,15 @@ function renderHistoryTable() {
   // Tidak ada data
   if (data.length === 0) {
     table.innerHTML = `
-            <tr>
-                <td colspan="8"
-                    class="theme-table-empty">
-                    Belum ada data history.
-                </td>
-            </tr>
-        `;
+    <tr>
+      <td colspan="8"
+          class="theme-table-empty">
+        Belum ada data history.
+      </td>
+    </tr>
+  `;
     updatePagination();
+    console.timeEnd("Render History Table");
     return;
   }
   data.forEach((item, index) => {
@@ -803,14 +845,14 @@ function renderHistoryTable() {
                 Dust
             ========================== -->
             <td class="theme-table-cell">
-                ${item.sensor.startsWith("Light") ? "-" : `${item.dust} µg/m³`}
+                ${item.sensorID.startsWith("light") ? "-" : `${item.dust} µg/m³`}
             </td>
             <!-- =========================
                 Dust Status
             ========================== -->
             <td class="theme-table-cell theme-table-cell-center">
                 ${
-                  item.sensor.startsWith("Light")
+                  item.sensorID.startsWith("light")
                     ? "-"
                     : `
                             <div class="theme-table-badge">
@@ -825,14 +867,14 @@ function renderHistoryTable() {
                 Light
             ========================== -->
             <td class="theme-table-cell">
-                ${item.sensor.startsWith("Dust") ? "-" : `${item.light} Lux`}
+                ${item.sensorID.startsWith("dust") ? "-" : `${item.light} Lux`}
             </td>
             <!-- =========================
                 Light Status
             ========================== -->
             <td class="theme-table-cell theme-table-cell-center">
                 ${
-                  item.sensor.startsWith("Dust")
+                  item.sensorID.startsWith("dust")
                     ? "-"
                     : `
                             <div class="theme-table-badge">
@@ -939,43 +981,91 @@ function calculateHistorySummary() {
   let dustCount = 0;
   let lightCount = 0;
   filteredData.forEach((item) => {
+    /*
+     * roomID = identitas internal Node
+     * room   = nama yang ditampilkan pada UI
+     */
+    const roomID = item.roomID;
     const roomName = item.room;
-    const dust = item.sensor.startsWith("Light") ? null : Number(item.dust);
-    const light = item.sensor.startsWith("Dust") ? null : Number(item.light);
-    if (!summary.rooms[roomName]) {
-      summary.rooms[roomName] = {
+    const isDustSensor = item.sensorID.startsWith("dust");
+    const isLightSensor = item.sensorID.startsWith("light");
+    const isAverageSensor = item.sensorID === "average";
+    const dust = isLightSensor ? null : Number(item.dust);
+    const light = isDustSensor ? null : Number(item.light);
+    /*
+     * =========================================================
+     * CREATE ROOM SUMMARY
+     * =========================================================
+     */
+    if (!summary.rooms[roomID]) {
+      summary.rooms[roomID] = {
+        roomID,
+        roomName,
         total: 0,
         dust: 0,
         dustCount: 0,
+        averageDust: 0,
         light: 0,
         lightCount: 0,
-        averageDust: 0,
         averageLight: 0,
+        dustCondition: null,
+        lightCondition: null,
       };
     }
-    summary.rooms[roomName].total++;
+    const room = summary.rooms[roomID];
+    room.total++;
+    /*
+     * =========================================================
+     * DUST
+     * =========================================================
+     */
     if (!isNaN(dust)) {
       summary.averageDust += dust;
       dustCount++;
-      summary.rooms[roomName].dust += dust;
-      summary.rooms[roomName].dustCount++;
+      room.dust += dust;
+      room.dustCount++;
     }
+    /*
+     * =========================================================
+     * LIGHT
+     * =========================================================
+     */
     if (!isNaN(light)) {
       summary.averageLight += light;
       lightCount++;
-      summary.rooms[roomName].light += light;
-      summary.rooms[roomName].lightCount++;
+      room.light += light;
+      room.lightCount++;
     }
   });
+  /*
+   * ===========================================================
+   * OVERALL AVERAGE
+   * ===========================================================
+   */
   summary.averageDust = dustCount === 0 ? 0 : summary.averageDust / dustCount;
   summary.averageLight =
     lightCount === 0 ? 0 : summary.averageLight / lightCount;
+  /*
+   * ===========================================================
+   * ROOM AVERAGE + CONDITION
+   * ===========================================================
+   */
   Object.values(summary.rooms).forEach((room) => {
     room.averageDust = room.dustCount === 0 ? 0 : room.dust / room.dustCount;
     room.averageLight =
       room.lightCount === 0 ? 0 : room.light / room.lightCount;
-    room.dustCondition = calculateCondition(room.averageDust, "dust");
-    room.lightCondition = calculateCondition(room.averageLight, "light");
+    /*
+     * Status + percentage
+     * tetap menggunakan standar yang sudah ditetapkan
+     */
+    room.dustCondition =
+      room.dustCount === 0
+        ? null
+        : calculateCondition(room.averageDust, "dust");
+    room.lightCondition =
+      room.lightCount === 0
+        ? null
+        : calculateCondition(room.averageLight, "light");
   });
   return summary;
 }
@@ -1146,19 +1236,19 @@ function getConditionIcon(badge) {
 function renderRoomCondition(containerId, rooms, type) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const currentSensor = historyFilterState.sensor || "Average";
+  const currentSensor = (historyFilterState.sensor || "average").toLowerCase();
   // =====================================================
   // Hide ketika sensor tidak relevan
   // =====================================================
   if (
-    (type === "dust" && currentSensor.startsWith("Light")) ||
-    (type === "light" && currentSensor.startsWith("Dust"))
+    (type === "dust" && currentSensor.startsWith("light")) ||
+    (type === "light" && currentSensor.startsWith("dust"))
   ) {
     container.innerHTML = `
-      <div class="text-center text-slate-400 py-3">
-        -
-      </div>
-    `;
+    <div class="text-center text-slate-400 py-3">
+      ---
+    </div>
+  `;
     return;
   }
   // =====================================================
@@ -1176,43 +1266,28 @@ function renderRoomCondition(containerId, rooms, type) {
       FIXED ROOM ORDER
       Mengikuti urutan CONFIG.rooms
   ===================================================== */
-  const orderedRooms = Object.entries(rooms).sort(
-    ([roomNameA, roomA], [roomNameB, roomB]) => {
-      /*
-       * summary.rooms menggunakan nama ruangan sebagai key,
-       * sedangkan CONFIG.rooms menggunakan room ID.
-       *
-       * Cari room ID berdasarkan nama yang tersimpan pada
-       * konfigurasi Language.
-       */
-      const roomConfigA = CONFIG.rooms.find((configRoom) => {
-        const configRoomName = Language.get(`room.${configRoom.id}`);
-        return configRoomName === roomNameA;
-      });
-      const roomConfigB = CONFIG.rooms.find((configRoom) => {
-        const configRoomName = Language.get(`room.${configRoom.id}`);
-        return configRoomName === roomNameB;
-      });
-      const indexA = roomConfigA
-        ? CONFIG.rooms.indexOf(roomConfigA)
-        : Number.MAX_SAFE_INTEGER;
-      const indexB = roomConfigB
-        ? CONFIG.rooms.indexOf(roomConfigB)
-        : Number.MAX_SAFE_INTEGER;
-      return indexA - indexB;
-    },
-  );
+  const orderedRooms = Object.entries(rooms).sort(([roomIDA], [roomIDB]) => {
+    const indexA = CONFIG.rooms.findIndex((room) => room.id === roomIDA);
+    const indexB = CONFIG.rooms.findIndex((room) => room.id === roomIDB);
+    return (
+      (indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA) -
+      (indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB)
+    );
+  });
   // =====================================================
   // Render
   // =====================================================
   container.innerHTML = "";
-  orderedRooms.forEach(([roomName, room]) => {
+  orderedRooms.forEach(([roomID, room]) => {
     const condition =
       type === "dust" ? room.dustCondition : room.lightCondition;
+    if (!condition) {
+      return;
+    }
     container.innerHTML += `
       <div class="flex justify-between items-center">
         <span class="font-medium">
-          ${roomName}
+          ${room.roomName}
         </span>
         <span class="font-semibold">
           <span class="${getConditionBadgeClass(condition.badge)}">
@@ -1243,23 +1318,25 @@ function updateHistorySummary() {
   if (showing) {
     showing.textContent = summary.totalRecord;
   }
-  const currentSensor = historyFilterState.sensor || "Average";
-  // =====================================================
-  // Dust Summary
-  // =====================================================
+  const currentSensor = (historyFilterState.sensor || "average").toLowerCase();
+  const isDustSensor = currentSensor.startsWith("dust");
+  const isLightSensor = currentSensor.startsWith("light");
+  /* ============================================================
+      DUST SUMMARY
+  ============================================================ */
   if (dust) {
-    if (currentSensor.startsWith("Light")) {
-      dust.textContent = "-";
+    if (isLightSensor) {
+      dust.textContent = "---";
     } else {
       dust.textContent = `${summary.averageDust.toFixed(2)} µg/m³`;
     }
   }
-  // =====================================================
-  // Light Summary
-  // =====================================================
+  /* ============================================================
+      LIGHT SUMMARY
+  ============================================================ */
   if (light) {
-    if (currentSensor.startsWith("Dust")) {
-      light.textContent = "-";
+    if (isDustSensor) {
+      light.textContent = "---";
     } else {
       light.textContent = `${summary.averageLight.toFixed(2)} Lux`;
     }
