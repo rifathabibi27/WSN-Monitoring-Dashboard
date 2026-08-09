@@ -118,6 +118,24 @@ let currentPage = 1;
 // Menandakan data sudah siap diterima
 let historyInitialized = false;
 /* ============================================================
+    HISTORY REALTIME LISTENER STATE
+============================================================ */
+const historyRealtimeState = {
+  nodeA: {
+    data: [],
+    unsubscribe: null,
+    hasSnapshot: false,
+    generation: 0,
+  },
+  nodeB: {
+    data: [],
+    unsubscribe: null,
+    hasSnapshot: false,
+    generation: 0,
+  },
+  generation: 0,
+};
+/* ============================================================
     HANDLE TIME RANGE
 ============================================================ */
 function handleTimeRangeChange() {
@@ -295,14 +313,7 @@ function setHistoryData(data) {
     REFRESH HISTORY
 ============================================================ */
 function refreshHistory() {
-  const request = loadHistory();
-  if (request && typeof request.then === "function") {
-    return request.then(() => {
-      filterHistory();
-    });
-  }
-  filterHistory();
-  return request;
+  return loadHistory();
 }
 /* ============================================================
     REFRESH HISTORY LANGUAGE
@@ -319,28 +330,143 @@ function onHistoryUpdated() {
   refreshHistory();
 }
 /* ============================================================
-    LOAD ROOM HISTORY
+    REALTIME ROOM HISTORY LISTENER
 ============================================================ */
-function loadRoomHistory(path, roomID, startAt, endAt) {
-  return db
-    .ref(path)
-    .orderByChild("waktu")
-    .startAt(startAt)
-    .endAt(endAt)
-    .once("value")
-    .then((snapshot) => {
+function loadRoomHistory(path, roomID, startAt, endAt, generation) {
+  const roomState = historyRealtimeState[roomID];
+  if (!roomState) {
+    console.error(`History realtime state tidak ditemukan: ${roomID}`);
+    return Promise.resolve();
+  }
+  /* ============================================================
+      STOP PREVIOUS LISTENER
+  ============================================================ */
+  if (typeof roomState.unsubscribe === "function") {
+    roomState.unsubscribe();
+    roomState.unsubscribe = null;
+  }
+  /* ============================================================
+      PREPARE NEW LISTENER
+  ============================================================ */
+  roomState.generation = generation;
+  roomState.hasSnapshot = false;
+  /* ============================================================
+      CREATE FIREBASE QUERY
+  ============================================================ */
+  const query = db.ref(path).orderByChild("waktu").startAt(startAt);
+  return new Promise((resolve, reject) => {
+    let initialSnapshotReceived = false;
+    const handleSnapshot = (snapshot) => {
+      /* ========================================================
+          IGNORE OLD LISTENER
+      ======================================================== */
+      if (generation !== historyRealtimeState.generation) {
+        return;
+      }
+      /* ========================================================
+          IGNORE OLD ROOM GENERATION
+      ======================================================== */
+      if (roomState.generation !== generation) {
+        return;
+      }
       const records = [];
       snapshot.forEach((child) => {
-        records.push({
-          ...child.val(),
-          roomID,
-        });
+        const value = child.val();
+        /*
+         * Filter end time manually.
+         *
+         * This avoids using a static Firebase endAt()
+         * for a realtime listener.
+         */
+        if (
+          value &&
+          Number(value.waktu) >= startAt &&
+          Number(value.waktu) <= Date.now()
+        ) {
+          records.push({
+            key: child.key,
+            ...value,
+            roomID,
+          });
+        }
       });
-      return records;
-    });
+      /* ========================================================
+          UPDATE ROOM DATA
+      ======================================================== */
+      roomState.data = records;
+      /*
+       * Snapshot kosong tetap valid.
+       */
+      roomState.hasSnapshot = true;
+      /* ========================================================
+          REBUILD HISTORY
+      ======================================================== */
+      rebuildHistoryFromRealtime();
+      /* ========================================================
+          INITIAL PROMISE RESOLUTION
+      ======================================================== */
+      if (!initialSnapshotReceived) {
+        initialSnapshotReceived = true;
+        resolve(records);
+      }
+    };
+    const handleError = (error) => {
+      console.error(`History ${roomID} realtime error:`, error);
+      if (!initialSnapshotReceived) {
+        reject(error);
+      }
+    };
+    /* ==========================================================
+        ATTACH REALTIME LISTENER
+    ========================================================== */
+    query.on("value", handleSnapshot, handleError);
+    /* ==========================================================
+        STORE UNSUBSCRIBE FUNCTION
+    ========================================================== */
+    roomState.unsubscribe = () => {
+      query.off("value", handleSnapshot);
+    };
+  });
 }
 /* ============================================================
-    HISTORY PROVIDER
+    REBUILD HISTORY FROM REALTIME
+============================================================ */
+function rebuildHistoryFromRealtime() {
+  if (historyRealtimeState.generation <= 0) {
+    return;
+  }
+  const nodeAState = historyRealtimeState.nodeA;
+  const nodeBState = historyRealtimeState.nodeB;
+  /* ============================================================
+      WAIT UNTIL BOTH LISTENERS HAVE RECEIVED THEIR FIRST SNAPSHOT
+  ============================================================ */
+  if (!nodeAState.hasSnapshot || !nodeBState.hasSnapshot) {
+    return;
+  }
+  const nodeAData = nodeAState.data || [];
+  const nodeBData = nodeBState.data || [];
+  const history = [...nodeAData, ...nodeBData];
+  history.sort((a, b) => b.waktu - a.waktu);
+  /* ============================================================
+      UPDATE RAW HISTORY
+  ============================================================ */
+  rawHistoryData = history;
+  /* ============================================================
+      CONVERT FOR TABLE
+  ============================================================ */
+  const tableData = convertHistoryForTable(rawHistoryData);
+  /* ============================================================
+      UPDATE HISTORY DATA
+  ============================================================ */
+  setHistoryData(tableData);
+  /* ============================================================
+      APPLY CURRENT FILTER
+  ============================================================ */
+  filterHistory();
+  historyInitialized = true;
+}
+/* ============================================================
+    LOAD HISTORY - REALTIME
 ============================================================ */
 function loadHistory() {
   if (typeof db === "undefined") {
@@ -352,22 +478,29 @@ function loadHistory() {
     return Promise.resolve();
   }
   const startAt = start.getTime();
-  const endAt = end.getTime();
+  /* ============================================================
+      GENERATE NEW LISTENER GENERATION
+  ============================================================ */
+  historyRealtimeState.generation++;
+  const generation = historyRealtimeState.generation;
+  /* ============================================================
+      START REALTIME LISTENERS
+  ============================================================ */
   return Promise.all([
-    loadRoomHistory(DB_PATH.history.nodeA, "nodeA", startAt, endAt),
-    loadRoomHistory(DB_PATH.history.nodeB, "nodeB", startAt, endAt),
+    loadRoomHistory(DB_PATH.history.nodeA, "nodeA", startAt, null, generation),
+    loadRoomHistory(DB_PATH.history.nodeB, "nodeB", startAt, null, generation),
   ])
-    .then((results) => {
-      const history = results[0].concat(results[1]);
-      history.sort((a, b) => b.waktu - a.waktu);
-      rawHistoryData = history;
-      const tableData = convertHistoryForTable(rawHistoryData);
-      setHistoryData(tableData);
-      historyInitialized = true;
+    .then(() => {
+      if (generation !== historyRealtimeState.generation) {
+        return;
+      }
+      rebuildHistoryFromRealtime();
     })
     .catch((error) => {
-      console.error("History query error:", error);
-      return loadHistoryFromMonitoring();
+      console.error("History realtime error:", error);
+      if (generation === historyRealtimeState.generation) {
+        loadHistoryFromMonitoring();
+      }
     });
 }
 /* ============================================================
@@ -1022,10 +1155,10 @@ function renderRoomCondition(containerId, rooms, type) {
     (type === "light" && currentSensor.startsWith("Dust"))
   ) {
     container.innerHTML = `
-            <div class="text-center text-slate-400 py-3">
-                -
-            </div>
-        `;
+      <div class="text-center text-slate-400 py-3">
+        -
+      </div>
+    `;
     return;
   }
   // =====================================================
@@ -1033,32 +1166,65 @@ function renderRoomCondition(containerId, rooms, type) {
   // =====================================================
   if (Object.keys(rooms).length === 0) {
     container.innerHTML = `
-            <div class="text-center text-slate-400 py-3">
-                Tidak ada data.
-            </div>
-        `;
+      <div class="text-center text-slate-400 py-3">
+        Tidak ada data.
+      </div>
+    `;
     return;
   }
+  /* =====================================================
+      FIXED ROOM ORDER
+      Mengikuti urutan CONFIG.rooms
+  ===================================================== */
+  const orderedRooms = Object.entries(rooms).sort(
+    ([roomNameA, roomA], [roomNameB, roomB]) => {
+      /*
+       * summary.rooms menggunakan nama ruangan sebagai key,
+       * sedangkan CONFIG.rooms menggunakan room ID.
+       *
+       * Cari room ID berdasarkan nama yang tersimpan pada
+       * konfigurasi Language.
+       */
+      const roomConfigA = CONFIG.rooms.find((configRoom) => {
+        const configRoomName = Language.get(`room.${configRoom.id}`);
+        return configRoomName === roomNameA;
+      });
+      const roomConfigB = CONFIG.rooms.find((configRoom) => {
+        const configRoomName = Language.get(`room.${configRoom.id}`);
+        return configRoomName === roomNameB;
+      });
+      const indexA = roomConfigA
+        ? CONFIG.rooms.indexOf(roomConfigA)
+        : Number.MAX_SAFE_INTEGER;
+      const indexB = roomConfigB
+        ? CONFIG.rooms.indexOf(roomConfigB)
+        : Number.MAX_SAFE_INTEGER;
+      return indexA - indexB;
+    },
+  );
+  // =====================================================
+  // Render
+  // =====================================================
   container.innerHTML = "";
-  Object.entries(rooms).forEach(([roomName, room]) => {
+  orderedRooms.forEach(([roomName, room]) => {
     const condition =
       type === "dust" ? room.dustCondition : room.lightCondition;
     container.innerHTML += `
-            <div class="flex justify-between items-center">
-                <span class="font-medium">
-                    ${roomName}
-                </span>
-                <span class="font-semibold">
-                    <span class="${getConditionBadgeClass(condition.badge)}">
-                        ${getConditionIcon(condition.badge)}
-                        ${condition.status}
-                    </span>
-                    <span class="text-slate-500">
-                        — ${condition.percentage}%
-                    </span>
-                </span>
-            </div>
-        `;
+      <div class="flex justify-between items-center">
+        <span class="font-medium">
+          ${roomName}
+        </span>
+        <span class="font-semibold">
+          <span class="${getConditionBadgeClass(condition.badge)}">
+            ${getConditionIcon(condition.badge)}
+            ${condition.status}
+          </span>
+          <span class="text-slate-500">
+            — ${condition.percentage}%
+          </span>
+        </span>
+      </div>
+    `;
   });
 }
 /* ============================================================
