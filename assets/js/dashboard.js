@@ -38,12 +38,14 @@ const Dashboard = {
   communicationState: "online",
   eventState: {
     nodeA: {
+      initialized: false,
       communication: null,
       lastTimestamp: null,
       dust: null,
       light: null,
     },
     nodeB: {
+      initialized: false,
       communication: null,
       lastTimestamp: null,
       dust: null,
@@ -99,8 +101,19 @@ function startDashboardRealtime() {
   if (Dashboard.updateInterval) return;
   Dashboard.updateInterval = setInterval(() => {
     if (!Dashboard.active) return;
-    // Tidak melakukan apa-apa.
-    // Dashboard sekarang menunggu update dari Firebase.
+    /*
+      ==========================================================
+      REALTIME COMMUNICATION STATE EVALUATION
+      ==========================================================
+      Connection Engine pada monitoring.js menentukan state
+      berdasarkan waktu sejak data terakhir diterima.
+      Dashboard hanya membaca state tersebut dan mendeteksi
+      apakah terjadi perubahan state.
+      Timer berjalan setiap 1 detik, tetapi notification hanya
+      dibuat ketika state benar-benar berubah.
+    */
+    collectCommunicationEvent("nodeA", Language.get("room.nodeA"));
+    collectCommunicationEvent("nodeB", Language.get("room.nodeB"));
   }, 1000);
 }
 /* =====================================================
@@ -962,6 +975,22 @@ function collectRecentActivities() {
 function getDashboardConnection(roomID) {
   return getConnection(roomID);
 }
+function getCommunicationEventTimestamp(connection, state) {
+  const lastReceive = Number(connection.lastReceive);
+  if (!Number.isFinite(lastReceive) || lastReceive <= 0) {
+    return Date.now();
+  }
+  switch (state) {
+    case CONNECTION_STATE.ONLINE:
+      return lastReceive;
+    case CONNECTION_STATE.WAITING:
+      return lastReceive + CONFIG.communication.online;
+    case CONNECTION_STATE.OFFLINE:
+      return lastReceive + CONFIG.communication.waiting;
+    default:
+      return lastReceive;
+  }
+}
 /* =====================================================
     COMMUNICATION EVENTS
 ===================================================== */
@@ -971,12 +1000,60 @@ function collectCommunicationEvent(nodeId, roomName) {
     return;
   }
   const state = Dashboard.eventState[nodeId];
+  if (!state) {
+    return;
+  }
+  /*
+    ==========================================
+    INITIAL BASELINE
+    ==========================================
+    Jika halaman baru dimuat dan node belum pernah
+    menerima paket, state WAITING hanyalah state
+    sementara dari connection engine.
+    Jangan menjadikan WAITING sebagai baseline event
+    sebelum komunikasi node benar-benar terverifikasi.
+  */
+  if (!state.initialized) {
+    if (!connection.received && connection.state === CONNECTION_STATE.WAITING) {
+      return;
+    }
+    /*
+      State pertama yang sudah terverifikasi hanya
+      digunakan sebagai baseline.
+      INITIAL STATE BUKAN EVENT.
+    */
+    state.communication = connection.state;
+    state.initialized = true;
+    return;
+  }
+  /*
+    ==========================================
+    NO STATE CHANGE
+    ==========================================
+    Selama kondisi komunikasi tetap sama,
+    jangan membuat notification baru.
+  */
   if (state.communication === connection.state) {
     return;
   }
-  if (connection.state === CONNECTION_STATE.ONLINE) {
+  /*
+    ==========================================
+    STATE CHANGE
+    ==========================================
+  */
+  const currentState = connection.state;
+  const eventTimestamp = getCommunicationEventTimestamp(
+    connection,
+    currentState,
+  );
+  /*
+    ==========================================
+    ONLINE
+    ==========================================
+  */
+  if (currentState === CONNECTION_STATE.ONLINE) {
     appendActivity({
-      key: `${nodeId}_online_${connection.lastReceive}`,
+      key: `${nodeId}_online_${eventTimestamp}`,
       category: "communication",
       type: "success",
       titleKey: "activity.communication.online.title",
@@ -984,11 +1061,16 @@ function collectCommunicationEvent(nodeId, roomName) {
       values: {
         roomKey: `room.${nodeId}`,
       },
-      timestamp: connection.lastReceive,
+      timestamp: eventTimestamp,
     });
-  } else if (connection.state === CONNECTION_STATE.WAITING) {
+  } else if (currentState === CONNECTION_STATE.WAITING) {
+    /*
+    ==========================================
+    WAITING
+    ==========================================
+  */
     appendActivity({
-      key: `${nodeId}_waiting_${connection.lastReceive}`,
+      key: `${nodeId}_waiting_${eventTimestamp}`,
       category: "communication",
       type: "warning",
       titleKey: "activity.communication.waiting.title",
@@ -996,11 +1078,16 @@ function collectCommunicationEvent(nodeId, roomName) {
       values: {
         roomKey: `room.${nodeId}`,
       },
-      timestamp: Date.now(),
+      timestamp: eventTimestamp,
     });
-  } else if (connection.state === CONNECTION_STATE.OFFLINE) {
+  } else if (currentState === CONNECTION_STATE.OFFLINE) {
+    /*
+    ==========================================
+    OFFLINE
+    ==========================================
+  */
     appendActivity({
-      key: `${nodeId}_offline_${connection.lastReceive}`,
+      key: `${nodeId}_offline_${eventTimestamp}`,
       category: "communication",
       type: "danger",
       titleKey: "activity.communication.offline.title",
@@ -1008,10 +1095,15 @@ function collectCommunicationEvent(nodeId, roomName) {
       values: {
         roomKey: `room.${nodeId}`,
       },
-      timestamp: Date.now(),
+      timestamp: eventTimestamp,
     });
   }
-  state.communication = connection.state;
+  /*
+    ==========================================
+    SAVE CURRENT STATE
+    ==========================================
+  */
+  state.communication = currentState;
 }
 /* =====================================================
     MONITORING EVENTS

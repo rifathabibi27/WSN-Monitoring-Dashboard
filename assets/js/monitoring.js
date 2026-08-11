@@ -1660,8 +1660,23 @@ function updateMonitoringNodeA(data, isInitialSnapshot = false) {
     return;
   }
   Monitoring.roomData.nodeA = data;
-  // Hanya paket realtime yang dianggap komunikasi baru
-  if (!isInitialSnapshot) {
+  /*
+    INITIAL SNAPSHOT
+    ------------------------------------------------
+    Bukan komunikasi baru, tetapi timestamp Firebase
+    tetap digunakan sebagai referensi paket terakhir.
+  */
+  if (isInitialSnapshot) {
+    const connection = getConnection("nodeA");
+    const timestamp = new Date(data.timestamp).getTime();
+    if (Number.isFinite(timestamp) && timestamp > 0) {
+      connection.lastReceive = timestamp;
+      connection.received = true;
+    }
+  } else {
+    /*
+      Paket realtime baru
+    */
     receivePacket("nodeA");
   }
   if (getCurrentRoomID() === "nodeA") {
@@ -1677,8 +1692,23 @@ function updateMonitoringNodeB(data, isInitialSnapshot = false) {
     return;
   }
   Monitoring.roomData.nodeB = data;
-  // Hanya paket realtime yang dianggap komunikasi baru
-  if (!isInitialSnapshot) {
+  /*
+    INITIAL SNAPSHOT
+    ------------------------------------------------
+    Bukan komunikasi baru, tetapi timestamp Firebase
+    tetap digunakan sebagai referensi paket terakhir.
+  */
+  if (isInitialSnapshot) {
+    const connection = getConnection("nodeB");
+    const timestamp = new Date(data.timestamp).getTime();
+    if (Number.isFinite(timestamp) && timestamp > 0) {
+      connection.lastReceive = timestamp;
+      connection.received = true;
+    }
+  } else {
+    /*
+      Paket realtime baru
+    */
     receivePacket("nodeB");
   }
   if (getCurrentRoomID() === "nodeB") {
