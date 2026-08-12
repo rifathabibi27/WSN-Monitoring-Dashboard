@@ -412,9 +412,10 @@ function refreshDashboard() {
 ===================================================== */
 function refreshSummary(nodeA, nodeB) {
   refreshOnlineNode();
+  refreshDiagnosticStatus();
   refreshAverageDust(nodeA, nodeB);
   refreshAverageLight(nodeA, nodeB);
-  refreshLastSync(nodeA, nodeB);
+  refreshLastSync();
 }
 /* =====================================================
     REFRESH NODE CARD
@@ -617,7 +618,16 @@ function buildDashboardTrendDatasets() {
 function buildDashboardTrendChartData() {
   const nodeA = Monitoring.chartHistory.nodeA;
   const nodeB = Monitoring.chartHistory.nodeB;
-  if (!nodeA || !nodeB) {
+  const hasNodeAData = Array.isArray(nodeA?.labels) && nodeA.labels.length > 0;
+  const hasNodeBData = Array.isArray(nodeB?.labels) && nodeB.labels.length > 0;
+  /*
+    =====================================================
+    DATA-FIRST
+    =====================================================
+    Node B boleh menjadi sumber data pertama.
+    Node A tidak menjadi dependency untuk menampilkan chart.
+    */
+  if (!hasNodeAData && !hasNodeBData) {
     return ChartDesignSystem.composeChartData({
       labels: [],
       datasets: buildDashboardTrendDatasets(),
@@ -625,13 +635,22 @@ function buildDashboardTrendChartData() {
   }
   const datasets = buildDashboardTrendDatasets();
   ChartDesignSystem.setDatasetData(datasets, [
-    getTrendSlice(nodeA.dust),
-    getTrendSlice(nodeB.dust),
-    getTrendSlice(nodeA.light),
-    getTrendSlice(nodeB.light),
+    hasNodeAData ? getTrendSlice(nodeA.dust) : [],
+    hasNodeBData ? getTrendSlice(nodeB.dust) : [],
+    hasNodeAData ? getTrendSlice(nodeA.light) : [],
+    hasNodeBData ? getTrendSlice(nodeB.light) : [],
   ]);
+  /*
+    =====================================================
+    LABEL SOURCE
+    =====================================================
+    Gunakan Node A bila tersedia.
+    Jika Node A belum memiliki data, gunakan Node B.
+    Dengan demikian Node B dapat tampil terlebih dahulu.
+    */
+  const labelSource = hasNodeAData ? nodeA.labels : nodeB.labels;
   return ChartDesignSystem.composeChartData({
-    labels: getTrendSlice(nodeA.labels),
+    labels: getTrendSlice(labelSource),
     datasets,
   });
 }
@@ -645,7 +664,18 @@ function refreshDashboardTrendChart() {
   }
   const nodeA = Monitoring.chartHistory.nodeA;
   const nodeB = Monitoring.chartHistory.nodeB;
-  if (!nodeA || !nodeB) return;
+  const hasNodeAData = Array.isArray(nodeA?.labels) && nodeA.labels.length > 0;
+  const hasNodeBData = Array.isArray(nodeB?.labels) && nodeB.labels.length > 0;
+  /*
+    =====================================================
+    DATA-FIRST GUARD
+    =====================================================
+    Chart hanya dianggap belum memiliki data jika
+    KEDUA node belum memiliki history.
+    */
+  if (!hasNodeAData && !hasNodeBData) {
+    return;
+  }
   Dashboard.charts.trend.data = buildDashboardTrendChartData();
   Dashboard.charts.trend.update("none");
 }
@@ -885,24 +915,105 @@ function refreshOnlineNode() {
   }
   element.textContent = `${online}/${CONFIG.rooms.length}`;
 }
-function refreshLastSync(nodeA, nodeB) {
-  const timestamps = [];
-  if (nodeA && getConnectionState("nodeA") === CONNECTION_STATE.ONLINE) {
-    timestamps.push(Number(nodeA.timestamp));
-  }
-  if (nodeB && getConnectionState("nodeB") === CONNECTION_STATE.ONLINE) {
-    timestamps.push(Number(nodeB.timestamp));
-  }
+function refreshDiagnosticStatus() {
+  const diagnostics = window.appState?.diagnostics;
+  /*
+  =====================================================
+  SOURCE OF TRUTH
+  =====================================================
+  Master:
+  → Diagnostics Master
+  Node A / Node B:
+  → Monitoring.connection
+  → harus identik dengan halaman Monitoring
+  */
+  const masterStatus = diagnostics?.master?.status ?? "WAITING";
+  const nodeAConnection = Monitoring.connection?.nodeA;
+  const nodeBConnection = Monitoring.connection?.nodeB;
+  const nodeAStatus = nodeAConnection?.state ?? "waiting";
+  const nodeBStatus = nodeBConnection?.state ?? "waiting";
+  const updateStatus = (statusTextId, statusDotId, status) => {
+    const text = document.getElementById(statusTextId);
+    const dot = document.getElementById(statusDotId);
+    if (!text || !dot) {
+      return;
+    }
+    const normalizedStatus = String(status ?? "WAITING").toUpperCase();
+    text.textContent = normalizedStatus;
+    text.classList.remove(
+      "text-emerald-600",
+      "text-amber-500",
+      "text-red-500",
+      "text-slate-500",
+    );
+    dot.classList.remove(
+      "bg-emerald-500",
+      "bg-amber-500",
+      "bg-red-500",
+      "bg-slate-400",
+    );
+    switch (normalizedStatus) {
+      case "ONLINE":
+        text.classList.add("text-emerald-600");
+        dot.classList.add("bg-emerald-500");
+        break;
+      case "OFFLINE":
+        text.classList.add("text-red-500");
+        dot.classList.add("bg-red-500");
+        break;
+      case "WAITING":
+      default:
+        text.classList.add("text-slate-500");
+        dot.classList.add("bg-slate-400");
+        break;
+    }
+  };
+  /*
+  MASTER
+  → tetap menggunakan Diagnostics Master.
+  */
+  updateStatus("masterStatusText", "masterStatusDot", masterStatus);
+  /*
+  NODE A
+  → menggunakan Monitoring.connection.nodeA.state
+  */
+  updateStatus("nodeAOnlineStatusText", "nodeAOnlineStatusDot", nodeAStatus);
+  /*
+  NODE B
+  → menggunakan Monitoring.connection.nodeB.state
+  */
+  updateStatus("nodeBOnlineStatusText", "nodeBOnlineStatusDot", nodeBStatus);
+}
+function refreshLastSync() {
   const el = document.getElementById("dashboardLastSync");
   if (!el) {
     return;
+  }
+  const diagnostics = window.appState?.diagnostics;
+  if (!diagnostics) {
+    el.textContent = "--";
+    return;
+  }
+  const timestamps = [];
+  const nodeALastReceive = Number(diagnostics.nodeA?.lastReceive);
+  const nodeBLastReceive = Number(diagnostics.nodeB?.lastReceive);
+  if (Number.isFinite(nodeALastReceive) && nodeALastReceive > 0) {
+    timestamps.push(nodeALastReceive);
+  }
+  if (Number.isFinite(nodeBLastReceive) && nodeBLastReceive > 0) {
+    timestamps.push(nodeBLastReceive);
   }
   if (timestamps.length === 0) {
     el.textContent = "--";
     return;
   }
   const latest = Math.max(...timestamps);
-  el.textContent = new Date(latest).toLocaleTimeString(getDashboardLocale(), {
+  const date = new Date(latest);
+  if (Number.isNaN(date.getTime())) {
+    el.textContent = "--";
+    return;
+  }
+  el.textContent = date.toLocaleTimeString(getDashboardLocale(), {
     hour12: false,
   });
 }

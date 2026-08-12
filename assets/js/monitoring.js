@@ -1338,7 +1338,7 @@ function updateStatistics(data) {
     APPEND REALTIME CHART
 =========================================================== */
 function appendRealtimeChart(data) {
-  updateRoomChart(data.averageDust, data.averageLight);
+  updateRoomChart(data.averageDust, data.averageLight, data.timestamp);
 }
 /* ===========================================================
     UPDATE ROOM
@@ -1487,12 +1487,27 @@ function createTrendChart() {
 /* ===========================================================
     UPDATE CHART
 =========================================================== */
-function updateRoomChart(averageDust, averageLight) {
+function updateRoomChart(averageDust, averageLight, timestamp) {
   const chart = getRealtimeChart();
   if (!chart) return;
   const history = currentChartHistory();
+  /*
+  =====================================================
+  TIMESTAMP DATA
+  =====================================================
+  Gunakan timestamp event dari Firebase.
+  Jika timestamp tidak valid, gunakan currentTime()
+  sebagai fallback agar chart tetap berjalan.
+  */
+  const eventTimestamp = Number(timestamp);
+  const label =
+    Number.isFinite(eventTimestamp) && eventTimestamp > 0
+      ? new Date(eventTimestamp).toLocaleTimeString(getDashboardLocale(), {
+          hour12: false,
+        })
+      : currentTime();
   // Simpan histori sesuai node aktif
-  history.labels.push(currentTime());
+  history.labels.push(label);
   history.dust.push(averageDust);
   history.light.push(averageLight);
   // Maksimal jumlah titik

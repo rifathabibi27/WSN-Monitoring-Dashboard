@@ -380,11 +380,7 @@ function loadRoomHistory(path, roomID, startAt, endAt, generation) {
          * This avoids using a static Firebase endAt()
          * for a realtime listener.
          */
-        if (
-          value &&
-          Number(value.waktu) >= startAt &&
-          Number(value.waktu) <= Date.now()
-        ) {
+        if (value && Number(value.waktu) >= startAt) {
           records.push({
             key: child.key,
             ...value,
@@ -484,10 +480,6 @@ function loadHistory() {
     RESET PAGINATION FOR NEW HISTORY QUERY
   ============================================================ */
   currentPage = 1;
-  /* ============================================================
-    GENERATE NEW LISTENER GENERATION
-  ============================================================ */
-  historyRealtimeState.generation++;
   /* ============================================================
       GENERATE NEW LISTENER GENERATION
   ============================================================ */

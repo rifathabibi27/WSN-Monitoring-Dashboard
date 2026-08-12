@@ -40,6 +40,11 @@ const DB_PATH = {
     nodeA: "/sensor_logs/NodeA",
     nodeB: "/sensor_logs/NodeB",
   },
+  diagnostics: {
+    master: "/Diagnostics/Master",
+    nodeA: "/Diagnostics/NodeA",
+    nodeB: "/Diagnostics/NodeB",
+  },
 };
 /* ===========================================================
    GLOBAL DATA
@@ -62,6 +67,11 @@ window.appState.historyData = {
   nodeA: [],
   nodeB: [],
 };
+window.appState.diagnostics = {
+  master: null,
+  nodeA: null,
+  nodeB: null,
+};
 /* ===========================================================
    APPLICATION START
 =========================================================== */
@@ -75,6 +85,7 @@ function startRealtime() {
   listenNodeA();
   listenNodeB();
   listenSystem();
+  listenDiagnostics();
   listenHistoryNodeA();
   listenHistoryNodeB();
   Bootstrap.setStage(Bootstrap.Stage.FIREBASE);
@@ -180,6 +191,27 @@ function listenSystem() {
       return;
     }
     realtimeData.system = snapshot.val();
+  });
+}
+/* ===========================================================
+   DIAGNOSTICS LISTENER
+=========================================================== */
+function listenDiagnostics() {
+  db.ref("/Diagnostics").on("value", (snapshot) => {
+    if (!snapshot.exists()) {
+      // console.warn("Diagnostics belum memiliki data.");
+      return;
+    }
+    const data = snapshot.val();
+    window.appState.diagnostics = {
+      master: data.Master || null,
+      nodeA: data.NodeA || null,
+      nodeB: data.NodeB || null,
+    };
+    // console.log("[FIREBASE] Diagnostics updated");
+    // console.log("[DIAGNOSTICS] Master :", window.appState.diagnostics.master);
+    // console.log("[DIAGNOSTICS] Node A :", window.appState.diagnostics.nodeA);
+    // console.log("[DIAGNOSTICS] Node B :", window.appState.diagnostics.nodeB);
   });
 }
 /* ===========================================================

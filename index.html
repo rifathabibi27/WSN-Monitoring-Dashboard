@@ -382,41 +382,44 @@
             <!-- ===================================================== -->
             <div class="grid xl:grid-cols-4 md:grid-cols-2 gap-6 mt-8">
               <!-- Card Total Sensor -->
+              <!-- Card Total Sensor -->
               <div
-                class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6"
+                class="theme-card relative rounded-2xl hover:shadow-lg transition-all duration-300 p-5"
               >
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p
-                      class="theme-card-label"
-                      data-i18n="dashboard.summary.totalSensor"
-                    >
-                      Total Sensor
-                    </p>
+                <div class="flex h-full flex-col">
+                  <!-- LABEL -->
+                  <p
+                    class="theme-card-label"
+                    data-i18n="dashboard.summary.totalSensor"
+                  >
+                    Total Sensor
+                  </p>
+                  <!-- VALUE -->
+                  <div class="flex flex-1 items-center">
                     <h2
                       id="totalSensor"
-                      class="theme-card-value text-4xl font-bold tracking-tight mt-2"
+                      class="theme-card-value text-4xl font-bold tracking-tight"
                     >
                       20
                     </h2>
-                    <p
-                      class="theme-card-caption text-xs mt-1"
-                      data-i18n="dashboard.summary.totalSensorCaption"
-                    >
-                      10 Dust • 10 Light
-                    </p>
                   </div>
-                  <div class="theme-icon-box">
-                    <i class="bi bi-cpu text-2xl theme-icon-primary"></i>
-                  </div>
+                  <!-- CAPTION -->
+                  <p class="theme-card-caption text-xs mt-1">
+                    10 Debu • 10 Cahaya
+                  </p>
+                </div>
+                <!-- ICON -->
+                <div class="theme-icon-box absolute top-5 right-5">
+                  <i class="bi bi-cpu text-2xl theme-icon-primary"></i>
                 </div>
               </div>
               <!-- Card Node Online -->
               <div
-                class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6"
+                class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-5"
               >
-                <div class="flex justify-between items-center">
-                  <div>
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <!-- NODE ONLINE -->
                     <p
                       class="theme-card-label"
                       data-i18n="dashboard.summary.nodeOnline"
@@ -425,84 +428,139 @@
                     </p>
                     <h2
                       id="onlineNode"
-                      class="theme-card-value text-4xl font-bold tracking-tight mt-2"
+                      class="theme-card-value text-3xl font-bold tracking-tight mt-1"
                     >
                       0/2
                     </h2>
-                    <p class="theme-card-caption text-xs mt-1">
-                      <span data-i18n="dashboard.summary.lastSync">
-                        Last Sync
-                      </span>
-                      <span id="dashboardLastSync"> --:--:-- </span>
+                    <!-- CONNECTION STATUS -->
+                    <div class="mt-2 flex flex-col gap-0.5 text-[11px]">
+                      <!-- MASTER -->
+                      <div class="flex items-center gap-2">
+                        <span class="theme-card-caption w-12"> Master </span>
+                        <span
+                          id="masterStatus"
+                          class="inline-flex items-center gap-1 font-medium text-slate-500"
+                        >
+                          <span
+                            id="masterStatusDot"
+                            class="w-1.5 h-1.5 rounded-full bg-slate-400"
+                          ></span>
+                          <span id="masterStatusText"> WAITING </span>
+                        </span>
+                      </div>
+                      <!-- NODE A -->
+                      <div class="flex items-center gap-2">
+                        <span class="theme-card-caption w-12"> Node A </span>
+                        <span
+                          id="nodeAOnlineStatus"
+                          class="inline-flex items-center gap-1 font-medium text-slate-500"
+                        >
+                          <span
+                            id="nodeAOnlineStatusDot"
+                            class="w-1.5 h-1.5 rounded-full bg-slate-400"
+                          ></span>
+                          <span id="nodeAOnlineStatusText"> WAITING </span>
+                        </span>
+                      </div>
+                      <!-- NODE B -->
+                      <div class="flex items-center gap-2">
+                        <span class="theme-card-caption w-12"> Node B </span>
+                        <span
+                          id="nodeBOnlineStatus"
+                          class="inline-flex items-center gap-1 font-medium text-slate-500"
+                        >
+                          <span
+                            id="nodeBOnlineStatusDot"
+                            class="w-1.5 h-1.5 rounded-full bg-slate-400"
+                          ></span>
+                          <span id="nodeBOnlineStatusText"> WAITING </span>
+                        </span>
+                      </div>
+                    </div>
+                    <!-- LAST SYNC -->
+                    <p
+                      class="theme-card-caption text-xs mt-2 flex items-center justify-between gap-3"
+                    >
+                      <span data-i18n="dashboard.summary.lastSync"
+                        >Last Sync</span
+                      >
+                      <span id="dashboardLastSync" class="truncate"
+                        >--:--:--</span
+                      >
                     </p>
                   </div>
-                  <div class="theme-icon-box">
-                    <i class="bi bi-wifi text-2xl theme-icon-success"></i>
+                  <!-- ICON -->
+                  <div class="theme-icon-box shrink-0">
+                    <i class="bi bi-wifi text-xl theme-icon-success"></i>
                   </div>
                 </div>
               </div>
-              <!-- Card Rata Debu -->
+              <!-- Card Rata-rata Debu -->
               <div
-                class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6"
+                class="theme-card relative rounded-2xl hover:shadow-lg transition-all duration-300 p-5"
               >
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p
-                      class="theme-card-label"
-                      data-i18n="dashboard.summary.avgDust"
-                    >
-                      Rata-rata Debu
-                    </p>
-                    <h2
-                      id="avgDust"
-                      class="theme-card-value text-4xl font-bold tracking-tight mt-2"
-                    >
-                      ---
-                    </h2>
-                    <p class="theme-card-caption text-sm">µg/m³</p>
-                    <p
-                      class="theme-card-caption text-xs mt-1"
-                      data-i18n="dashboard.summary.avgDustCaption"
-                    >
-                      Average of 10 Dust Sensors
-                    </p>
+                <div class="flex h-full flex-col">
+                  <!-- LABEL -->
+                  <p
+                    class="theme-card-label"
+                    data-i18n="dashboard.summary.avgDust"
+                  >
+                    Rata-rata Debu
+                  </p>
+                  <!-- VALUE -->
+                  <div class="flex flex-1 items-center">
+                    <div>
+                      <h2
+                        id="avgDust"
+                        class="theme-card-value text-4xl font-bold tracking-tight"
+                      >
+                        0.00
+                      </h2>
+                      <p class="theme-card-caption text-sm mt-0.5">µg/m³</p>
+                    </div>
                   </div>
-                  <div class="theme-icon-box">
-                    <i class="bi bi-wind text-2xl theme-icon-warning"></i>
-                  </div>
+                  <!-- CAPTION -->
+                  <p class="theme-card-caption text-xs mt-1">
+                    Rata-rata dari 10 Sensor Debu
+                  </p>
+                </div>
+                <!-- ICON -->
+                <div class="theme-icon-box absolute top-5 right-5">
+                  <i class="bi bi-wind text-2xl theme-icon-warning"></i>
                 </div>
               </div>
-              <!-- Card Rata Cahaya-->
+              <!-- Card Rata-rata Cahaya -->
               <div
-                class="theme-card rounded-2xl hover:shadow-lg transition-all duration-300 p-6"
+                class="theme-card relative rounded-2xl hover:shadow-lg transition-all duration-300 p-5"
               >
-                <div class="flex justify-between items-center">
-                  <div>
-                    <p
-                      class="theme-card-label"
-                      data-i18n="dashboard.summary.avgLight"
-                    >
-                      Rata-rata Cahaya
-                    </p>
-                    <h2
-                      id="avgLight"
-                      class="theme-card-value text-4xl font-bold tracking-tight mt-2"
-                    >
-                      ---
-                    </h2>
-                    <p class="theme-card-caption text-sm">Lux</p>
-                    <p
-                      class="theme-card-caption text-xs mt-1"
-                      data-i18n="dashboard.summary.avgLightCaption"
-                    >
-                      Average of 10 Light Sensors
-                    </p>
+                <div class="flex h-full flex-col">
+                  <!-- LABEL -->
+                  <p
+                    class="theme-card-label"
+                    data-i18n="dashboard.summary.avgLight"
+                  >
+                    Rata-rata Cahaya
+                  </p>
+                  <!-- VALUE -->
+                  <div class="flex flex-1 items-center">
+                    <div>
+                      <h2
+                        id="avgLight"
+                        class="theme-card-value text-4xl font-bold tracking-tight"
+                      >
+                        0.00
+                      </h2>
+                      <p class="theme-card-caption text-sm mt-0.5">Lux</p>
+                    </div>
                   </div>
-                  <div class="theme-icon-box">
-                    <i
-                      class="bi bi-brightness-high text-2xl theme-icon-warning"
-                    ></i>
-                  </div>
+                  <!-- CAPTION -->
+                  <p class="theme-card-caption text-xs mt-1">
+                    Rata-rata dari 10 Sensor Cahaya
+                  </p>
+                </div>
+                <!-- ICON -->
+                <div class="theme-icon-box absolute top-5 right-5">
+                  <i class="bi bi-sun text-2xl theme-icon-warning"></i>
                 </div>
               </div>
             </div>

@@ -108,12 +108,49 @@ document.addEventListener("keydown", (e) => {
 ===================================================== */
 const clockElement = document.getElementById("clockNow");
 const dateElement = document.getElementById("dateNow");
+let firebaseServerTimeOffset = 0;
+let firebaseServerTimeReady = false;
 function initializeClock() {
+  /*
+  =====================================================
+  FIREBASE SERVER CLOCK
+  =====================================================
+  Firebase menyediakan offset antara waktu client
+  dengan waktu server Firebase melalui:
+  .info/serverTimeOffset
+  */
+  if (typeof db !== "undefined" && db) {
+    db.ref(".info/serverTimeOffset").on(
+      "value",
+      (snapshot) => {
+        const offset = Number(snapshot.val());
+        firebaseServerTimeOffset = Number.isFinite(offset) ? offset : 0;
+        firebaseServerTimeReady = true;
+        updateClock();
+      },
+      (error) => {
+        console.warn("Firebase server time offset gagal:", error);
+        firebaseServerTimeReady = false;
+        updateClock();
+      },
+    );
+  }
   updateClock();
   setInterval(updateClock, 1000);
 }
 function updateClock() {
-  const now = new Date();
+  /*
+  =====================================================
+  TIME SOURCE
+  =====================================================
+  Gunakan Firebase Server Time sebagai authority.
+  Date.now() hanya menjadi base time client.
+  Server offset digunakan untuk mengoreksi perbedaan
+  clock komputer/browser.
+  */
+  const nowTimestamp =
+    Date.now() + (firebaseServerTimeReady ? firebaseServerTimeOffset : 0);
+  const now = new Date(nowTimestamp);
   const locale = Language?.current === "en" ? "en-US" : "id-ID";
   const dateOptions = {
     weekday: "long",
@@ -212,8 +249,18 @@ function initializeNavigation() {
     openPage("dashboard", menuDashboard);
   };
   menuMonitoring.onclick = () => {
+    const isMonitoringPageActive =
+      pages.monitoring && !pages.monitoring.classList.contains("hidden");
     toggleMonitoringMenu();
-    if (!monitoringSubmenu.classList.contains("hidden")) {
+    // Jika user baru berpindah dari Dashboard/Page lain ke Monitoring,
+    // gunakan Node A sebagai room default.
+    //
+    // Jika user sudah berada di halaman Monitoring, jangan ubah currentRoom
+    // hanya karena submenu dibuka atau ditutup.
+    if (
+      !isMonitoringPageActive &&
+      !monitoringSubmenu.classList.contains("hidden")
+    ) {
       openMonitoring("nodeA");
     }
   };
