@@ -1223,50 +1223,59 @@
                   class="theme-input"
                 />
                 <!-- Time Range -->
-                <select id="timeRangeFilter" class="theme-select">
-                  <option value="24h" selected data-i18n="history.time.24h">
-                    24 Jam Terakhir
-                  </option>
-                  <option value="30m" data-i18n="history.time.30m">
-                    30 Menit Terakhir
-                  </option>
-                  <option value="1h" data-i18n="history.time.1h">
-                    1 Jam Terakhir
-                  </option>
-                  <option value="6h" data-i18n="history.time.6h">
-                    6 Jam Terakhir
-                  </option>
-                  <option value="12h" data-i18n="history.time.12h">
-                    12 Jam Terakhir
-                  </option>
-                  <option value="7d" data-i18n="history.time.7d">
-                    7 Hari Terakhir
-                  </option>
-                  <option value="30d" data-i18n="history.time.30d">
-                    30 Hari Terakhir
-                  </option>
-                  <option value="manual" data-i18n="history.time.manual">
-                    Manual Range
-                  </option>
-                </select>
+                <div class="theme-select-wrapper">
+                  <select id="timeRangeFilter" class="theme-select">
+                    <option value="24h" selected data-i18n="history.time.24h">
+                      24 Jam Terakhir
+                    </option>
+                    <option value="30m" data-i18n="history.time.30m">
+                      30 Menit Terakhir
+                    </option>
+                    <option value="1h" data-i18n="history.time.1h">
+                      1 Jam Terakhir
+                    </option>
+                    <option value="6h" data-i18n="history.time.6h">
+                      6 Jam Terakhir
+                    </option>
+                    <option value="12h" data-i18n="history.time.12h">
+                      12 Jam Terakhir
+                    </option>
+                    <option value="7d" data-i18n="history.time.7d">
+                      7 Hari Terakhir
+                    </option>
+                    <option value="30d" data-i18n="history.time.30d">
+                      30 Hari Terakhir
+                    </option>
+                    <option value="manual" data-i18n="history.time.manual">
+                      Manual Range
+                    </option>
+                  </select>
+                  <i class="bi bi-chevron-down theme-select-icon"></i>
+                </div>
                 <!-- Room -->
-                <select id="roomFilter" class="theme-select">
-                  <option value="all" data-i18n="history.room.all">
-                    Semua Ruangan
-                  </option>
-                  <option value="nodeA" data-i18n="history.room.nodeA">
-                    LAB. KIK JTE
-                  </option>
-                  <option value="nodeB" data-i18n="history.room.nodeB">
-                    Kontainer
-                  </option>
-                </select>
+                <div class="theme-select-wrapper">
+                  <select id="roomFilter" class="theme-select">
+                    <option value="all" data-i18n="history.room.all">
+                      Semua Ruangan
+                    </option>
+                    <option value="nodeA" data-i18n="history.room.nodeA">
+                      LAB. KIK JTE
+                    </option>
+                    <option value="nodeB" data-i18n="history.room.nodeB">
+                      Kontainer
+                    </option>
+                  </select>
+                  <i class="bi bi-chevron-down theme-select-icon"></i>
+                </div>
                 <!-- Sensor -->
-                <select id="sensorFilter" disabled class="theme-select">
-                  <option value="" data-i18n="history.sensor.selectRoom">
-                    Pilih ruangan terlebih dahulu
-                  </option>
-                </select>
+                <div class="theme-select-wrapper">
+                  <select id="sensorFilter" disabled class="theme-select">
+                    <option value="" data-i18n="history.sensor.selectRoom">
+                      Pilih ruangan terlebih dahulu
+                    </option>
+                  </select>
+                  <i class="bi bi-chevron-down theme-select-icon"></i>
+                </div>
                 <!-- Start Date -->
                 <input
                   id="startDateFilter"
