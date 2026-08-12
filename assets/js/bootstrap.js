@@ -55,10 +55,6 @@ const Bootstrap = {
     this.loader.status = document.getElementById("loadingStatus");
     this.loader.progressBar = document.getElementById("loadingProgressBar");
     this.loader.progressText = document.getElementById("loadingPercent");
-    console.log("==========================================");
-    console.log("[BOOTSTRAP] Application Bootstrap");
-    console.log("[BOOTSTRAP] Ready");
-    console.log("==========================================");
   },
   /* ============================================
        REGISTER MODULE
@@ -74,7 +70,6 @@ const Bootstrap = {
       ready: false,
       timestamp: null,
     };
-    console.log(`[BOOTSTRAP] Register : ${name}`);
   },
   /* ============================================
        MARK READY
@@ -90,7 +85,6 @@ const Bootstrap = {
     }
     module.ready = true;
     module.timestamp = Date.now();
-    console.log(`[BOOTSTRAP] ${name} READY`);
     this.updateProgress();
   },
   /* ============================================
@@ -105,7 +99,6 @@ const Bootstrap = {
     }
     const ready = list.filter((module) => module.ready).length;
     this.progress = Math.round((ready / list.length) * 100);
-    console.log(`[BOOTSTRAP] Progress : ${this.progress}%`);
     this.updateLoaderProgress();
     if (this.progress >= 100) {
       this.finish();
@@ -137,7 +130,6 @@ const Bootstrap = {
       return;
     }
     this.stage = stage;
-    console.log(`[BOOTSTRAP] Stage : ${stage}`);
     this.updateLoader(); // ← Tambahkan
   },
   /* ============================================
@@ -158,7 +150,6 @@ const Bootstrap = {
     if (this.loader.status) {
       this.loader.status.textContent = Language.get("bootstrap.stage.ready");
     }
-    console.log("[BOOTSTRAP] Application Ready");
     if (!this.loader.element) {
       return;
     }

@@ -3,6 +3,7 @@
 ===================================================== */
 const NotificationCenter = {
   initialized: false,
+  storageKey: "wsnNotificationCenter",
   opened: false,
   unread: 0,
   badgeVisible: false,
@@ -19,12 +20,79 @@ const NotificationCenter = {
   badge: null,
   pulseTimeout: null,
 };
-const ActivityStore = {
-  activities: [],
-  activityCache: new Set(),
-};
 function getNotificationLocale() {
   return Language.current === "en" ? "en-US" : "id-ID";
+}
+function currentNotificationTime() {
+  const offset =
+    typeof firebaseServerTimeOffset === "number" && firebaseServerTimeReady
+      ? firebaseServerTimeOffset
+      : 0;
+  return Date.now() + offset;
+}
+function generateNotificationId() {
+  return `ntf-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+function syncNotificationUnreadCount() {
+  NotificationCenter.unread = NotificationCenter.notifications.filter(
+    (notification) => notification.read !== true,
+  ).length;
+}
+function saveNotificationState() {
+  try {
+    syncNotificationUnreadCount();
+    const payload = {
+      notifications: NotificationCenter.notifications.slice(
+        0,
+        NotificationCenter.maxNotifications,
+      ),
+    };
+    localStorage.setItem(
+      NotificationCenter.storageKey,
+      JSON.stringify(payload),
+    );
+  } catch (error) {
+    console.warn("[Notification] Gagal menyimpan state:", error);
+  }
+}
+function loadNotificationState() {
+  try {
+    const raw = localStorage.getItem(NotificationCenter.storageKey);
+    if (!raw) {
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return;
+    }
+    if (Array.isArray(parsed.notifications)) {
+      NotificationCenter.notifications = parsed.notifications
+        .filter(
+          (notification) =>
+            notification && Number.isFinite(Number(notification.timestamp)),
+        )
+        .map((notification) => ({
+          ...notification,
+          id: notification.id ?? generateNotificationId(),
+          /*
+            Notification dari versi lama
+            belum memiliki read state.
+            Anggap sebagai READ agar deployment
+            baru tidak tiba-tiba membuat seluruh
+            histori lama menjadi unread.
+            */
+          read:
+            typeof notification.read === "boolean" ? notification.read : true,
+        }))
+        .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
+        .slice(0, NotificationCenter.maxNotifications);
+    }
+    syncNotificationUnreadCount();
+  } catch (error) {
+    console.warn("[Notification] Gagal memuat state:", error);
+    NotificationCenter.notifications = [];
+    NotificationCenter.unread = 0;
+  }
 }
 /* =====================================================
     INITIALIZE NOTIFICATION
@@ -46,10 +114,13 @@ function initializeNotification() {
   NotificationCenter.viewAllButton = document.getElementById(
     "notificationViewAll",
   );
+  loadNotificationState();
+  syncNotificationUnreadCount();
   NotificationCenter.initialized = true;
   initializeNotificationEvents();
   updateNotificationBadge();
   updateNotificationViewAllButton();
+  setInterval(refreshNotificationRelativeTimes, 1000);
 }
 /* =====================================================
     BADGE
@@ -58,6 +129,7 @@ function updateNotificationBadge() {
   if (!NotificationCenter.badge) {
     return;
   }
+  syncNotificationUnreadCount();
   if (NotificationCenter.unread > 0) {
     NotificationCenter.badge.classList.remove("hidden");
   } else {
@@ -108,6 +180,50 @@ function initializeNotificationEvents() {
     "click",
     toggleNotificationExpand,
   );
+  NotificationCenter.markAllReadButton?.addEventListener(
+    "click",
+    handleMarkAllNotificationsRead,
+  );
+  NotificationCenter.todayContainer?.addEventListener(
+    "click",
+    handleNotificationCardClick,
+  );
+  NotificationCenter.yesterdayContainer?.addEventListener(
+    "click",
+    handleNotificationCardClick,
+  );
+}
+function handleNotificationCardClick(event) {
+  const card = event.target.closest("[data-notification-id]");
+  if (!card) {
+    return;
+  }
+  const notificationId = card.dataset.notificationId;
+  const notification = NotificationCenter.notifications.find(
+    (item) => item.id === notificationId,
+  );
+  if (!notification) {
+    return;
+  }
+  if (notification.read === true) {
+    return;
+  }
+  notification.read = true;
+  syncNotificationUnreadCount();
+  saveNotificationState();
+  updateNotificationBadge();
+  renderNotifications();
+}
+function handleMarkAllNotificationsRead(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  NotificationCenter.notifications.forEach((notification) => {
+    notification.read = true;
+  });
+  syncNotificationUnreadCount();
+  saveNotificationState();
+  updateNotificationBadge();
+  renderNotifications();
 }
 /* =====================================================
     TOGGLE PANEL
@@ -124,7 +240,7 @@ function toggleNotificationPanel(event) {
     NotificationCenter.opened,
   );
   if (NotificationCenter.opened) {
-    NotificationCenter.unread = 0;
+    syncNotificationUnreadCount();
     updateNotificationBadge();
     renderNotifications();
   }
@@ -165,16 +281,23 @@ function closeNotificationPanel() {
     ADD NOTIFICATION
 ===================================================== */
 function addNotification(notification) {
-  const stateKey = [notification.category, notification.title].join("|");
+  const stateKey = [
+    notification.category,
+    notification.room ?? "",
+    notification.titleKey ?? notification.title ?? "",
+  ].join("|");
   const currentState = JSON.stringify({
     severity: notification.severity,
-    description: notification.description,
+    descriptionKey: notification.descriptionKey ?? "",
+    description: notification.description ?? "",
   });
-  if (NotificationCenter.lastEventState[stateKey] === currentState) {
+  const previousState = NotificationCenter.lastEventState[stateKey];
+  if (previousState === currentState) {
     return;
   }
   NotificationCenter.lastEventState[stateKey] = currentState;
   NotificationCenter.notifications.unshift({
+    id: notification.id ?? generateNotificationId(),
     title: notification.title ?? "Unknown Event",
     titleKey: notification.titleKey,
     category: notification.category ?? "System",
@@ -183,16 +306,20 @@ function addNotification(notification) {
     description: notification.description ?? "",
     descriptionKey: notification.descriptionKey,
     severity: notification.severity ?? "info",
-    timestamp: notification.timestamp ?? Date.now(),
+    timestamp: notification.timestamp ?? currentNotificationTime(),
+    read: false,
   });
-  NotificationCenter.notifications.sort((a, b) => b.timestamp - a.timestamp);
+  NotificationCenter.notifications.sort(
+    (a, b) => Number(b.timestamp) - Number(a.timestamp),
+  );
   while (
     NotificationCenter.notifications.length >
     NotificationCenter.maxNotifications
   ) {
     NotificationCenter.notifications.pop();
   }
-  NotificationCenter.unread++;
+  syncNotificationUnreadCount();
+  saveNotificationState();
   updateNotificationBadge();
   playNotificationPulse();
   updateNotificationViewAllButton();
@@ -202,11 +329,13 @@ function addNotification(notification) {
     DASHBOARD BRIDGE
 ===================================================== */
 function pushDashboardNotification(activity) {
+  const roomKey = activity.values?.roomKey;
+  const room = roomKey ? Language.get(roomKey) : "";
   addNotification({
     title: activity.title,
     titleKey: activity.titleKey,
     category: activity.category,
-    room: "",
+    room,
     values: activity.values,
     description: activity.description,
     descriptionKey: activity.descriptionKey,
@@ -250,24 +379,30 @@ function getVisibleNotifications() {
 }
 function formatNotificationTime(timestamp) {
   const date = new Date(timestamp);
+  const locale = getNotificationLocale();
   return (
-    date.toLocaleDateString(getNotificationLocale(), {
+    date.toLocaleDateString(locale, {
       day: "2-digit",
       month: "long",
       year: "numeric",
+      timeZone: "Asia/Jakarta",
     }) +
     " " +
     Language.get("notification.at") +
     " " +
-    date.toLocaleTimeString(getNotificationLocale(), {
+    date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
       hour12: false,
+      timeZone: "Asia/Jakarta",
     })
   );
 }
 function getRelativeNotificationTime(timestamp) {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  const seconds = Math.floor(
+    (currentNotificationTime() - Number(timestamp)) / 1000,
+  );
   if (seconds < 60) {
     return Language.get("notification.justNow");
   }
@@ -366,14 +501,17 @@ function renderNotifications() {
   NotificationCenter.yesterdayContainer.innerHTML = "";
   notifications.forEach((notification) => {
     const style = getNotificationSeverityStyle(notification.severity);
+    const notificationStateClass = notification.read
+      ? "theme-notification-read"
+      : "theme-notification-unread";
     const categoryKey = `notification.category.${notification.category}`;
     const categoryLabel = Language.get(categoryKey) || notification.category;
     const target = isYesterdayNotification(notification.timestamp)
       ? NotificationCenter.yesterdayContainer
       : NotificationCenter.todayContainer;
     target.innerHTML += `
-        <div
-            class="group cursor-pointer theme-notification-item rounded-xl${style.item} p-4">
+        <div data-notification-id="${notification.id}" data-notification-read="${notification.read}" class="group cursor-pointer theme-notification-item
+        rounded-xl${style.item} ${notificationStateClass} p-4">
             <div class="flex items-start gap-3">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${style.icon}">
                     <i class="bi bi-wifi"></i>
@@ -383,7 +521,8 @@ function renderNotifications() {
                         <div class="theme-notification-title text-sm font-semibold">
                             ${notification.title}
                         </div>
-                        <span class="theme-notification-chip ml-2 shrink-0 rounded-full px-2 py-1 text-[11px] font-medium">
+                        <span class="theme-notification-chip ml-2 shrink-0 rounded-full px-2 py-1 text-[11px] font-medium"
+                        data-notification-timestamp="${notification.timestamp}">
                             ${getRelativeNotificationTime(notification.timestamp)}
                         </span>
                     </div>
@@ -425,15 +564,14 @@ function renderNotifications() {
         `;
   });
 }
-/* =====================================================
-    GET RECENT ACTIVITIES
-===================================================== */
-function getRecentActivities(limit = 5) {
-  return NotificationCenter.activities.slice(0, limit);
-}
-/* =====================================================
-    GET ALL ACTIVITIES
-===================================================== */
-function getAllActivities() {
-  return NotificationCenter.activities;
+function refreshNotificationRelativeTimes() {
+  document
+    .querySelectorAll("#notificationPanel [data-notification-timestamp]")
+    .forEach((element) => {
+      const timestamp = Number(element.dataset.notificationTimestamp);
+      if (!Number.isFinite(timestamp)) {
+        return;
+      }
+      element.textContent = getRelativeNotificationTime(timestamp);
+    });
 }

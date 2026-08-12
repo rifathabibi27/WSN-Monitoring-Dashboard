@@ -795,7 +795,6 @@ function filterHistory(resetPage = true) {
     HISTORY TABLE
 ============================================================ */
 function renderHistoryTable() {
-  console.time("Render History Table");
   const table = document.getElementById("historyTable");
   if (!table) return;
   table.innerHTML = "";
@@ -814,7 +813,6 @@ function renderHistoryTable() {
     </tr>
   `;
     updatePagination();
-    console.timeEnd("Render History Table");
     return;
   }
   data.forEach((item, index) => {
@@ -880,7 +878,6 @@ function renderHistoryTable() {
         </tr>
         `;
   });
-  console.timeEnd("Render History Table");
   updatePagination();
 }
 /* ============================================================
@@ -1298,7 +1295,6 @@ function renderRoomCondition(containerId, rooms, type) {
     UPDATE HISTORY SUMMARY
 ============================================================ */
 function updateHistorySummary() {
-  console.time("Summary");
   const summary = calculateHistorySummary();
   const total = document.getElementById("summaryTotalRecord");
   const dust = document.getElementById("summaryAverageDust");
@@ -1339,7 +1335,6 @@ function updateHistorySummary() {
   renderRoomCondition("summaryDustCondition", summary.rooms, "dust");
   renderRoomCondition("summaryLightCondition", summary.rooms, "light");
   updateHistorySummaryTitle();
-  console.timeEnd("Summary");
 }
 /* ============================================================
     PAGINATION

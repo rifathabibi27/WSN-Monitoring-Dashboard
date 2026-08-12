@@ -52,13 +52,19 @@ SENSOR NODE
 #aboutPage .theme-about-subnode {
   width: 100%;
   padding: 14px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   text-align: center;
-  transition: 0.2s;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 #aboutPage .theme-about-subnode:hover {
-  border-color: rgba(148, 163, 184, 0.6);
+  background: var(--surface-hover);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
 }
 #aboutPage .theme-about-subnode + .theme-about-subnode {
   margin-top: 12px;

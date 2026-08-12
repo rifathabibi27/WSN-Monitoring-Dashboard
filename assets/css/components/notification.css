@@ -143,3 +143,15 @@
 .theme-notification-badge {
   background: var(--danger);
 }
+/* =====================================================
+   NOTIFICATION READ STATE
+===================================================== */
+.theme-notification-unread {
+  background: var(--surface-hover);
+}
+.theme-notification-unread:hover {
+  background: var(--surface-hover);
+}
+.theme-notification-read {
+  background: var(--surface);
+}

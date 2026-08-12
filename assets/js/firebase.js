@@ -208,10 +208,6 @@ function listenDiagnostics() {
       nodeA: data.NodeA || null,
       nodeB: data.NodeB || null,
     };
-    // console.log("[FIREBASE] Diagnostics updated");
-    // console.log("[DIAGNOSTICS] Master :", window.appState.diagnostics.master);
-    // console.log("[DIAGNOSTICS] Node A :", window.appState.diagnostics.nodeA);
-    // console.log("[DIAGNOSTICS] Node B :", window.appState.diagnostics.nodeB);
   });
 }
 /* ===========================================================

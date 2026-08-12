@@ -461,7 +461,7 @@ Language.dictionaries = {
       "Dust and light intensity monitoring system based on a Wireless Sensor Network using ESP32, ESP-NOW, Firebase Realtime Database, and a real-time web dashboard.",
     "dashboard.heroButton": "View Monitoring",
     "dashboard.summary.totalSensor": "Total Sensors",
-    "dashboard.summary.totalSensorCaption": "10 Dust • 10 Light",
+    "dashboard.summary.totalSensorCaption": "10 Dusts • 10 Lights",
     "dashboard.summary.nodeOnline": "Online Nodes",
     "dashboard.summary.lastSync": "Last Sync",
     "dashboard.summary.avgDust": "Average Dust",

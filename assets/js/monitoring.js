@@ -11,7 +11,6 @@ const CONNECTION_STATE = Object.freeze({
   OFFLINE: "offline",
 });
 const Monitoring = {
-  currentRoom: "nodeA",
   state: {
     room: "nodeA",
     trend: {
@@ -96,8 +95,6 @@ function getCurrentRoomID() {
 }
 function setCurrentRoom(roomID) {
   Monitoring.state.room = roomID;
-  // Sinkronisasi sementara
-  // Akan dihapus pada fase refactor akhir.
   Monitoring.currentRoom = roomID;
 }
 function getTrendMode() {
@@ -669,7 +666,6 @@ function initializeMonitoring() {
   subscribeRoom(getCurrentRoomID());
   Monitoring.initialized = true;
   Bootstrap.markReady(Bootstrap.Module.MONITORING);
-  console.log("[MONITORING] Ready");
 }
 /* ===========================================================
     CREATE
@@ -1128,22 +1124,6 @@ function updateTrendChartLimitButton() {
   });
 }
 /* ===========================================================
-    APPLY CHART DATASET
-=========================================================== */
-// TODO v2.1
-// Deprecated.
-// Tidak lagi digunakan oleh Monitoring Runtime.
-// Akan dihapus setelah Monitoring LOCK.
-function applyChartDataset(dataset) {
-  const chart = getRealtimeChart();
-  if (!chart) {
-    return;
-  }
-  chart.data.labels = [...dataset.labels];
-  chart.data.datasets = [...dataset.datasets];
-  chart.update("none");
-}
-/* ===========================================================
     SYNC TREND UI
 =========================================================== */
 function syncTrendUI() {
@@ -1337,8 +1317,11 @@ function updateStatistics(data) {
 /* ===========================================================
     APPEND REALTIME CHART
 =========================================================== */
-function appendRealtimeChart(data) {
-  updateRoomChart(data.averageDust, data.averageLight, data.timestamp);
+function appendRealtimeChart(data, roomID) {
+  if (!data || !roomID) {
+    return;
+  }
+  updateRoomChart(roomID, data.averageDust, data.averageLight);
 }
 /* ===========================================================
     UPDATE ROOM
@@ -1487,36 +1470,44 @@ function createTrendChart() {
 /* ===========================================================
     UPDATE CHART
 =========================================================== */
-function updateRoomChart(averageDust, averageLight, timestamp) {
-  const chart = getRealtimeChart();
-  if (!chart) return;
-  const history = currentChartHistory();
+function updateRoomChart(roomID, averageDust, averageLight) {
+  const history = Monitoring.chartHistory[roomID];
+  if (!history) {
+    return;
+  }
   /*
-  =====================================================
-  TIMESTAMP DATA
-  =====================================================
-  Gunakan timestamp event dari Firebase.
-  Jika timestamp tidak valid, gunakan currentTime()
-  sebagai fallback agar chart tetap berjalan.
+  ===========================================================
+  SIMPAN REALTIME HISTORY
+  ===========================================================
+  History chart harus diperbarui untuk setiap node,
+  tidak bergantung pada currentRoom.
+  Ini memungkinkan:
+  Node B tetap mengisi chartHistory saat Dashboard
+  atau Node A sedang aktif.
   */
-  const eventTimestamp = Number(timestamp);
-  const label =
-    Number.isFinite(eventTimestamp) && eventTimestamp > 0
-      ? new Date(eventTimestamp).toLocaleTimeString(getDashboardLocale(), {
-          hour12: false,
-        })
-      : currentTime();
-  // Simpan histori sesuai node aktif
-  history.labels.push(label);
-  history.dust.push(averageDust);
-  history.light.push(averageLight);
-  // Maksimal jumlah titik
+  history.labels.push(currentTime());
+  history.dust.push(Number(averageDust));
+  history.light.push(Number(averageLight));
   while (history.labels.length > CONFIG.chart.maxPoints) {
     history.labels.shift();
     history.dust.shift();
     history.light.shift();
   }
+  /*
+  ===========================================================
+  RENDER CHART UI
+  ===========================================================
+  Hanya render apabila node tersebut sedang menjadi
+  currentRoom dan chart Monitoring memang tersedia.
+  */
+  if (roomID !== getCurrentRoomID()) {
+    return;
+  }
   if (isRoomChartExploreMode()) {
+    return;
+  }
+  const chart = getRealtimeChart();
+  if (!chart) {
     return;
   }
   refreshRealtimeChart();
@@ -1530,36 +1521,6 @@ function restoreRoomChart() {
   updateRoomChartToolbarState();
   applyRoomChartInteraction();
   refreshRealtimeChart();
-}
-/* ===========================================================
-    AVERAGE
-=========================================================== */
-// Deprecated
-// Sudah digantikan oleh average dari Firebase
-function calculateAverage(data) {
-  const room = currentRoom();
-  let dustTotal = 0;
-  let dustCount = 0;
-  let lightTotal = 0;
-  let lightCount = 0;
-  for (let i = 1; i <= room.dustSensors; i++) {
-    const value = normalizeValue(data["dust" + i]);
-    if (value !== null) {
-      dustTotal += value;
-      dustCount++;
-    }
-  }
-  for (let i = 1; i <= room.lightSensors; i++) {
-    const value = normalizeValue(data["light" + i]);
-    if (value !== null) {
-      lightTotal += value;
-      lightCount++;
-    }
-  }
-  return {
-    dust: dustCount > 0 ? dustTotal / dustCount : 0,
-    light: lightCount > 0 ? lightTotal / lightCount : 0,
-  };
 }
 /* ===========================================================
     UPDATE SUMMARY
@@ -1694,9 +1655,9 @@ function updateMonitoringNodeA(data, isInitialSnapshot = false) {
     */
     receivePacket("nodeA");
   }
+  appendRealtimeChart(data, "nodeA");
   if (getCurrentRoomID() === "nodeA") {
     updateRoomData(data);
-    appendRealtimeChart(data);
   }
   if (typeof refreshDashboard === "function") {
     refreshDashboard();
@@ -1726,9 +1687,9 @@ function updateMonitoringNodeB(data, isInitialSnapshot = false) {
     */
     receivePacket("nodeB");
   }
+  appendRealtimeChart(data, "nodeB");
   if (getCurrentRoomID() === "nodeB") {
     updateRoomData(data);
-    appendRealtimeChart(data);
   }
   if (typeof refreshDashboard === "function") {
     refreshDashboard();

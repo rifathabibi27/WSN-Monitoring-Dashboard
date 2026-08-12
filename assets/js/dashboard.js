@@ -29,6 +29,11 @@ const Dashboard = {
   charts: {
     trend: null,
   },
+  // DASHBOARD TREND REFERENCE
+  // Tidak ada node yang menjadi reference permanen.
+  // Node yang memiliki data valid paling baru akan menjadi
+  // reference timeline saat itu.
+  trendReferenceNode: null,
   carousel: {
     interval: null,
     delay: 5000,
@@ -42,24 +47,21 @@ const Dashboard = {
       communication: null,
       lastTimestamp: null,
       dust: null,
+      dustInitialized: false,
       light: null,
+      lightInitialized: false,
     },
     nodeB: {
       initialized: false,
       communication: null,
       lastTimestamp: null,
       dust: null,
+      dustInitialized: false,
       light: null,
+      lightInitialized: false,
     },
   },
 };
-let dashboardCharts = {
-  dustNodeA: null,
-  dustNodeB: null,
-  lightNodeA: null,
-  lightNodeB: null,
-};
-const chartHistoryLength = 50;
 /* =====================================================
     INITIALIZE DASHBOARD
 ===================================================== */
@@ -123,95 +125,6 @@ function stopDashboardRealtime() {
   if (!Dashboard.updateInterval) return;
   clearInterval(Dashboard.updateInterval);
   Dashboard.updateInterval = null;
-}
-/* =====================================================
-    CREATE DASHBOARD CHARTS
-===================================================== */
-function createDashboardCharts() {
-  dashboardCharts.dustNodeA = createLineChart(
-    "dustNodeAChart",
-    "Debu Node A",
-    "#2563EB",
-  );
-  dashboardCharts.dustNodeB = createLineChart(
-    "dustNodeBChart",
-    "Debu Node B",
-    "#DC2626",
-  );
-  dashboardCharts.lightNodeA = createLineChart(
-    "lightNodeAChart",
-    "Cahaya Node A",
-    "#F59E0B",
-  );
-  dashboardCharts.lightNodeB = createLineChart(
-    "lightNodeBChart",
-    "Cahaya Node B",
-    "#16A34A",
-  );
-}
-/* =====================================================
-    CREATE LINE CHARTS
-===================================================== */
-function createLineChart(canvasID, label, color) {
-  const ctx = document.getElementById(canvasID).getContext("2d");
-  return new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: [],
-      datasets: [
-        {
-          label: label,
-          data: [],
-          borderColor: color,
-          backgroundColor: color + "20",
-          fill: true,
-          tension: 0.35,
-          pointRadius: 2,
-          borderWidth: 2,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        x: {
-          display: true,
-        },
-        y: {
-          beginAtZero: true,
-        },
-      },
-    },
-  });
-}
-/* =====================================================
-    UPDATE CHARTS
-===================================================== */
-function updateChart(chart, value) {
-  const time = formatRelativeTime(activity.timestamp);
-  chart.data.labels.push(time);
-  chart.data.datasets[0].data.push(value);
-  if (chart.data.labels.length > chartHistoryLength) {
-    chart.data.labels.shift();
-    chart.data.datasets[0].data.shift();
-  }
-  chart.update();
-}
-/* =====================================================
-    UPDATE DASHBOARD
-===================================================== */
-function updateDashboard(nodeA, nodeB) {
-  updateChart(dashboardCharts.dustNodeA, nodeA.avgDust);
-  updateChart(dashboardCharts.lightNodeA, nodeA.avgLight);
-  updateChart(dashboardCharts.dustNodeB, nodeB.avgDust);
-  updateChart(dashboardCharts.lightNodeB, nodeB.avgLight);
 }
 /* =====================================================
     UPDATE SYSTEM STATUS
@@ -433,6 +346,13 @@ function refreshNodeCard() {
 function getDashboardLocale() {
   return Language.current === "en" ? "en-US" : "id-ID";
 }
+function getDashboardCurrentTime() {
+  const offset =
+    typeof firebaseServerTimeOffset === "number" && firebaseServerTimeReady
+      ? firebaseServerTimeOffset
+      : 0;
+  return Date.now() + offset;
+}
 /* =====================================================
     FORMAT DASHBOARD DATE
 ===================================================== */
@@ -445,10 +365,12 @@ function formatDashboardDate(timestamp) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   });
   const formattedTime = date
     .toLocaleTimeString(getDashboardLocale(), {
       hour12: false,
+      timeZone: "Asia/Jakarta",
     })
     .replace(/:/g, ".");
   return `${formattedDate} • ${formattedTime}`;
@@ -589,6 +511,66 @@ function createDashboardTrendChart() {
 function getTrendSlice(data) {
   return data.slice(-Dashboard.view.trendLimit);
 }
+/* ==========================================================
+    GET LATEST NODE DATA TIMESTAMP
+========================================================== */
+function getDashboardTrendNodeTimestamp(nodeId) {
+  const connection = Monitoring.connection?.[nodeId];
+  const timestamp = Number(connection?.lastReceive);
+  if (Number.isFinite(timestamp) && timestamp > 0) {
+    return timestamp;
+  }
+  return 0;
+}
+// GET TREND REFERENCE NODE, FIRST VALID DATA WINS:
+function getDashboardTrendReferenceNode() {
+  const nodeA = Monitoring.chartHistory?.nodeA;
+  const nodeB = Monitoring.chartHistory?.nodeB;
+  const hasA = Array.isArray(nodeA?.labels) && nodeA.labels.length > 0;
+  const hasB = Array.isArray(nodeB?.labels) && nodeB.labels.length > 0;
+  if (!hasA && !hasB) {
+    Dashboard.trendReferenceNode = null;
+    return null;
+  }
+  if (hasA && !hasB) {
+    Dashboard.trendReferenceNode = "nodeA";
+    return "nodeA";
+  }
+  if (!hasA && hasB) {
+    Dashboard.trendReferenceNode = "nodeB";
+    return "nodeB";
+  }
+  const timestampA = getDashboardTrendNodeTimestamp("nodeA");
+  const timestampB = getDashboardTrendNodeTimestamp("nodeB");
+  if (timestampA === 0 && timestampB === 0) {
+    return Dashboard.trendReferenceNode ?? "nodeA";
+  }
+  if (timestampB > timestampA) {
+    Dashboard.trendReferenceNode = "nodeB";
+    return "nodeB";
+  }
+  if (timestampA > timestampB) {
+    Dashboard.trendReferenceNode = "nodeA";
+    return "nodeA";
+  }
+  return Dashboard.trendReferenceNode ?? "nodeA";
+}
+// ALIGN DATA TO REFERENCE TIMELINE
+function alignDashboardTrendData(sourceData, targetLength) {
+  if (!Number.isInteger(targetLength) || targetLength <= 0) {
+    return [];
+  }
+  if (!Array.isArray(sourceData) || sourceData.length === 0) {
+    return new Array(targetLength).fill(null);
+  }
+  const source = getTrendSlice(sourceData);
+  if (source.length >= targetLength) {
+    return source.slice(source.length - targetLength);
+  }
+  const missing = targetLength - source.length;
+  const firstValue = source[0];
+  return [...new Array(missing).fill(firstValue), ...source];
+}
 /* =====================================================
     BUILD DASHBOARD TREND DATASETS
 ===================================================== */
@@ -620,37 +602,47 @@ function buildDashboardTrendChartData() {
   const nodeB = Monitoring.chartHistory.nodeB;
   const hasNodeAData = Array.isArray(nodeA?.labels) && nodeA.labels.length > 0;
   const hasNodeBData = Array.isArray(nodeB?.labels) && nodeB.labels.length > 0;
-  /*
-    =====================================================
+  /* ======================================================
     DATA-FIRST
-    =====================================================
-    Node B boleh menjadi sumber data pertama.
-    Node A tidak menjadi dependency untuk menampilkan chart.
-    */
+  ====================================================== */
   if (!hasNodeAData && !hasNodeBData) {
     return ChartDesignSystem.composeChartData({
       labels: [],
       datasets: buildDashboardTrendDatasets(),
     });
   }
+  /* ======================================================
+    FIRST VALID DATA WINS
+  ====================================================== */
+  const referenceNode = getDashboardTrendReferenceNode();
+  if (!referenceNode) {
+    return ChartDesignSystem.composeChartData({
+      labels: [],
+      datasets: buildDashboardTrendDatasets(),
+    });
+  }
+  const referenceHistory = referenceNode === "nodeA" ? nodeA : nodeB;
+  /* ======================================================
+    REFERENCE TIMELINE
+  ====================================================== */
+  const labels = getTrendSlice(referenceHistory.labels);
+  const targetLength = labels.length;
+  /* ======================================================
+    ALIGN EACH NODE
+  ====================================================== */
+  const nodeADust = alignDashboardTrendData(nodeA?.dust, targetLength);
+  const nodeBDust = alignDashboardTrendData(nodeB?.dust, targetLength);
+  const nodeALight = alignDashboardTrendData(nodeA?.light, targetLength);
+  const nodeBLight = alignDashboardTrendData(nodeB?.light, targetLength);
   const datasets = buildDashboardTrendDatasets();
   ChartDesignSystem.setDatasetData(datasets, [
-    hasNodeAData ? getTrendSlice(nodeA.dust) : [],
-    hasNodeBData ? getTrendSlice(nodeB.dust) : [],
-    hasNodeAData ? getTrendSlice(nodeA.light) : [],
-    hasNodeBData ? getTrendSlice(nodeB.light) : [],
+    nodeADust,
+    nodeBDust,
+    nodeALight,
+    nodeBLight,
   ]);
-  /*
-    =====================================================
-    LABEL SOURCE
-    =====================================================
-    Gunakan Node A bila tersedia.
-    Jika Node A belum memiliki data, gunakan Node B.
-    Dengan demikian Node B dapat tampil terlebih dahulu.
-    */
-  const labelSource = hasNodeAData ? nodeA.labels : nodeB.labels;
   return ChartDesignSystem.composeChartData({
-    labels: getTrendSlice(labelSource),
+    labels,
     datasets,
   });
 }
@@ -666,13 +658,9 @@ function refreshDashboardTrendChart() {
   const nodeB = Monitoring.chartHistory.nodeB;
   const hasNodeAData = Array.isArray(nodeA?.labels) && nodeA.labels.length > 0;
   const hasNodeBData = Array.isArray(nodeB?.labels) && nodeB.labels.length > 0;
-  /*
-    =====================================================
+  /* =====================================================
     DATA-FIRST GUARD
-    =====================================================
-    Chart hanya dianggap belum memiliki data jika
-    KEDUA node belum memiliki history.
-    */
+    ===================================================== */
   if (!hasNodeAData && !hasNodeBData) {
     return;
   }
@@ -1051,17 +1039,6 @@ function refreshRecentActivity() {
   syncActivityCache();
   renderRecentActivities();
 }
-/* =====================================================
-    DEPRECATED
-    Digantikan oleh collectCommunicationEvent()
-===================================================== */
-function buildRecentActivities() {
-  const activities = [];
-  collectNodeActivity(activities, "nodeA", Language.get("room.nodeA"));
-  collectNodeActivity(activities, "nodeB", Language.get("room.nodeB"));
-  activities.sort((a, b) => b.timestamp - a.timestamp);
-  return activities.slice(0, 20);
-}
 function collectNodeActivity(nodeId, roomName) {
   const node = Monitoring.roomData[nodeId];
   if (!node) {
@@ -1072,7 +1049,7 @@ function collectNodeActivity(nodeId, roomName) {
     type: "success",
     title: `${roomName} berhasil sinkron`,
     description: "Data monitoring berhasil diterima Gateway.",
-    timestamp: node.timestamp || Date.now(),
+    timestamp: node.timestamp || getDashboardCurrentTime(),
   });
 }
 /* =====================================================
@@ -1087,19 +1064,22 @@ function getDashboardConnection(roomID) {
   return getConnection(roomID);
 }
 function getCommunicationEventTimestamp(connection, state) {
-  const lastReceive = Number(connection.lastReceive);
-  if (!Number.isFinite(lastReceive) || lastReceive <= 0) {
-    return Date.now();
-  }
+  /*
+  =====================================================
+  COMMUNICATION STATE TRANSITION TIMESTAMP
+  =====================================================
+  Notification merepresentasikan waktu ketika Dashboard
+  mendeteksi perubahan state, bukan timestamp paket lama.
+  Karena itu semua state transition menggunakan
+  application/server time yang sama dengan website clock.
+  */
   switch (state) {
     case CONNECTION_STATE.ONLINE:
-      return lastReceive;
     case CONNECTION_STATE.WAITING:
-      return lastReceive + CONFIG.communication.online;
     case CONNECTION_STATE.OFFLINE:
-      return lastReceive + CONFIG.communication.waiting;
+      return getDashboardCurrentTime();
     default:
-      return lastReceive;
+      return getDashboardCurrentTime();
   }
 }
 /* =====================================================
@@ -1234,11 +1214,17 @@ function collectDustEvent(nodeId, roomName) {
     Number(node.averageDust) > CONFIG.threshold.dust.normal
       ? "warning"
       : "normal";
-  const previousState = Dashboard.eventState[nodeId].dust;
+  const eventState = Dashboard.eventState[nodeId];
+  if (!eventState.dustInitialized) {
+    eventState.dust = currentState;
+    eventState.dustInitialized = true;
+    return;
+  }
+  const previousState = eventState.dust;
   if (currentState === previousState) {
     return;
   }
-  Dashboard.eventState[nodeId].dust = currentState;
+  eventState.dust = currentState;
   appendActivity({
     key: `${nodeId}_dust_${node.timestamp}`,
     category: "dust",
@@ -1270,11 +1256,17 @@ function collectLightEvent(nodeId, roomName) {
   } else if (Number(node.averageLight) > CONFIG.threshold.light.maximum) {
     currentState = "high";
   }
-  const previousState = Dashboard.eventState[nodeId].light;
+  const eventState = Dashboard.eventState[nodeId];
+  if (!eventState.lightInitialized) {
+    eventState.light = currentState;
+    eventState.lightInitialized = true;
+    return;
+  }
+  const previousState = eventState.light;
   if (currentState === previousState) {
     return;
   }
-  Dashboard.eventState[nodeId].light = currentState;
+  eventState.light = currentState;
   let type = "success";
   let titleKey = "";
   let descriptionKey = "";
@@ -1337,7 +1329,7 @@ function appendActivity({
   titleKey,
   descriptionKey,
   values = {},
-  timestamp = Date.now(),
+  timestamp = getDashboardCurrentTime(),
 }) {
   if (!key) return;
   if (Dashboard.activityCache.has(key)) {
@@ -1401,7 +1393,9 @@ function syncActivityCache() {
     FORMAT RELATIVE TIME
 ===================================================== */
 function formatRelativeTime(timestamp) {
-  const diff = Math.floor((Date.now() - timestamp) / 1000);
+  const diff = Math.floor(
+    (getDashboardCurrentTime() - Number(timestamp)) / 1000,
+  );
   if (diff < 60) {
     return "Baru saja";
   }
@@ -1411,13 +1405,17 @@ function formatRelativeTime(timestamp) {
   if (diff < 86400) {
     return `${Math.floor(diff / 3600)} jam lalu`;
   }
-  return new Date(timestamp).toLocaleDateString("id-ID");
+  return new Date(timestamp).toLocaleDateString("id-ID", {
+    timeZone: "Asia/Jakarta",
+  });
 }
 /* =====================================================
     FORMAT ACTIVITY TIME
 ===================================================== */
 function formatActivityTime(timestamp) {
-  const diff = Math.floor((Date.now() - Number(timestamp)) / 1000);
+  const diff = Math.floor(
+    (getDashboardCurrentTime() - Number(timestamp)) / 1000,
+  );
   if (diff < 5) {
     return Language.format("dashboard.activity.justNow");
   }
@@ -1433,6 +1431,7 @@ function formatActivityTime(timestamp) {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
+    timeZone: "Asia/Jakarta",
   });
 }
 /* =====================================================
