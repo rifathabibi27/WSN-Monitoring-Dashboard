@@ -401,6 +401,17 @@ Language.dictionaries = {
       "Belum menerima data baru dari node.",
     "activity.communication.offline.description":
       "Komunikasi node ke Gateway terputus.",
+    "activity.communication.master.online.title":
+      "Gateway Master kembali online",
+    "activity.communication.master.waiting.title":
+      "Gateway Master menunggu heartbeat",
+    "activity.communication.master.offline.title": "Gateway Master offline",
+    "activity.communication.master.online.description":
+      "Heartbeat Gateway Master kembali diterima oleh sistem.",
+    "activity.communication.master.waiting.description":
+      "Heartbeat Gateway Master terlambat diterima.",
+    "activity.communication.master.offline.description":
+      "Heartbeat Gateway Master tidak diterima melewati batas timeout.",
     "monitoring.sensor.dust": "Sensor Debu {index}",
     "monitoring.sensor.light": "Sensor Cahaya {index}",
     "monitoring.sensor.notRequired": "Sensor tidak diperlukan",
@@ -702,6 +713,17 @@ Language.dictionaries = {
       "No new data has been received from the node yet.",
     "activity.communication.offline.description":
       "Communication between the node and the Gateway has been lost.",
+    "activity.communication.master.online.title":
+      "Master Gateway is back online",
+    "activity.communication.master.waiting.title":
+      "Master Gateway is waiting for heartbeat",
+    "activity.communication.master.offline.title": "Master Gateway is offline",
+    "activity.communication.master.online.description":
+      "The Master Gateway heartbeat has been received again.",
+    "activity.communication.master.waiting.description":
+      "The Master Gateway heartbeat is late.",
+    "activity.communication.master.offline.description":
+      "The Master Gateway heartbeat has exceeded the timeout limit.",
     "monitoring.sensor.dust": "Dust Sensor {index}",
     "monitoring.sensor.light": "Light Sensor {index}",
     "monitoring.sensor.notRequired": "Sensor not required",

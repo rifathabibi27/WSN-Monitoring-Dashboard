@@ -72,6 +72,10 @@ window.appState.diagnostics = {
   nodeA: null,
   nodeB: null,
 };
+window.appState.firebaseHydration = {
+  diagnosticsReady: false,
+  systemReady: false,
+};
 /* ===========================================================
    APPLICATION START
 =========================================================== */
@@ -186,11 +190,18 @@ function processNodeB(data, isInitialSnapshot = false) {
 =========================================================== */
 function listenSystem() {
   db.ref(DB_PATH.realtime.system).on("value", (snapshot) => {
+    window.appState.firebaseHydration.systemReady = true;
     if (!snapshot.exists()) {
       console.warn("System belum memiliki data.");
+      if (typeof refreshDashboardCommunicationState === "function") {
+        refreshDashboardCommunicationState();
+      }
       return;
     }
     realtimeData.system = snapshot.val();
+    if (typeof refreshDashboardCommunicationState === "function") {
+      refreshDashboardCommunicationState();
+    }
   });
 }
 /* ===========================================================
@@ -198,8 +209,16 @@ function listenSystem() {
 =========================================================== */
 function listenDiagnostics() {
   db.ref("/Diagnostics").on("value", (snapshot) => {
+    window.appState.firebaseHydration.diagnosticsReady = true;
     if (!snapshot.exists()) {
-      // console.warn("Diagnostics belum memiliki data.");
+      window.appState.diagnostics = {
+        master: null,
+        nodeA: null,
+        nodeB: null,
+      };
+      if (typeof refreshDashboardCommunicationState === "function") {
+        refreshDashboardCommunicationState();
+      }
       return;
     }
     const data = snapshot.val();
@@ -208,6 +227,9 @@ function listenDiagnostics() {
       nodeA: data.NodeA || null,
       nodeB: data.NodeB || null,
     };
+    if (typeof refreshDashboardCommunicationState === "function") {
+      refreshDashboardCommunicationState();
+    }
   });
 }
 /* ===========================================================

@@ -1,6 +1,10 @@
 /* =====================================================
     GLOBAL
 ===================================================== */
+//  MASTER HEARTBEAT
+const MASTER_DIAGNOSTICS_ONLINE_TIMEOUT = 26000;
+const MASTER_DIAGNOSTICS_OFFLINE_TIMEOUT = 30000;
+//  GLOBAL DASHBOARD
 const Dashboard = {
   active: true,
   initialized: false,
@@ -13,6 +17,10 @@ const Dashboard = {
     },
   },
   updateInterval: null,
+  hydration: {
+    diagnosticsReady: false,
+    systemReady: false,
+  },
   system: {
     onlineNodes: 0,
     totalNodes: 2,
@@ -42,6 +50,10 @@ const Dashboard = {
   activityCache: new Set(),
   communicationState: "online",
   eventState: {
+    master: {
+      initialized: false,
+      communication: null,
+    },
     nodeA: {
       initialized: false,
       communication: null,
@@ -84,7 +96,11 @@ function initializeDashboard() {
   updateDashboardZoomButton();
   updateTrendStateBadge();
   updateTrendToolbarState();
+  //  COMMUNICATION INITIALIZATION
+  setDashboardCommunicationHydratingState();
   Dashboard.initialized = true;
+  //  After Firebase Hydration actual state
+  refreshDashboardCommunicationState();
   Bootstrap.setStage(Bootstrap.Stage.DASHBOARD);
   Bootstrap.markReady(Bootstrap.Module.DASHBOARD);
   setInterval(refreshActivityTimes, 1000);
@@ -103,17 +119,10 @@ function startDashboardRealtime() {
   if (Dashboard.updateInterval) return;
   Dashboard.updateInterval = setInterval(() => {
     if (!Dashboard.active) return;
-    /*
-      ==========================================================
-      REALTIME COMMUNICATION STATE EVALUATION
-      ==========================================================
-      Connection Engine pada monitoring.js menentukan state
-      berdasarkan waktu sejak data terakhir diterima.
-      Dashboard hanya membaca state tersebut dan mendeteksi
-      apakah terjadi perubahan state.
-      Timer berjalan setiap 1 detik, tetapi notification hanya
-      dibuat ketika state benar-benar berubah.
-    */
+    //  MASTER HEARTBEAT STATE
+    refreshDiagnosticStatus();
+    collectMasterCommunicationEvent();
+    //  NODE COMMUNICATION STATE EVALUATION
     collectCommunicationEvent("nodeA", Language.get("room.nodeA"));
     collectCommunicationEvent("nodeB", Language.get("room.nodeB"));
   }, 1000);
@@ -913,14 +922,87 @@ function refreshTotalSensor() {
   const el = document.getElementById("totalSensor");
   if (el) el.textContent = total;
 }
+/* =====================================================
+    SET DASHBOARD COMMUNICATION HYDRATING STATE
+===================================================== */
+function setDashboardCommunicationHydratingState() {
+  const statusItems = [
+    ["masterStatusText", "masterStatusDot"],
+    ["nodeAOnlineStatusText", "nodeAOnlineStatusDot"],
+    ["nodeBOnlineStatusText", "nodeBOnlineStatusDot"],
+  ];
+  statusItems.forEach(([textId, dotId]) => {
+    const text = document.getElementById(textId);
+    const dot = document.getElementById(dotId);
+    if (!text || !dot) {
+      return;
+    }
+    text.textContent = "--";
+    text.classList.remove(
+      "text-emerald-600",
+      "text-amber-500",
+      "text-red-500",
+      "text-slate-500",
+    );
+    dot.classList.remove(
+      "bg-emerald-500",
+      "bg-amber-500",
+      "bg-red-500",
+      "bg-slate-400",
+    );
+    text.classList.add("text-slate-500");
+    dot.classList.add("bg-slate-400");
+  });
+  const onlineNode = document.getElementById("onlineNode");
+  if (onlineNode) {
+    onlineNode.textContent = "--/2";
+  }
+}
+/* =====================================================
+    GET EFFECTIVE DASHBOARD NODE STATE
+===================================================== */
+function getDashboardEffectiveNodeState(nodeId) {
+  const masterState = getDashboardMasterState();
+  /*
+  Firebase belum selesai hydration.
+  Jangan memutuskan state node terlebih dahulu.
+  */
+  if (masterState === null) {
+    return null;
+  }
+  /*
+  Gateway offline berarti node tidak dapat dianggap
+  available dari perspektif Executive KPI.
+  */
+  if (masterState === "OFFLINE") {
+    return "OFFLINE";
+  }
+  /*
+  Gateway masih pada fase WAITING.
+  Executive KPI mengikuti kondisi sistem.
+  */
+  if (masterState === "WAITING") {
+    return "WAITING";
+  }
+  /*
+  Gateway ONLINE.
+  Sekarang gunakan state asli Node.
+  */
+  const connection = getConnection(nodeId);
+  return String(connection?.state ?? "WAITING").toUpperCase();
+}
 function refreshOnlineNode() {
   let online = 0;
   CONFIG.rooms.forEach((room) => {
-    const connection = getConnection(room.id);
-    if (!connection) {
+    const effectiveState = getDashboardEffectiveNodeState(room.id);
+    /*
+    Firebase belum selesai hydration.
+    Jangan memaksakan angka sementara.
+    */
+    if (effectiveState === null) {
       return;
     }
-    if (connection.state === CONNECTION_STATE.ONLINE) {
+    if (effectiveState === "ONLINE") {
       online++;
     }
   });
@@ -930,23 +1012,99 @@ function refreshOnlineNode() {
   }
   element.textContent = `${online}/${CONFIG.rooms.length}`;
 }
+/* =====================================================
+    GET MASTER HEARTBEAT TIMESTAMP
+===================================================== */
+function getDashboardMasterHeartbeatTimestamp() {
+  const diagnosticsTimestamp = Number(
+    window.appState?.diagnostics?.master?.lastUpdate,
+  );
+  const systemTimestamp = Number(realtimeData?.system?.lastUpdate);
+  const candidates = [diagnosticsTimestamp, systemTimestamp].filter(
+    (timestamp) => Number.isFinite(timestamp) && timestamp > 0,
+  );
+  if (candidates.length === 0) {
+    return 0;
+  }
+  return Math.max(...candidates);
+}
+/* =====================================================
+    GET MASTER DIAGNOSTIC STATE
+===================================================== */
+function getDashboardMasterState() {
+  const hydration = window.appState?.firebaseHydration;
+  /* =====================================================
+      WAIT FOR INITIAL FIREBASE SNAPSHOT
+  ===================================================== */
+  if (!hydration?.diagnosticsReady || !hydration?.systemReady) {
+    return null;
+  }
+  const master = window.appState?.diagnostics?.master;
+  /* =====================================================
+      GET MASTER HEARTBEAT
+  =====================================================
+  Diagnostics/Master dan Realtime/System sama-sama
+  dapat menjadi heartbeat Master.
+  ===================================================== */
+  const diagnosticsTimestamp = Number(master?.lastUpdate);
+  const systemTimestamp = Number(realtimeData?.system?.lastUpdate);
+  const timestamps = [diagnosticsTimestamp, systemTimestamp].filter(
+    (timestamp) => Number.isFinite(timestamp) && timestamp > 0,
+  );
+  /* =====================================================
+      NO MASTER HEARTBEAT
+  =====================================================
+  Firebase sudah selesai hydration,
+  tetapi tidak ada heartbeat Master.
+  ===================================================== */
+  if (timestamps.length === 0) {
+    return "WAITING";
+  }
+  const lastUpdate = Math.max(...timestamps);
+  const now = getDashboardCurrentTime();
+  const age = now - lastUpdate;
+  /* =====================================================
+      MASTER ONLINE
+  ===================================================== */
+  if (age <= MASTER_DIAGNOSTICS_ONLINE_TIMEOUT) {
+    return "ONLINE";
+  }
+  /* =====================================================
+      MASTER WAITING
+  ===================================================== */
+  if (age <= MASTER_DIAGNOSTICS_OFFLINE_TIMEOUT) {
+    return "WAITING";
+  }
+  /* =====================================================
+      MASTER OFFLINE
+  ===================================================== */
+  return "OFFLINE";
+}
+/* =====================================================
+    REFRESH DASHBOARD COMMUNICATION STATE
+===================================================== */
+function refreshDashboardCommunicationState() {
+  if (!Dashboard.active || !Dashboard.initialized) {
+    return;
+  }
+  const masterState = getDashboardMasterState();
+  if (masterState === null) {
+    return;
+  }
+  refreshDiagnosticStatus();
+  refreshOnlineNode();
+}
+/* =====================================================
+    REFRESH DIAGNOSTICS STATUS
+===================================================== */
 function refreshDiagnosticStatus() {
   const diagnostics = window.appState?.diagnostics;
-  /*
-  =====================================================
-  SOURCE OF TRUTH
-  =====================================================
-  Master:
-  → Diagnostics Master
-  Node A / Node B:
-  → Monitoring.connection
-  → harus identik dengan halaman Monitoring
-  */
-  const masterStatus = diagnostics?.master?.status ?? "WAITING";
-  const nodeAConnection = Monitoring.connection?.nodeA;
-  const nodeBConnection = Monitoring.connection?.nodeB;
-  const nodeAStatus = nodeAConnection?.state ?? "waiting";
-  const nodeBStatus = nodeBConnection?.state ?? "waiting";
+  const masterStatus = getDashboardMasterState();
+  if (masterStatus === null) {
+    return;
+  }
+  const nodeAStatus = getDashboardEffectiveNodeState("nodeA");
+  const nodeBStatus = getDashboardEffectiveNodeState("nodeB");
   const updateStatus = (statusTextId, statusDotId, status) => {
     const text = document.getElementById(statusTextId);
     const dot = document.getElementById(statusDotId);
@@ -1213,6 +1371,90 @@ function collectCommunicationEvent(nodeId, roomName) {
       values: {
         roomKey: `room.${nodeId}`,
       },
+      timestamp: eventTimestamp,
+    });
+  }
+  /*
+    ==========================================
+    SAVE CURRENT STATE
+    ==========================================
+  */
+  state.communication = currentState;
+}
+/* =====================================================
+    MASTER COMMUNICATION EVENTS
+===================================================== */
+function collectMasterCommunicationEvent() {
+  const master = window.appState?.diagnostics?.master;
+  const currentState = getDashboardMasterState();
+  if (currentState === null) {
+    return;
+  }
+  const state = Dashboard.eventState.master;
+  if (!state) {
+    return;
+  }
+  /*
+    ==========================================
+    INITIAL BASELINE
+    ==========================================
+    Jika Firebase belum memiliki heartbeat Master,
+    WAITING hanya merupakan kondisi awal.
+    Jangan membuat notification.
+  */
+  const lastUpdate = getDashboardMasterHeartbeatTimestamp();
+  const hasHeartbeat = lastUpdate > 0;
+  if (!state.initialized) {
+    if (!hasHeartbeat && currentState === "WAITING") {
+      return;
+    }
+    /*
+      State Master pertama yang valid hanya
+      menjadi baseline, bukan notification.
+    */
+    state.communication = currentState;
+    state.initialized = true;
+    return;
+  }
+  /*
+    ==========================================
+    NO STATE CHANGE
+    ==========================================
+  */
+  if (state.communication === currentState) {
+    return;
+  }
+  /*
+    ==========================================
+    STATE CHANGE
+    ==========================================
+  */
+  const eventTimestamp = getDashboardCurrentTime();
+  if (currentState === "ONLINE") {
+    appendActivity({
+      key: `master_online_${eventTimestamp}`,
+      category: "communication",
+      type: "success",
+      titleKey: "activity.communication.master.online.title",
+      descriptionKey: "activity.communication.master.online.description",
+      timestamp: eventTimestamp,
+    });
+  } else if (currentState === "WAITING") {
+    appendActivity({
+      key: `master_waiting_${eventTimestamp}`,
+      category: "communication",
+      type: "warning",
+      titleKey: "activity.communication.master.waiting.title",
+      descriptionKey: "activity.communication.master.waiting.description",
+      timestamp: eventTimestamp,
+    });
+  } else if (currentState === "OFFLINE") {
+    appendActivity({
+      key: `master_offline_${eventTimestamp}`,
+      category: "communication",
+      type: "danger",
+      titleKey: "activity.communication.master.offline.title",
+      descriptionKey: "activity.communication.master.offline.description",
       timestamp: eventTimestamp,
     });
   }
