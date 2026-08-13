@@ -74,13 +74,13 @@ const Monitoring = {
       state: CONNECTION_STATE.WAITING,
       lastReceive: 0,
       received: false,
-      startedAt: Date.now(),
+      startedAt: getMonitoringCurrentTime(),
     },
     nodeB: {
       state: CONNECTION_STATE.WAITING,
       lastReceive: 0,
       received: false,
-      startedAt: Date.now(),
+      startedAt: getMonitoringCurrentTime(),
     },
   },
   initialized: false,
@@ -526,15 +526,26 @@ function getConnection(roomID) {
 function hasReceivedPacket(roomID) {
   return getConnection(roomID).received;
 }
+/* ===========================================================
+    MONITORING APPLICATION TIME
+=========================================================== */
+function getMonitoringCurrentTime() {
+  const offset =
+    typeof firebaseServerTimeOffset === "number" &&
+    Number.isFinite(firebaseServerTimeOffset)
+      ? firebaseServerTimeOffset
+      : 0;
+  return Date.now() + offset;
+}
 function getLastReceive(roomID) {
   return getConnection(roomID).lastReceive;
 }
 function getConnectionAge(roomID) {
-  return Date.now() - getConnection(roomID).startedAt;
+  return getMonitoringCurrentTime() - getConnection(roomID).startedAt;
 }
 function updateLastReceive(roomID) {
   const connection = getConnection(roomID);
-  connection.lastReceive = Date.now();
+  connection.lastReceive = getMonitoringCurrentTime();
   connection.received = true;
 }
 function getConnectionState(roomID) {
@@ -564,7 +575,7 @@ function calculateConnectionState(roomID) {
     SUDAH PERNAH MENERIMA PAKET
     ====================================================
     */
-  const diff = Date.now() - connection.lastReceive;
+  const diff = getMonitoringCurrentTime() - connection.lastReceive;
   if (diff <= CONFIG.communication.online) {
     return CONNECTION_STATE.ONLINE;
   }
@@ -1549,9 +1560,12 @@ function updateMonitoringSummary(data) {
     lightCount.textContent = room.lightSensors;
   }
   if (lastUpdate) {
-    lastUpdate.textContent = data?.timestamp
-      ? formatMonitoringTime(data.timestamp)
-      : "--";
+    const connection = getConnection(getCurrentRoomID());
+    const lastReceive = Number(connection?.lastReceive);
+    lastUpdate.textContent =
+      Number.isFinite(lastReceive) && lastReceive > 0
+        ? formatMonitoringTime(lastReceive)
+        : "--";
   }
 }
 /* ===========================================================
@@ -1644,15 +1658,13 @@ function updateMonitoringNodeA(data, isInitialSnapshot = false) {
   */
   if (isInitialSnapshot) {
     const connection = getConnection("nodeA");
-    const timestamp = new Date(data.timestamp).getTime();
-    if (Number.isFinite(timestamp) && timestamp > 0) {
-      connection.lastReceive = timestamp;
-      connection.received = true;
-    }
-  } else {
     /*
-      Paket realtime baru
-    */
+    Initial Firebase snapshot dianggap diterima pada
+    waktu aplikasi yang sudah diselaraskan dengan Firebase.
+  */
+    connection.lastReceive = getMonitoringCurrentTime();
+    connection.received = true;
+  } else {
     receivePacket("nodeA");
   }
   appendRealtimeChart(data, "nodeA");
@@ -1676,15 +1688,13 @@ function updateMonitoringNodeB(data, isInitialSnapshot = false) {
   */
   if (isInitialSnapshot) {
     const connection = getConnection("nodeB");
-    const timestamp = new Date(data.timestamp).getTime();
-    if (Number.isFinite(timestamp) && timestamp > 0) {
-      connection.lastReceive = timestamp;
-      connection.received = true;
-    }
-  } else {
     /*
-      Paket realtime baru
-    */
+    Initial Firebase snapshot dianggap diterima pada
+    waktu aplikasi yang sudah diselaraskan dengan Firebase.
+  */
+    connection.lastReceive = getMonitoringCurrentTime();
+    connection.received = true;
+  } else {
     receivePacket("nodeB");
   }
   appendRealtimeChart(data, "nodeB");
