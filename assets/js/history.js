@@ -1313,7 +1313,9 @@ function updateHistorySummary() {
       DUST SUMMARY
   ============================================================ */
   if (dust) {
-    if (isLightSensor) {
+    if (summary.totalRecord === 0) {
+      dust.textContent = "--";
+    } else if (isLightSensor) {
       dust.textContent = "---";
     } else {
       dust.textContent = `${summary.averageDust.toFixed(2)} µg/m³`;
@@ -1323,7 +1325,9 @@ function updateHistorySummary() {
       LIGHT SUMMARY
   ============================================================ */
   if (light) {
-    if (isDustSensor) {
+    if (summary.totalRecord === 0) {
+      light.textContent = "--";
+    } else if (isDustSensor) {
       light.textContent = "---";
     } else {
       light.textContent = `${summary.averageLight.toFixed(2)} Lux`;

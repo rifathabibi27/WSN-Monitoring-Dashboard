@@ -318,12 +318,6 @@ function refreshDashboard() {
   }
   const nodeA = Monitoring.roomData.nodeA ?? null;
   const nodeB = Monitoring.roomData.nodeB ?? null;
-  /*
-    Tidak ada data sama sekali.
-    */
-  if (!nodeA && !nodeB) {
-    return;
-  }
   refreshSummary(nodeA, nodeB);
   refreshNodeCard();
   refreshDashboardTrendChart();
