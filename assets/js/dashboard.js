@@ -389,6 +389,28 @@ function renderNodeCardHeader(room) {
   }
 }
 /* =====================================================
+    GET NODE LAST KNOWN UPDATE TIMESTAMP
+===================================================== */
+function getDashboardNodeLastUpdateTimestamp(nodeId, node) {
+  const connectionTimestamp = Number(
+    Monitoring.connection?.[nodeId]?.lastReceive,
+  );
+  if (Number.isFinite(connectionTimestamp) && connectionTimestamp > 0) {
+    return connectionTimestamp;
+  }
+  const nodeTimestamp = Number(node?.timestamp);
+  if (Number.isFinite(nodeTimestamp) && nodeTimestamp > 0) {
+    return nodeTimestamp;
+  }
+  const diagnosticTimestamp = Number(
+    window.appState?.diagnostics?.[nodeId]?.lastReceive,
+  );
+  if (Number.isFinite(diagnosticTimestamp) && diagnosticTimestamp > 0) {
+    return diagnosticTimestamp;
+  }
+  return 0;
+}
+/* =====================================================
     RENDER NODE CARD
 ===================================================== */
 function renderNodeCard(node, room, connectionState) {
@@ -428,7 +450,12 @@ function renderNodeCard(node, room, connectionState) {
     light.textContent = Number(node.averageLight).toFixed(2) + " Lux";
   }
   if (lastUpdate) {
-    lastUpdate.textContent = formatDashboardDate(node.timestamp);
+    const lastKnownTimestamp = getDashboardNodeLastUpdateTimestamp(
+      room.id,
+      node,
+    );
+    lastUpdate.textContent =
+      lastKnownTimestamp > 0 ? formatDashboardDate(lastKnownTimestamp) : "--";
   }
   status.className = "theme-badge";
   /* ==========================================
