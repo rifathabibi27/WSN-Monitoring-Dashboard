@@ -236,6 +236,12 @@ function openMonitoring(roomID = "nodeA") {
   showPage("monitoring");
   scrollToTop();
   activateMenu(menuMonitoring);
+  /*
+    Pastikan submenu Monitoring selalu terbuka
+    ketika pengguna masuk ke halaman Monitoring
+    melalui Hero / Dashboard / room selector.
+  */
+  toggleMonitoringMenu(true);
   updateSidebarState(roomID);
   changeRoom(roomID);
 }
