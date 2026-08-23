@@ -58,7 +58,7 @@ const CONFIG = {
     },
   },
   security: {
-    adminPin: "271002",
+    adminEmail: "admin@wsn-monitoring-dashboard.com",
   },
   //    NODE
   rooms: [

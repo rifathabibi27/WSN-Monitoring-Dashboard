@@ -275,14 +275,45 @@ function initializeHistory() {
   if (reset) {
     reset.addEventListener("click", resetHistoryFilter);
   }
+  /* ============================================================
+    DOWNLOAD CSV AUTHENTICATION
+  ============================================================ */
   const download = document.getElementById("downloadCSV");
   if (download) {
     download.addEventListener("click", () => {
-      if (CONFIG.download.requirePIN) {
-        openPinModal();
-      } else {
+      /* ========================================================
+       AUTH STATE
+      ======================================================== */
+      const authState = window.appState?.auth;
+      /* ========================================================
+       SUDAH LOGIN
+       → langsung download
+      ======================================================== */
+      if (authState && authState.status === "signed_in" && authState.user) {
         downloadCSVFile();
+        return;
       }
+      /* ========================================================
+       BELUM LOGIN
+       → simpan aksi yang diminta
+       → buka Login Administrator
+      ======================================================== */
+      if (!authState || authState.status === "signed_out" || !authState.user) {
+        window.appState = window.appState || {};
+        window.appState.auth = window.appState.auth || {};
+        window.appState.auth.pendingAction = "downloadCSV";
+        if (typeof openAdminLoginModal === "function") {
+          openAdminLoginModal();
+        } else {
+          console.error("openAdminLoginModal() tidak ditemukan.");
+        }
+        return;
+      }
+      /* ========================================================
+       AUTH MASIH CHECKING
+       → jangan melakukan export
+      ======================================================== */
+      console.warn("Firebase Auth masih memeriksa status login.");
     });
   }
   updateSensorFilterDropdown(historyFilterState.room);
@@ -296,7 +327,22 @@ function initializeHistory() {
   if (next) {
     next.addEventListener("click", nextPage);
   }
-  initializePinModalEvents();
+  /* ============================================================
+    ADMIN LOGIN SUCCESS ACTION
+  ============================================================ */
+  window.appState = window.appState || {};
+  window.appState.auth = window.appState.auth || {};
+  window.appState.auth.onLoginSuccess = function (action) {
+    if (action !== "downloadCSV") {
+      return;
+    }
+    window.appState.auth.pendingAction = null;
+    /* ======================================================
+       Download dilakukan setelah Firebase Auth state
+       benar-benar berubah menjadi signed_in.
+    ====================================================== */
+    downloadCSVFile();
+  };
   historyInitialized = true;
   Bootstrap.setStage(Bootstrap.Stage.HISTORY);
   Bootstrap.markReady(Bootstrap.Module.HISTORY);
@@ -1478,112 +1524,4 @@ function downloadCSVFile() {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-}
-/* ============================================================
-    PIN MODAL
-============================================================ */
-function openPinModal() {
-  const modal = document.getElementById("pinModal");
-  if (!modal) return;
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-  const error = document.getElementById("pinError");
-  if (error) {
-    error.textContent = "";
-    error.classList.add("hidden");
-  }
-  document.getElementById("pinInput")?.focus();
-}
-/* ============================================================
-    CLOSE PIN MODAL
-============================================================ */
-function closePinModal() {
-  const modal = document.getElementById("pinModal");
-  if (!modal) return;
-  modal.classList.remove("flex");
-  modal.classList.add("hidden");
-  const input = document.getElementById("pinInput");
-  if (input) {
-    input.value = "";
-  }
-  const error = document.getElementById("pinError");
-  if (error) {
-    error.textContent = "";
-    error.classList.add("hidden");
-  }
-}
-/* ============================================================
-    INITIALIZE PIN MODAL
-============================================================ */
-function initializePinModal() {
-  const modal = document.getElementById("pinModal");
-  const dialog = modal?.firstElementChild;
-  if (!modal || !dialog) return;
-  // ==========================================
-  // CLOSE : CLICK OVERLAY
-  // ==========================================
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      closePinModal();
-    }
-  });
-  // ==========================================
-  // PREVENT PROPAGATION
-  // ==========================================
-  dialog.addEventListener("click", (event) => {
-    event.stopPropagation();
-  });
-  // ==========================================
-  // CLOSE : ESC
-  // ==========================================
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modal.classList.contains("flex")) {
-      closePinModal();
-    }
-  });
-}
-/* ============================================================
-    INITIALIZE PIN MODAL EVENTS
-============================================================ */
-function initializePinModalEvents() {
-  initializePinModal();
-  const cancelPin = document.getElementById("cancelPinButton");
-  if (cancelPin) {
-    cancelPin.addEventListener("click", closePinModal);
-  }
-  const pinForm = document.getElementById("pinForm");
-  if (pinForm) {
-    pinForm.addEventListener("submit", submitPinVerification);
-  }
-}
-/* ============================================================
-    VERIFY ADMIN PIN
-============================================================ */
-function verifyAdminPIN() {
-  const input = document.getElementById("pinInput");
-  const error = document.getElementById("pinError");
-  if (!input) return;
-  const pin = input.value.trim();
-  if (pin !== CONFIG.security.adminPin) {
-    if (error) {
-      error.textContent = "PIN Administrator salah.";
-      error.classList.remove("hidden");
-    }
-    input.focus();
-    input.select();
-    return;
-  }
-  if (error) {
-    error.textContent = "";
-    error.classList.add("hidden");
-  }
-  closePinModal();
-  downloadCSVFile();
-}
-/* ============================================================
-    SUBMIT PIN VERIFICATION
-============================================================ */
-function submitPinVerification(event) {
-  event.preventDefault();
-  verifyAdminPIN();
 }

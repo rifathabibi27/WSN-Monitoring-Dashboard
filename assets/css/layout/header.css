@@ -61,3 +61,105 @@
 .theme-header button:not(.header-toggle):hover {
   background: var(--surface-hover);
 }
+/* =====================================================
+   ADMIN AUTHENTICATION
+===================================================== */
+.admin-auth-toggle {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+.admin-auth-toggle:hover {
+  background: var(--surface-hover);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
+}
+.admin-auth-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+/* =====================================================
+   PROFILE ICON
+===================================================== */
+#adminAuthIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 20px;
+  flex-shrink: 0;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+/* =====================================================
+   STATUS DOT
+   Diposisikan di kanan-atas icon profile
+===================================================== */
+#adminAuthDot {
+  position: absolute !important;
+  /* Posisi relatif terhadap tombol profile 44x44 */
+  top: 10px !important;
+  left: 25px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 9px !important;
+  height: 9px !important;
+  min-width: 7px !important;
+  min-height: 7px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  transform: none !important;
+  display: block !important;
+  background: #94a3b8 !important;
+  z-index: 2;
+  transition: background-color 0.25s ease;
+}
+/* =====================================================
+   ADMIN STATUS - LOGGED IN
+===================================================== */
+.admin-auth-toggle.admin-auth-logged-in #adminAuthDot {
+  background: #22c55e !important;
+}
+/* =====================================================
+   ADMIN ACCOUNT PANEL
+===================================================== */
+.admin-auth-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 60;
+  width: 288px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+/* =====================================================
+   ADMIN PANEL DARK MODE
+===================================================== */
+.dark .admin-auth-panel {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
