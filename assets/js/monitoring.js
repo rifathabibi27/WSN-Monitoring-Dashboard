@@ -15,12 +15,30 @@ const Monitoring = {
     room: "nodeA",
     trend: {
       nodeA: {
-        mode: "averageDust",
         sensor: null,
+        parameter: "dust",
+        source: "average",
+        timeRange: "24h",
+        startDate: null,
+        endDate: null,
+        data: [],
+        analysisDataset: null,
+        analysisStatistics: null,
+        loading: false,
+        lastAnalyzedAt: null,
       },
       nodeB: {
-        mode: "averageDust",
         sensor: null,
+        parameter: "dust",
+        source: "average",
+        timeRange: "24h",
+        startDate: null,
+        endDate: null,
+        data: [],
+        analysisDataset: null,
+        analysisStatistics: null,
+        loading: false,
+        lastAnalyzedAt: null,
       },
     },
   },
@@ -38,11 +56,9 @@ const Monitoring = {
     trendChart: {
       nodeA: {
         mode: "live",
-        limit: 10,
       },
       nodeB: {
         mode: "live",
-        limit: 10,
       },
     },
   },
@@ -64,6 +80,22 @@ const Monitoring = {
   historyData: {
     nodeA: [],
     nodeB: [],
+  },
+  trendHistoryCache: {
+    nodeA: {
+      key: null,
+      start: null,
+      end: null,
+      data: [],
+      cachedAt: 0,
+    },
+    nodeB: {
+      key: null,
+      start: null,
+      end: null,
+      data: [],
+      cachedAt: 0,
+    },
   },
   historyLoaded: {
     nodeA: false,
@@ -97,61 +129,341 @@ function setCurrentRoom(roomID) {
   Monitoring.state.room = roomID;
   Monitoring.currentRoom = roomID;
 }
-function getTrendMode() {
-  return Monitoring.state.trend[getCurrentRoomID()].mode;
+/* ===========================================================
+   TREND ANALYSIS STATE
+=========================================================== */
+function getTrendState() {
+  return Monitoring.state.trend[getCurrentRoomID()];
 }
-function setTrendMode(mode) {
-  Monitoring.state.trend[getCurrentRoomID()].mode = mode;
+/* ===========================================================
+   INVALIDATE TREND PROCESSING CACHE
+=========================================================== */
+function invalidateTrendProcessingCache() {
+  const state = getTrendState();
+  state.analysisDataset = null;
+  state.analysisStatistics = null;
+}
+/* ===========================================================
+   TREND RAW HISTORY CACHE
+=========================================================== */
+const TREND_HISTORY_CACHE_TTL = 15 * 1000;
+function getTrendHistoryCache() {
+  return Monitoring.trendHistoryCache[getCurrentRoomID()];
+}
+function buildTrendHistoryCacheKey() {
+  const state = getTrendState();
+  // Quick Range
+  if (state.timeRange !== "manual") {
+    return [getCurrentRoomID(), state.timeRange].join("|");
+  }
+  // Manual Range
+  return [
+    getCurrentRoomID(),
+    "manual",
+    state.startDate || "",
+    state.endDate || "",
+  ].join("|");
+}
+function getTrendParameter() {
+  return getTrendState().parameter;
+}
+function setTrendParameter(parameter) {
+  const state = getTrendState();
+  if (parameter !== "dust" && parameter !== "light") {
+    return;
+  }
+  state.parameter = parameter;
+}
+function getTrendSource() {
+  return getTrendState().source;
+}
+function setTrendSource(source) {
+  const state = getTrendState();
+  if (source !== "average" && source !== "individual") {
+    return;
+  }
+  state.source = source;
 }
 function getTrendSensor() {
-  return Monitoring.state.trend[getCurrentRoomID()].sensor;
+  return getTrendState().sensor;
 }
 function setTrendSensor(sensor) {
-  Monitoring.state.trend[getCurrentRoomID()].sensor = sensor;
+  getTrendState().sensor = sensor;
 }
 /* ===========================================================
-    UPDATE TREND MODE DROPDOWN
+   TREND ANALYSIS TIME RANGE
 =========================================================== */
-function updateTrendModeDropdown() {
-  const mode = document.getElementById("chartMode");
-  if (!mode) {
+function getTrendAnalysisRange() {
+  const state = getTrendState();
+  const now = new Date();
+  /* ==========================================================
+      QUICK RANGE
+  ========================================================== */
+  if (state.timeRange !== "manual") {
+    const end = now.getTime();
+    const durations = {
+      "1h": 60 * 60 * 1000,
+      "6h": 6 * 60 * 60 * 1000,
+      "12h": 12 * 60 * 60 * 1000,
+      "24h": 24 * 60 * 60 * 1000,
+    };
+    const duration = durations[state.timeRange];
+    if (!duration) {
+      return {
+        start: end - 24 * 60 * 60 * 1000,
+        end,
+      };
+    }
+    return {
+      start: end - duration,
+      end,
+    };
+  }
+  /* ==========================================================
+   * MANUAL DATE RANGE
+   ========================================================== */
+  if (!state.startDate || !state.endDate) {
+    return null;
+  }
+  const startDate = new Date(`${state.startDate}T00:00:00`);
+  const endDate = new Date(`${state.endDate}T23:59:59.999`);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return null;
+  }
+  if (startDate.getTime() > endDate.getTime()) {
+    return null;
+  }
+  return {
+    start: startDate.getTime(),
+    end: endDate.getTime(),
+  };
+}
+/* ===========================================================
+   LOAD TREND ANALYSIS HISTORY
+=========================================================== */
+async function loadTrendAnalysisHistory() {
+  const state = getTrendState();
+  const roomID = getCurrentRoomID();
+  const range = getTrendAnalysisRange();
+  if (!range) {
+    console.warn("Trend Analysis dibatalkan: rentang waktu tidak valid.");
+    state.data = [];
+    state.lastAnalyzedAt = null;
+    return {
+      success: false,
+      data: [],
+      reason: "invalid-range",
+    };
+  }
+  // Raw History Cache
+  const cache = getTrendHistoryCache();
+  const cacheKey = buildTrendHistoryCacheKey();
+  const cacheAge = Date.now() - Number(cache.cachedAt || 0);
+  const cacheValid =
+    cache.key === cacheKey &&
+    Array.isArray(cache.data) &&
+    cache.data.length > 0 &&
+    cacheAge <= TREND_HISTORY_CACHE_TTL;
+  if (cacheValid) {
+    state.data = cache.data;
+    state.lastAnalyzedAt = Date.now();
+    return {
+      success: true,
+      data: cache.data,
+      start: cache.start,
+      end: cache.end,
+      cached: true,
+    };
+  }
+  if (typeof db === "undefined") {
+    console.warn(
+      "Firebase database tidak tersedia. Menggunakan history lokal.",
+    );
+    const fallback = currentHistory()
+      .filter((item) => {
+        const timestamp = Number(item?.waktu);
+        return (
+          Number.isFinite(timestamp) &&
+          timestamp >= range.start &&
+          timestamp <= range.end
+        );
+      })
+      .sort((a, b) => Number(a.waktu) - Number(b.waktu));
+    state.data = fallback;
+    invalidateTrendProcessingCache();
+    state.lastAnalyzedAt = Date.now();
+    return {
+      success: true,
+      data: fallback,
+      fallback: true,
+    };
+  }
+  const path = DB_PATH?.history?.[roomID];
+  if (!path) {
+    console.error(`Path history tidak ditemukan untuk room ${roomID}.`);
+    state.data = [];
+    state.lastAnalyzedAt = null;
+    return {
+      success: false,
+      data: [],
+      reason: "missing-path",
+    };
+  }
+  state.loading = true;
+  try {
+    const snapshot = await db
+      .ref(path)
+      .orderByChild("waktu")
+      .startAt(range.start)
+      .endAt(range.end)
+      .once("value");
+    const records = [];
+    snapshot.forEach((child) => {
+      const value = child.val();
+      if (!value) {
+        return;
+      }
+      const timestamp = Number(value.waktu);
+      if (
+        !Number.isFinite(timestamp) ||
+        timestamp < range.start ||
+        timestamp > range.end
+      ) {
+        return;
+      }
+      records.push({
+        key: child.key,
+        ...value,
+        roomID,
+      });
+    });
+    records.sort((a, b) => Number(a.waktu) - Number(b.waktu));
+    // Store RAW History Cache
+    cache.key = cacheKey;
+    cache.start = range.start;
+    cache.end = range.end;
+    cache.data = records;
+    cache.cachedAt = Date.now();
+    invalidateTrendProcessingCache();
+    state.data = records;
+    state.lastAnalyzedAt = Date.now();
+    return {
+      success: true,
+      data: records,
+      start: range.start,
+      end: range.end,
+    };
+  } catch (error) {
+    console.error("Trend Analysis history query gagal:", error);
+    state.data = [];
+    state.lastAnalyzedAt = null;
+    return {
+      success: false,
+      data: [],
+      reason: "firebase-error",
+      error,
+    };
+  } finally {
+    state.loading = false;
+  }
+}
+/* ===========================================================
+   TREND ANALYSIS LOADING STATE
+=========================================================== */
+function setTrendAnalysisLoadingState(isLoading) {
+  const button = document.getElementById("trendApplyAnalysis");
+  if (!button) {
     return;
   }
-  const currentValue = getTrendMode();
-  mode.innerHTML = `
-        <option value="averageDust">
-            ${Language.get("monitoring.trend.averageDust")}
-        </option>
-        <option value="averageLight">
-            ${Language.get("monitoring.trend.averageLight")}
-        </option>
-        <option value="dust">
-            ${Language.get("monitoring.trend.dustOnly")}
-        </option>
-        <option value="light">
-            ${Language.get("monitoring.trend.lightOnly")}
-        </option>
+  button.disabled = isLoading;
+  if (isLoading) {
+    button.classList.add("opacity-75", "cursor-not-allowed");
+    button.innerHTML = `
+      <i class="bi bi-arrow-repeat animate-spin"></i>
+      <span data-i18n="monitoring.analysis.analyzing">
+        Menganalisis...
+      </span>
     `;
-  mode.value = currentValue;
-}
-/* ===========================================================
-    SYNC TREND UI
-=========================================================== */
-function syncTrendControls() {
-  const mode = document.getElementById("chartMode");
-  const sensor = document.getElementById("chartSensor");
-  if (!mode || !sensor) {
     return;
   }
-  updateTrendModeDropdown();
-  updateTrendSensorDropdown();
-  mode.value = getTrendMode();
-  if (getTrendSensor()) {
-    sensor.value = getTrendSensor();
+  button.classList.remove("opacity-75", "cursor-not-allowed");
+  button.innerHTML = `
+    <i class="bi bi-graph-up"></i>
+    <span data-i18n="monitoring.analysis.analyze">
+      Analisis
+    </span>
+  `;
+  /*
+   * Terapkan bahasa aktif terhadap teks tombol
+   * setelah innerHTML dibuat ulang.
+   */
+  if (typeof Language?.apply === "function") {
+    Language.apply();
   }
 }
-function getRealtimeChart() {
-  return Monitoring.charts.room;
+/* ===========================================================
+   RUN TREND ANALYSIS
+=========================================================== */
+async function runTrendAnalysis() {
+  setTrendAnalysisLoadingState(true);
+  try {
+    const result = await loadTrendAnalysisHistory();
+    refreshTrendAnalysis();
+    return result;
+  } catch (error) {
+    console.error("[Trend Analysis] Analysis failed:", error);
+    return {
+      success: false,
+      reason: "analysis-error",
+      error,
+    };
+  } finally {
+    setTrendAnalysisLoadingState(false);
+  }
+}
+/* ===========================================================
+   SYNC NEW TREND ANALYSIS CONTROLS
+=========================================================== */
+function syncTrendAnalysisControls() {
+  const parameter = document.getElementById("trendParameter");
+  const source = document.getElementById("trendSource");
+  if (parameter) {
+    parameter.value = getTrendParameter();
+  }
+  if (source) {
+    source.value = getTrendSource();
+  }
+  updateTrendSensorDropdown();
+}
+/* ===========================================================
+   SYNC ANALYSIS DATE CONTROLS
+=========================================================== */
+function syncTrendAnalysisDateControls() {
+  const range = document.getElementById("trendAnalysisRange");
+  const startDate = document.getElementById("trendStartDate");
+  const endDate = document.getElementById("trendEndDate");
+  if (range) {
+    range.value = getTrendState().timeRange;
+  }
+  const manual = getTrendState().timeRange === "manual";
+  if (startDate) {
+    startDate.disabled = !manual;
+    startDate.classList.toggle("bg-slate-100", !manual);
+    if (!manual) {
+      startDate.value = "";
+    } else {
+      startDate.value = getTrendState().startDate || "";
+    }
+  }
+  if (endDate) {
+    endDate.disabled = !manual;
+    endDate.classList.toggle("bg-slate-100", !manual);
+    if (!manual) {
+      endDate.value = "";
+    } else {
+      endDate.value = getTrendState().endDate || "";
+    }
+  }
 }
 /* ===========================================================
     APPEND REALTIME HISTORY
@@ -202,6 +514,12 @@ function getRealtimeRenderHistory() {
   };
 }
 /* ===========================================================
+    GET REALTIME CHART
+=========================================================== */
+function getRealtimeChart() {
+  return Monitoring.charts.room || null;
+}
+/* ===========================================================
     GET TREND CHART
 =========================================================== */
 function getTrendChart() {
@@ -227,9 +545,6 @@ function setRoomChartInteractionMode(mode) {
 =========================================================== */
 function getTrendChartInteraction() {
   return Monitoring.interaction.trendChart[getCurrentRoomID()];
-}
-function isTrendChartLiveMode() {
-  return getTrendChartInteraction().mode === "live";
 }
 function isTrendChartExploreMode() {
   return getTrendChartInteraction().mode === "explore";
@@ -323,16 +638,6 @@ function enableTrendChartExploreMode() {
   setTrendChartInteractionMode("explore");
   applyTrendChartInteraction();
   updateTrendChartZoomButton();
-  updateTrendChartToolbarState();
-}
-function enableTrendChartLiveMode() {
-  const chart = getTrendChart();
-  if (chart) {
-    chart.resetZoom();
-  }
-  setTrendChartInteractionMode("live");
-  refreshTrendAnalysis();
-  restoreTrendChart();
 }
 /* ===========================================================
     RESET TREND CHART VIEW
@@ -346,7 +651,6 @@ function resetTrendChartView() {
   applyTrendChartInteraction();
   refreshTrendAnalysis();
   updateTrendChartZoomButton();
-  updateTrendChartToolbarState();
 }
 /* ===========================================================
     ROOM CHART BUTTON
@@ -402,21 +706,6 @@ function updateRoomChartLimitButton() {
   });
 }
 /* ===========================================================
-    TREND CHART TOOLBAR STATE
-=========================================================== */
-function updateTrendChartToolbarState() {
-  const explore = isTrendChartExploreMode();
-  ["analysisTrend10Btn", "analysisTrend20Btn", "analysisTrend50Btn"].forEach(
-    (id) => {
-      const button = document.getElementById(id);
-      if (!button) return;
-      button.disabled = explore;
-      button.classList.toggle("opacity-50", explore);
-      button.classList.toggle("cursor-not-allowed", explore);
-    },
-  );
-}
-/* ===========================================================
     TREND CHART BUTTON
 =========================================================== */
 function updateTrendChartZoomButton() {
@@ -429,10 +718,14 @@ function updateTrendChartZoomButton() {
     button.classList.add("theme-button-primary");
   }
 }
-/* ===========================================================
-    INITIALIZE MONITORING CHART TOOLBAR
-=========================================================== */
 function initializeMonitoringChartToolbar() {
+  // Realtime Monitoring Chart
+  document
+    .getElementById("roomTrendReset")
+    ?.addEventListener("click", resetRoomChartView);
+  document
+    .getElementById("roomTrendZoom")
+    ?.addEventListener("click", enableRoomChartExploreMode);
   document
     .getElementById("roomTrend10Btn")
     ?.addEventListener("click", () => setRoomChartLimit(10));
@@ -442,27 +735,13 @@ function initializeMonitoringChartToolbar() {
   document
     .getElementById("roomTrend50Btn")
     ?.addEventListener("click", () => setRoomChartLimit(50));
-  document
-    .getElementById("roomTrendReset")
-    ?.addEventListener("click", resetRoomChartView);
-  document
-    .getElementById("roomTrendZoom")
-    ?.addEventListener("click", enableRoomChartExploreMode);
+  // Trend Analysis Chart
   document
     .getElementById("analysisTrendZoom")
     ?.addEventListener("click", enableTrendChartExploreMode);
   document
     .getElementById("analysisTrendReset")
     ?.addEventListener("click", resetTrendChartView);
-  document
-    .getElementById("analysisTrend10Btn")
-    ?.addEventListener("click", () => setTrendChartLimit(10));
-  document
-    .getElementById("analysisTrend20Btn")
-    ?.addEventListener("click", () => setTrendChartLimit(20));
-  document
-    .getElementById("analysisTrend50Btn")
-    ?.addEventListener("click", () => setTrendChartLimit(50));
 }
 /* ===========================================================
     INITIALIZE CHART INTERACTION
@@ -473,12 +752,50 @@ function initializeChartInteraction() {
   updateRoomChartZoomButton();
   updateTrendChartZoomButton();
   updateRoomChartToolbarState();
-  updateTrendChartToolbarState();
   updateRoomChartLimitButton();
-  updateTrendChartLimitButton();
 }
 /* ===========================================================
-    UPDATE TREND CHART
+   TREND CHART THRESHOLD LABELS
+=========================================================== */
+function getTrendThresholdChartLabels() {
+  const config = getTrendThresholdConfiguration();
+  if (config.category === "dust") {
+    return {
+      normal: Language.replace(
+        Language.get("monitoring.analysis.chartThreshold.normal"),
+        {
+          value: config.normal,
+          unit: config.unit,
+        },
+      ),
+      warning: Language.replace(
+        Language.get("monitoring.analysis.chartThreshold.warning"),
+        {
+          value: config.warning,
+          unit: config.unit,
+        },
+      ),
+    };
+  }
+  return {
+    minimum: Language.replace(
+      Language.get("monitoring.analysis.chartThreshold.minimumIdeal"),
+      {
+        value: config.minimum,
+        unit: config.unit,
+      },
+    ),
+    maximum: Language.replace(
+      Language.get("monitoring.analysis.chartThreshold.maximumIdeal"),
+      {
+        value: config.maximum,
+        unit: config.unit,
+      },
+    ),
+  };
+}
+/* ===========================================================
+   UPDATE TREND CHART
 =========================================================== */
 function updateTrendChart(dataset) {
   if (isTrendChartExploreMode()) {
@@ -488,18 +805,97 @@ function updateTrendChart(dataset) {
   if (!chart) {
     return;
   }
-  chart.data.labels = [...dataset.labels];
-  const chartDataset = chart.data.datasets[0];
   const config = getTrendConfiguration();
-  chartDataset.label = dataset.datasets[0].label;
-  chartDataset.borderColor = config.color;
-  chartDataset.backgroundColor = config.color + "33";
-  chartDataset.unit = config.unit;
-  chartDataset.decimals = config.decimals;
-  chartDataset.category = config.category;
+  const threshold = getTrendThresholdConfiguration();
+  /* ==========================================================
+    MAIN DATASET
+  ==========================================================*/
+  chart.data.labels = [...dataset.labels];
+  const mainDataset = chart.data.datasets[0];
+  mainDataset.label = dataset.datasets[0].label;
+  mainDataset.borderColor = config.color;
+  mainDataset.backgroundColor = config.color + "33";
+  mainDataset.unit = config.unit;
+  mainDataset.decimals = config.decimals;
+  mainDataset.category = config.category;
   ChartDesignSystem.setDatasetData(chart.data.datasets, [
     dataset.datasets[0].data,
   ]);
+  /* ==========================================================
+    REMOVE OLD THRESHOLD DATASETS
+  ==========================================================*/
+  chart.data.datasets = chart.data.datasets.filter(
+    (item) => item.isTrendThreshold !== true,
+  );
+  /* ==========================================================
+    CREATE THRESHOLD DATASET
+  ==========================================================*/
+  const labels = [...dataset.labels];
+  if (labels.length > 0) {
+    if (threshold.category === "dust") {
+      chart.data.datasets.push(
+        {
+          label: getTrendThresholdChartLabels().normal,
+          data: labels.map(() => threshold.normal),
+          borderColor: "#64748B",
+          backgroundColor: "transparent",
+          borderWidth: 1.5,
+          borderDash: [6, 6],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0,
+          isTrendThreshold: true,
+          category: "threshold",
+        },
+        {
+          label: getTrendThresholdChartLabels().warning,
+          data: labels.map(() => threshold.warning),
+          borderColor: "#F59E0B",
+          backgroundColor: "transparent",
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0,
+          isTrendThreshold: true,
+          category: "threshold",
+        },
+      );
+    } else {
+      chart.data.datasets.push(
+        {
+          label: getTrendThresholdChartLabels().minimum,
+          data: labels.map(() => threshold.minimum),
+          borderColor: "#64748B",
+          backgroundColor: "transparent",
+          borderWidth: 1.5,
+          borderDash: [6, 6],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0,
+          isTrendThreshold: true,
+          category: "threshold",
+        },
+        {
+          label: getTrendThresholdChartLabels().maximum,
+          data: labels.map(() => threshold.maximum),
+          borderColor: "#F59E0B",
+          backgroundColor: "transparent",
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0,
+          isTrendThreshold: true,
+          category: "threshold",
+        },
+      );
+    }
+  }
   chart.update("none");
 }
 function getCurrentRoomData() {
@@ -594,51 +990,486 @@ function syncConnectionState(roomID) {
   return state;
 }
 /* ===========================================================
-    TREND DATA PROVIDER
+   TREND DATA PROVIDER
 =========================================================== */
 function getTrendProviderData() {
-  const history = currentHistory();
-  if (!Array.isArray(history)) {
+  const state = getTrendState();
+  if (!Array.isArray(state.data)) {
     return [];
   }
-  return history;
+  return state.data;
 }
 /* ===========================================================
-    TREND DATASET BUILDER
+   TREND VALUE EXTRACTOR
+=========================================================== */
+function getTrendValue(item) {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+  const state = getTrendState();
+  const parameter = state.parameter;
+  const source = state.source;
+  const sensor = Number(state.sensor);
+  let value;
+  /* ==========================================================
+   * AVERAGE
+  ========================================================== */
+  if (source === "average") {
+    if (parameter === "dust") {
+      value = item.debu?.rata;
+    } else if (parameter === "light") {
+      value = item.cahaya?.rata;
+    }
+  }
+  /* ==========================================================
+   * INDIVIDUAL SENSOR
+  ========================================================== */
+  if (source === "individual") {
+    if (!Number.isInteger(sensor) || sensor < 1) {
+      return null;
+    }
+    const sensorIndex = sensor - 1;
+    if (parameter === "dust") {
+      value = item.debu?.["S" + sensorIndex];
+    } else if (parameter === "light") {
+      value = item.cahaya?.["S" + sensorIndex];
+    }
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+  return number;
+}
+/* ===========================================================
+   GET PREPARED TREND DATASET
+=========================================================== */
+function getPreparedTrendDataset() {
+  const state = getTrendState();
+  if (state.analysisDataset) {
+    return state.analysisDataset;
+  }
+  const dataset = buildTrendDataset();
+  state.analysisDataset = dataset;
+  return dataset;
+}
+/* ===========================================================
+   TREND DATASET BUILDER
 =========================================================== */
 function buildTrendDataset() {
   const history = getTrendProviderData();
-  const mode = getTrendMode();
-  const sensor = getTrendSensor();
   const labels = [];
   const values = [];
   history.forEach((item) => {
+    const value = getTrendValue(item);
+    /* Data yang tidak valid tidak dimasukkan ke dataset.
+    Ini mencegah missing data berubah menjadi 0. */
+    if (value === null) {
+      return;
+    }
     labels.push(
       new Date(item.waktu).toLocaleTimeString(getDashboardLocale(), {
         hour12: false,
       }),
     );
-    switch (mode) {
-      case "averageDust":
-        values.push(Number(item.debu?.rata ?? 0));
-        break;
-      case "averageLight":
-        values.push(Number(item.cahaya?.rata ?? 0));
-        break;
-      case "dust":
-        values.push(Number(item.debu?.["S" + (sensor - 1)] ?? 0));
-        break;
-      case "light":
-        values.push(Number(item.cahaya?.["S" + (sensor - 1)] ?? 0));
-        break;
-      default:
-        values.push(0);
-    }
+    values.push(value);
   });
   return {
     labels,
     values,
   };
+}
+/* ===========================================================
+   TREND STATISTICS
+=========================================================== */
+function calculateTrendStatistics() {
+  const state = getTrendState();
+  if (state.analysisStatistics) {
+    return state.analysisStatistics;
+  }
+  const dataset = getPreparedTrendDataset();
+  const values = Array.isArray(dataset.values)
+    ? dataset.values.filter((value) => Number.isFinite(Number(value)))
+    : [];
+  if (values.length === 0) {
+    state.analysisStatistics = {
+      average: null,
+      minimum: null,
+      maximum: null,
+      range: null,
+      dataPoints: 0,
+    };
+    return state.analysisStatistics;
+  }
+  const numbers = values.map(Number);
+  const total = numbers.reduce((sum, value) => sum + value, 0);
+  const minimum = Math.min(...numbers);
+  const maximum = Math.max(...numbers);
+  state.analysisStatistics = {
+    average: total / numbers.length,
+    minimum,
+    maximum,
+    range: maximum - minimum,
+    dataPoints: numbers.length,
+  };
+  return state.analysisStatistics;
+}
+/* ===========================================================
+   TREND THRESHOLD CONFIGURATION
+=========================================================== */
+function getTrendThresholdConfiguration() {
+  const parameter = getTrendParameter();
+  if (parameter === "dust") {
+    return {
+      category: "dust",
+      unit: "µg/m³",
+      normal: Number(CONFIG.threshold.dust.normal),
+      warning: Number(CONFIG.threshold.dust.warning),
+      minimum: null,
+      maximum: null,
+    };
+  }
+  return {
+    category: "light",
+    unit: "Lux",
+    normal: null,
+    warning: null,
+    minimum: Number(CONFIG.threshold.light.minimum),
+    maximum: Number(CONFIG.threshold.light.maximum),
+  };
+}
+/* ===========================================================
+   TREND ANALYSIS SOURCE LABEL
+=========================================================== */
+function getTrendAnalysisSourceLabel() {
+  const parameter = getTrendParameter();
+  const source = getTrendSource();
+  const sensor = getTrendSensor();
+  if (source === "average") {
+    return parameter === "dust"
+      ? Language.get("monitoring.trend.averageDust")
+      : Language.get("monitoring.trend.averageLight");
+  }
+  if (parameter === "dust") {
+    return Language.replace(Language.get("monitoring.trend.dust"), {
+      sensor,
+    });
+  }
+  return Language.replace(Language.get("monitoring.trend.light"), {
+    sensor,
+  });
+}
+/* ===========================================================
+   RENDER TREND THRESHOLD
+=========================================================== */
+function updateTrendThreshold() {
+  const element = document.getElementById("trendThresholdValue");
+  if (!element) {
+    return;
+  }
+  const config = getTrendThresholdConfiguration();
+  if (config.category === "dust") {
+    element.innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <div class="text-xs theme-text-muted">
+            ${Language.get("monitoring.analysis.threshold.normal")}
+          </div>
+          <div class="font-semibold mt-1">
+            ≤ ${config.normal} ${config.unit}
+          </div>
+        </div>
+        <div>
+          <div class="text-xs theme-text-muted">
+            ${Language.get("monitoring.analysis.threshold.warning")}
+          </div>
+          <div class="font-semibold mt-1">
+            > ${config.normal} – ${config.warning} ${config.unit}
+          </div>
+        </div>
+        <div>
+          <div class="text-xs theme-text-muted">
+            ${Language.get("monitoring.analysis.threshold.danger")}
+          </div>
+          <div class="font-semibold mt-1">
+            > ${config.warning} ${config.unit}
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  element.innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div>
+        <div class="text-xs theme-text-muted">
+          ${Language.get("monitoring.analysis.threshold.poor")}
+        </div>
+        <div class="font-semibold mt-1">
+          < ${config.minimum} ${config.unit}
+        </div>
+      </div>
+      <div>
+        <div class="text-xs theme-text-muted">
+          ${Language.get("monitoring.analysis.threshold.ideal")}
+        </div>
+        <div class="font-semibold mt-1">
+          ${config.minimum}–${config.maximum} ${config.unit}
+        </div>
+      </div>
+      <div>
+        <div class="text-xs theme-text-muted">
+          ${Language.get("monitoring.analysis.threshold.tooBright")}
+        </div>
+        <div class="font-semibold mt-1">
+          > ${config.maximum} ${config.unit}
+        </div>
+      </div>
+    </div>
+  `;
+}
+/* ===========================================================
+   CALCULATE TREND ANALYSIS STATUS
+=========================================================== */
+function calculateTrendAnalysisStatus() {
+  const statistics = calculateTrendStatistics();
+  const config = getTrendThresholdConfiguration();
+  /* ===========================================================
+   NO DATA
+  =========================================================== */
+  if (statistics.dataPoints === 0) {
+    return {
+      text: CONFIG.status.system.waiting,
+      class: "theme-badge-neutral",
+      icon: "bi-hourglass-split",
+      iconClass: "theme-icon-muted",
+      category: "waiting",
+    };
+  }
+  /* ==========================================================
+    DUST: Berdasarkan MAXIMUM selama periode analisis.
+  ========================================================== */
+  if (config.category === "dust") {
+    if (statistics.maximum <= config.normal) {
+      return {
+        text: CONFIG.status.dust.normal,
+        class: "theme-badge-normal",
+        icon: "bi-check-circle-fill",
+        iconClass: "theme-icon-success",
+        category: "normal",
+      };
+    }
+    if (statistics.maximum <= config.warning) {
+      return {
+        text: CONFIG.status.dust.warning,
+        class: "theme-badge-warning",
+        icon: "bi-exclamation-triangle-fill",
+        iconClass: "theme-icon-warning",
+        category: "warning",
+      };
+    }
+    return {
+      text: CONFIG.status.dust.danger,
+      class: "theme-badge-danger",
+      icon: "bi-exclamation-octagon-fill",
+      iconClass: "theme-icon-danger",
+      category: "danger",
+    };
+  }
+  /* ==========================================================
+    LIGHT: Berdasarkan AVERAGE selama periode analisis.
+  ========================================================== */
+  if (
+    statistics.average >= config.minimum &&
+    statistics.average <= config.maximum
+  ) {
+    return {
+      text: CONFIG.status.light.ideal,
+      class: "theme-badge-ideal",
+      icon: "bi-check-circle-fill",
+      iconClass: "theme-icon-success",
+      category: "ideal",
+    };
+  }
+  if (statistics.average < config.minimum) {
+    return {
+      text: CONFIG.status.light.poor,
+      class: "theme-badge-poor",
+      icon: "bi-arrow-down-circle-fill",
+      iconClass: "theme-icon-warning",
+      category: "poor",
+    };
+  }
+  return {
+    text: CONFIG.status.light.tooBright,
+    class: "theme-badge-too-bright",
+    icon: "bi-arrow-up-circle-fill",
+    iconClass: "theme-icon-warning",
+    category: "tooBright",
+  };
+}
+/* ===========================================================
+   TREND STATUS DESCRIPTION
+=========================================================== */
+function getTrendAnalysisStatusDescription(status) {
+  switch (status.category) {
+    case "normal":
+      return Language.get("monitoring.analysis.summary.status.normal");
+    case "warning":
+      return Language.get("monitoring.analysis.summary.status.warning");
+    case "danger":
+      return Language.get("monitoring.analysis.summary.status.danger");
+    case "ideal":
+      return Language.get("monitoring.analysis.summary.status.ideal");
+    case "poor":
+      return Language.get("monitoring.analysis.summary.status.poor");
+    case "tooBright":
+      return Language.get("monitoring.analysis.summary.status.tooBright");
+    default:
+      return Language.get("monitoring.analysis.summary.status.waiting");
+  }
+}
+/* ===========================================================
+   ANALYSIS SUMMARY
+=========================================================== */
+function updateTrendAnalysisSummary() {
+  const element = document.getElementById("trendAnalysisSummary");
+  if (!element) {
+    return;
+  }
+  const state = getTrendState();
+  const statistics = calculateTrendStatistics();
+  const status = calculateTrendAnalysisStatus();
+  const threshold = getTrendThresholdConfiguration();
+  /* ===========================================================
+   BELUM ADA ANALISIS
+  =========================================================== */
+  if (!state.lastAnalyzedAt) {
+    element.textContent = Language.get(
+      "monitoring.analysis.summary.notAnalyzed",
+    );
+    return;
+  }
+  /* ===========================================================
+   TIDAK ADA DATA
+  =========================================================== */
+  if (statistics.dataPoints === 0) {
+    element.textContent = Language.get("monitoring.analysis.summary.noData");
+    return;
+  }
+  const sourceLabel = getTrendAnalysisSourceLabel();
+  const statusDescription = getTrendAnalysisStatusDescription(status);
+  const decimals = threshold.category === "dust" ? 2 : 1;
+  const average = statistics.average.toFixed(decimals);
+  const minimum = statistics.minimum.toFixed(decimals);
+  const maximum = statistics.maximum.toFixed(decimals);
+  const range = statistics.range.toFixed(decimals);
+  /* ===========================================================
+   DUST SUMMARY
+  =========================================================== */
+  if (threshold.category === "dust") {
+    element.textContent = Language.replace(
+      Language.get("monitoring.analysis.summary.dust"),
+      {
+        source: sourceLabel,
+        average,
+        minimum,
+        maximum,
+        range,
+        unit: threshold.unit,
+        normal: threshold.normal,
+        warning: threshold.warning,
+        status: status.text,
+        statusDescription,
+      },
+    );
+    return;
+  }
+  /* ===========================================================
+   LIGHT SUMMARY
+  =========================================================== */
+  element.textContent = Language.replace(
+    Language.get("monitoring.analysis.summary.light"),
+    {
+      source: sourceLabel,
+      average,
+      minimum,
+      maximum,
+      range,
+      unit: threshold.unit,
+      minimumIdeal: threshold.minimum,
+      maximumIdeal: threshold.maximum,
+      status: status.text,
+      statusDescription,
+    },
+  );
+}
+/* ===========================================================
+   RENDER TREND ANALYSIS STATUS
+=========================================================== */
+function updateTrendAnalysisStatus() {
+  const statusElement = document.getElementById("trendAnalysisStatus");
+  const iconElement = document.getElementById("trendAnalysisStatusIcon");
+  if (!statusElement) {
+    return;
+  }
+  const status = calculateTrendAnalysisStatus();
+  statusElement.textContent = status.text;
+  statusElement.className = `theme-badge ${status.class}`;
+  /* ===========================================================
+   STATUS ICON
+  =========================================================== */
+  if (iconElement) {
+    iconElement.className = `bi ${status.icon} text-2xl ${status.iconClass}`;
+  }
+}
+/* ===========================================================
+   RENDER TREND STATISTICS
+=========================================================== */
+function updateTrendStatistics() {
+  const averageElement = document.getElementById("trendStatAverage");
+  const minimumElement = document.getElementById("trendStatMinimum");
+  const maximumElement = document.getElementById("trendStatMaximum");
+  const rangeElement = document.getElementById("trendStatRange");
+  const dataPointsElement = document.getElementById("trendStatDataPoints");
+  if (
+    !averageElement ||
+    !minimumElement ||
+    !maximumElement ||
+    !rangeElement ||
+    !dataPointsElement
+  ) {
+    return;
+  }
+  const statistics = calculateTrendStatistics();
+  /*
+   * ==========================================================
+   * NO DATA
+   * ==========================================================
+   */
+  if (statistics.dataPoints === 0) {
+    averageElement.textContent = "--";
+    minimumElement.textContent = "--";
+    maximumElement.textContent = "--";
+    rangeElement.textContent = "--";
+    dataPointsElement.textContent = "0";
+    return;
+  }
+  const config = getTrendConfiguration();
+  const decimals = config.decimals ?? 2;
+  const unit = config.unit ?? "";
+  function formatValue(value) {
+    if (!Number.isFinite(Number(value))) {
+      return "--";
+    }
+    return `${Number(value).toFixed(decimals)} ${unit}`;
+  }
+  averageElement.textContent = formatValue(statistics.average);
+  minimumElement.textContent = formatValue(statistics.minimum);
+  maximumElement.textContent = formatValue(statistics.maximum);
+  rangeElement.textContent = formatValue(statistics.range);
+  dataPointsElement.textContent =
+    statistics.dataPoints.toLocaleString(getDashboardLocale());
 }
 /* ===========================================================
     RENDER CURRENT ROOM
@@ -653,10 +1484,10 @@ function renderCurrentRoom() {
 function refreshMonitoringLanguage() {
   createMonitoringCards();
   createMonitoringInformation();
-  syncTrendControls();
+  syncTrendAnalysisControls();
+  syncTrendAnalysisDateControls();
   renderCurrentRoom();
   refreshTrendAnalysis();
-  restoreTrendChart();
 }
 /* ===========================================================
     INITIALIZE
@@ -671,8 +1502,6 @@ function initializeMonitoring() {
   initializeMonitoringChartToolbar();
   initializeRoomMenu();
   initializeTrendAnalysis();
-  syncTrendUI();
-  refreshTrendAnalysis();
   setInterval(checkConnectionStatus, 1000);
   subscribeRoom(getCurrentRoomID());
   Monitoring.initialized = true;
@@ -839,7 +1668,8 @@ function changeRoom(roomID) {
   getRealtimeChart()?.resetZoom();
   getTrendChart()?.resetZoom();
   restoreRoomChart();
-  syncTrendUI();
+  syncTrendAnalysisControls();
+  syncTrendAnalysisDateControls();
   restoreTrendChart();
   refreshTrendAnalysis();
   subscribeRoom(roomID);
@@ -889,34 +1719,86 @@ function initializeRoomMenu() {
     TREND ANALYSIS
 =========================================================== */
 function initializeTrendAnalysis() {
-  const mode = document.getElementById("chartMode");
   const sensor = document.getElementById("chartSensor");
-  if (!mode || !sensor) return;
-  mode.addEventListener("change", () => {
-    setTrendMode(mode.value);
-    updateTrendSensorDropdown();
-    refreshTrendAnalysis();
-  });
-  sensor.addEventListener("change", () => {
-    setTrendSensor(sensor.value);
-    refreshTrendAnalysis();
-  });
-  syncTrendControls();
+  const parameter = document.getElementById("trendParameter");
+  const source = document.getElementById("trendSource");
+  const analysisRange = document.getElementById("trendAnalysisRange");
+  const startDate = document.getElementById("trendStartDate");
+  const endDate = document.getElementById("trendEndDate");
+  const applyButton = document.getElementById("trendApplyAnalysis");
+  // Parameter
+  if (parameter) {
+    parameter.addEventListener("change", () => {
+      setTrendParameter(parameter.value);
+      invalidateTrendProcessingCache();
+      syncTrendAnalysisControls();
+      refreshTrendAnalysis();
+    });
+  }
+  // Source
+  if (source) {
+    source.addEventListener("change", () => {
+      setTrendSource(source.value);
+      invalidateTrendProcessingCache();
+      syncTrendAnalysisControls();
+      refreshTrendAnalysis();
+    });
+  }
+  // Sensor
+  if (sensor) {
+    sensor.addEventListener("change", () => {
+      setTrendSensor(sensor.value);
+      invalidateTrendProcessingCache();
+      refreshTrendAnalysis();
+    });
+  }
+  // Analysis Period
+  if (analysisRange) {
+    analysisRange.addEventListener("change", () => {
+      getTrendState().timeRange = analysisRange.value;
+      syncTrendAnalysisDateControls();
+    });
+  }
+  // Custom Start Date
+  if (startDate) {
+    startDate.addEventListener("change", () => {
+      getTrendState().startDate = startDate.value || null;
+    });
+  }
+  // Custom End Date
+  if (endDate) {
+    endDate.addEventListener("change", () => {
+      getTrendState().endDate = endDate.value || null;
+    });
+  }
+  // Analyze
+  if (applyButton) {
+    applyButton.addEventListener("click", async () => {
+      await runTrendAnalysis();
+    });
+  }
+  syncTrendAnalysisControls();
+  syncTrendAnalysisDateControls();
   refreshTrendAnalysis();
 }
+/* ===========================================================
+   REFRESH TREND ANALYSIS
+=========================================================== */
 function refreshTrendAnalysis() {
   const dataset = getTrendRenderDataset();
   updateTrendBadge();
   updateTrendSubtitle();
+  updateTrendStatistics();
+  updateTrendThreshold();
+  updateTrendAnalysisStatus();
+  updateTrendAnalysisSummary();
   updateTrendChart(dataset);
 }
 /* ===========================================================
     RESTORE TREND CHART
 =========================================================== */
 function restoreTrendChart() {
-  updateTrendChartLimitButton();
   updateTrendChartZoomButton();
-  updateTrendChartToolbarState();
   applyTrendChartInteraction();
   const dataset = getTrendRenderDataset();
   updateTrendChart(dataset);
@@ -925,68 +1807,62 @@ function updateTrendSensorDropdown() {
   const sensor = document.getElementById("chartSensor");
   if (!sensor) return;
   const room = currentRoom();
+  const parameter = getTrendParameter();
+  const source = getTrendSource();
   sensor.innerHTML = "";
-  const mode = getTrendMode();
-  if (mode === "averageDust" || mode === "averageLight") {
+  /* ==========================================================
+     AVERAGE
+     Tidak membutuhkan sensor individual.
+   ========================================================== */
+  if (source === "average") {
     sensor.disabled = true;
     sensor.classList.add("bg-slate-100");
-    sensor.innerHTML = `
-        <option>
-            ${Language.get("monitoring.sensor.notRequired")}
-        </option>
-    `;
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = Language.get("monitoring.sensor.notRequired");
+    sensor.appendChild(option);
     setTrendSensor(null);
     return;
   }
+  /* ==========================================================
+     INDIVIDUAL SENSOR
+     ========================================================== */
   sensor.disabled = false;
   sensor.classList.remove("bg-slate-100");
   const totalSensor =
-    getTrendMode() === "dust" ? room.dustSensors : room.lightSensors;
+    parameter === "dust" ? room.dustSensors : room.lightSensors;
   const prefix =
-    getTrendMode() === "dust"
+    parameter === "dust"
       ? Language.get("monitoring.sensor.prefix.dust")
       : Language.get("monitoring.sensor.prefix.light");
   for (let i = 1; i <= totalSensor; i++) {
     const option = document.createElement("option");
-    option.value = i;
+    option.value = String(i);
     option.textContent = `${prefix} ${i}`;
     sensor.appendChild(option);
   }
   const currentSensor = getTrendSensor();
-  if (currentSensor) {
-    sensor.value = currentSensor;
+  /* Pertahankan sensor yang sebelumnya dipilih
+   apabila masih valid untuk parameter/room saat ini.*/
+  if (
+    currentSensor &&
+    Number(currentSensor) >= 1 &&
+    Number(currentSensor) <= totalSensor
+  ) {
+    sensor.value = String(currentSensor);
   } else {
     sensor.selectedIndex = 0;
     setTrendSensor(sensor.value);
   }
 }
 function getTrendConfiguration() {
-  const mode = getTrendMode();
+  const parameter = getTrendParameter();
+  const source = getTrendSource();
   const sensor = getTrendSensor();
-  switch (mode) {
-    case "averageDust":
+  // Dust
+  if (parameter === "dust") {
+    if (source === "individual") {
       return {
-        mode,
-        sensor: null,
-        label: Language.get("monitoring.trend.averageDust"),
-        unit: "µg/m³",
-        decimals: 2,
-        category: "dust",
-        color: "#F97316",
-      };
-    case "averageLight":
-      return {
-        mode,
-        sensor: null,
-        label: Language.get("monitoring.trend.averageLight"),
-        unit: "Lux",
-        decimals: 1,
-        category: "light",
-        color: "#FACC15",
-      };
-    case "dust":
-      return {
-        mode,
         sensor,
         label: Language.replace(Language.get("monitoring.trend.dust"), {
           sensor,
@@ -996,29 +1872,37 @@ function getTrendConfiguration() {
         category: "dust",
         color: "#F97316",
       };
-    case "light":
-      return {
-        mode,
-        sensor,
-        label: Language.replace(Language.get("monitoring.trend.light"), {
-          sensor,
-        }),
-        unit: "Lux",
-        decimals: 1,
-        category: "light",
-        color: "#FACC15",
-      };
-    default:
-      return {
-        mode: "averageDust",
-        sensor: null,
-        label: Language.get("monitoring.trend.averageDust"),
-        unit: "µg/m³",
-        decimals: 2,
-        category: "dust",
-        color: "#F97316",
-      };
+    }
+    return {
+      sensor: null,
+      label: Language.get("monitoring.trend.averageDust"),
+      unit: "µg/m³",
+      decimals: 2,
+      category: "dust",
+      color: "#F97316",
+    };
   }
+  // Light
+  if (source === "individual") {
+    return {
+      sensor,
+      label: Language.replace(Language.get("monitoring.trend.light"), {
+        sensor,
+      }),
+      unit: "Lux",
+      decimals: 1,
+      category: "light",
+      color: "#FACC15",
+    };
+  }
+  return {
+    sensor: null,
+    label: Language.get("monitoring.trend.averageLight"),
+    unit: "Lux",
+    decimals: 1,
+    category: "light",
+    color: "#FACC15",
+  };
 }
 /* ===========================================================
     UPDATE TREND BADGE
@@ -1028,13 +1912,38 @@ function updateTrendBadge() {
   if (!badge) {
     return;
   }
-  const config = getTrendConfiguration();
-  badge.textContent = config.label;
-  badge.className = "px-3 py-1 rounded-full text-sm font-medium";
-  if (config.mode === "averageDust" || config.mode === "dust") {
-    badge.classList.add("bg-orange-100", "text-orange-700");
-  } else {
-    badge.classList.add("bg-yellow-100", "text-yellow-700");
+  const parameter = getTrendParameter();
+  const source = getTrendSource();
+  const sensor = getTrendSensor();
+  let label = "";
+  /* ==========================================================
+     AVERAGE
+  ========================================================== */
+  if (source === "average") {
+    label =
+      parameter === "dust"
+        ? Language.get("monitoring.trend.averageDust")
+        : Language.get("monitoring.trend.averageLight");
+  }
+  /* ==========================================================
+      INDIVIDUAL SENSOR
+  ========================================================== */
+  if (source === "individual") {
+    if (parameter === "dust") {
+      label = sensor
+        ? Language.replace(Language.get("monitoring.trend.dust"), { sensor })
+        : Language.get("monitoring.sensor.prefix.dust");
+    } else {
+      label = sensor
+        ? Language.replace(Language.get("monitoring.trend.light"), { sensor })
+        : Language.get("monitoring.sensor.prefix.light");
+    }
+  }
+  badge.textContent = label;
+  badge.className = "theme-badge theme-badge-warning";
+  if (parameter === "light") {
+    badge.classList.remove("theme-badge-warning");
+    badge.classList.add("theme-badge-ideal");
   }
 }
 /* ===========================================================
@@ -1045,41 +1954,44 @@ function updateTrendSubtitle() {
   if (!subtitle) {
     return;
   }
-  const config = getTrendConfiguration();
-  switch (config.mode) {
-    case "averageDust":
-      subtitle.textContent = Language.get(
-        "monitoring.trend.subtitle.averageDust",
-      );
-      break;
-    case "averageLight":
-      subtitle.textContent = Language.get(
-        "monitoring.trend.subtitle.averageLight",
-      );
-      break;
-    case "dust":
-      subtitle.textContent = Language.replace(
-        Language.get("monitoring.trend.subtitle.dust"),
-        {
-          sensor: config.sensor,
-        },
-      );
-      break;
-    case "light":
-      subtitle.textContent = Language.replace(
-        Language.get("monitoring.trend.subtitle.light"),
-        {
-          sensor: config.sensor,
-        },
-      );
-      break;
-    default:
-      subtitle.textContent = Language.get("monitoring.trend.subtitle.default");
+  const parameter = getTrendParameter();
+  const source = getTrendSource();
+  const sensor = getTrendSensor();
+  if (parameter === "dust" && source === "average") {
+    subtitle.textContent = Language.get(
+      "monitoring.trend.subtitle.averageDust",
+    );
+    return;
   }
+  if (parameter === "light" && source === "average") {
+    subtitle.textContent = Language.get(
+      "monitoring.trend.subtitle.averageLight",
+    );
+    return;
+  }
+  if (parameter === "dust" && source === "individual") {
+    subtitle.textContent = Language.replace(
+      Language.get("monitoring.trend.subtitle.dust"),
+      {
+        sensor,
+      },
+    );
+    return;
+  }
+  if (parameter === "light" && source === "individual") {
+    subtitle.textContent = Language.replace(
+      Language.get("monitoring.trend.subtitle.light"),
+      {
+        sensor,
+      },
+    );
+    return;
+  }
+  subtitle.textContent = Language.get("monitoring.trend.subtitle.default");
 }
 function getTrendDataset() {
   const config = getTrendConfiguration();
-  const trend = buildTrendDataset();
+  const trend = getPreparedTrendDataset();
   return {
     labels: trend.labels,
     datasets: [
@@ -1091,57 +2003,10 @@ function getTrendDataset() {
   };
 }
 /* ===========================================================
-    GET TREND RENDER DATASET
+   GET TREND RENDER DATASET
 =========================================================== */
 function getTrendRenderDataset() {
-  const dataset = getTrendDataset();
-  const limit = getTrendChartInteraction().limit;
-  return {
-    labels: dataset.labels.slice(-limit),
-    datasets: [
-      {
-        ...dataset.datasets[0],
-        data: dataset.datasets[0].data.slice(-limit),
-      },
-    ],
-  };
-}
-/* ===========================================================
-    TREND CHART LIMIT
-=========================================================== */
-function setTrendChartLimit(limit) {
-  getTrendChartInteraction().limit = limit;
-  updateTrendChartLimitButton();
-  const dataset = getTrendRenderDataset();
-  updateTrendChart(dataset);
-}
-/* ===========================================================
-    TREND CHART LIMIT BUTTON
-=========================================================== */
-function updateTrendChartLimitButton() {
-  const limit = getTrendChartInteraction().limit;
-  const buttons = {
-    10: "analysisTrend10Btn",
-    20: "analysisTrend20Btn",
-    50: "analysisTrend50Btn",
-  };
-  Object.entries(buttons).forEach(([value, id]) => {
-    const button = document.getElementById(id);
-    if (!button) return;
-    button.classList.remove("theme-button-primary");
-    if (Number(value) === limit) {
-      button.classList.add("theme-button-primary");
-    }
-  });
-}
-/* ===========================================================
-    SYNC TREND UI
-=========================================================== */
-function syncTrendUI() {
-  const mode = document.getElementById("chartMode");
-  if (!mode) return;
-  mode.value = getTrendMode();
-  updateTrendSensorDropdown();
+  return getTrendDataset();
 }
 /* ===========================================================
     VALIDATE SENSOR VALUE

@@ -198,16 +198,75 @@ Language.dictionaries = {
     "monitoring.chart.zoom": "Zoom",
     "monitoring.chart.reset": "Reset Tampilan",
     "monitoring.analysis.title": "Analisis Tren",
+    "monitoring.analysis.average": "Rata-rata",
+    "monitoring.analysis.minimum": "Minimum",
+    "monitoring.analysis.maximum": "Maksimum",
+    "monitoring.analysis.range": "Rentang",
+    "monitoring.analysis.dataPoints": "Titik Data",
     "monitoring.analysis.subtitle":
-      "Analisis tren berdasarkan rata-rata maupun masing-masing sensor.",
-    "monitoring.analysis.chartSource": "Sumber Grafik",
+      "Analisis tren berdasarkan periode waktu dan sumber data yang dipilih.",
+    "monitoring.analysis.parameter": "Parameter",
+    "monitoring.analysis.parameterDust": "Debu",
+    "monitoring.analysis.parameterLight": "Cahaya",
+    "monitoring.analysis.source": "Sumber Data",
+    "monitoring.analysis.sourceAverage": "Rata-rata",
+    "monitoring.analysis.sourceIndividual": "Sensor Individual",
     "monitoring.analysis.sensor": "Sensor",
+    "monitoring.analysis.period": "Periode Analisis",
+    "monitoring.analysis.startDate": "Tanggal Mulai",
+    "monitoring.analysis.endDate": "Tanggal Selesai",
+    "monitoring.analysis.analyze": "Analisis",
+    "monitoring.analysis.statistics": "Statistik Analisis",
+    "monitoring.analysis.statisticsSubtitle":
+      "Ringkasan nilai dari data pada periode yang dipilih.",
+    "monitoring.analysis.average": "Rata-rata",
+    "monitoring.analysis.minimum": "Minimum",
+    "monitoring.analysis.maximum": "Maksimum",
+    "monitoring.analysis.range": "Rentang Nilai",
+    "monitoring.analysis.dataPoints": "Jumlah Data",
     "monitoring.analysis.chartTitle": "Grafik Analisis Tren",
-    "monitoring.analysis.latest10": "10 Data Terbaru",
-    "monitoring.analysis.latest20": "20 Data Terbaru",
-    "monitoring.analysis.latest50": "50 Data Terbaru",
+    "monitoring.analysis.threshold": "Threshold",
+    "monitoring.analysis.status": "Status",
+    "monitoring.analysis.summaryTitle": "Analysis Summary",
     "monitoring.analysis.zoom": "Zoom",
     "monitoring.analysis.reset": "Reset Tampilan",
+    "monitoring.analysis.threshold.normal": "Normal",
+    "monitoring.analysis.threshold.warning": "Peringatan",
+    "monitoring.analysis.threshold.danger": "Bahaya",
+    "monitoring.analysis.threshold.poor": "Buruk",
+    "monitoring.analysis.threshold.ideal": "Ideal",
+    "monitoring.analysis.threshold.tooBright": "Terlalu Terang",
+    "monitoring.analysis.chartThreshold.normal":
+      "Ambang Normal ({value} {unit})",
+    "monitoring.analysis.chartThreshold.warning":
+      "Ambang Peringatan ({value} {unit})",
+    "monitoring.analysis.chartThreshold.minimumIdeal":
+      "Minimum Ideal ({value} {unit})",
+    "monitoring.analysis.chartThreshold.maximumIdeal":
+      "Maksimum Ideal ({value} {unit})",
+    "monitoring.analysis.summary.notAnalyzed":
+      "Belum ada analisis yang dijalankan.",
+    "monitoring.analysis.summary.noData":
+      "Tidak ada data pada periode analisis yang dipilih.",
+    "monitoring.analysis.summary.status.normal":
+      "Nilai maksimum masih berada dalam batas normal.",
+    "monitoring.analysis.summary.status.warning":
+      "Terdapat nilai yang melewati batas normal tetapi masih berada dalam tingkat peringatan.",
+    "monitoring.analysis.summary.status.danger":
+      "Terdapat nilai yang melewati ambang bahaya.",
+    "monitoring.analysis.summary.status.ideal":
+      "Nilai rata-rata berada dalam rentang pencahayaan ideal.",
+    "monitoring.analysis.summary.status.poor":
+      "Nilai rata-rata berada di bawah rentang pencahayaan ideal.",
+    "monitoring.analysis.summary.status.tooBright":
+      "Nilai rata-rata berada di atas rentang pencahayaan ideal.",
+    "monitoring.analysis.summary.status.waiting":
+      "Data belum tersedia untuk dilakukan analisis.",
+    "monitoring.analysis.summary.dust":
+      "{source} memiliki rata-rata {average} {unit}, minimum {minimum} {unit}, maksimum {maximum} {unit}, dan rentang {range} {unit}. Status analisis adalah {status}. {statusDescription} Ambang normal adalah {normal} {unit}, sedangkan ambang peringatan adalah {warning} {unit}.",
+    "monitoring.analysis.summary.light":
+      "{source} memiliki rata-rata {average} {unit}, minimum {minimum} {unit}, maksimum {maximum} {unit}, dan rentang {range} {unit}. Status analisis adalah {status}. {statusDescription} Rentang pencahayaan ideal adalah {minimumIdeal}–{maximumIdeal} {unit}.",
+    "monitoring.analysis.analyzing": "Menganalisis...",
     "monitoring.section.dust": "Sensor Debu",
     "monitoring.section.light": "Sensor Cahaya",
     "monitoring.section.realtime": "Data Realtime",
@@ -512,16 +571,74 @@ Language.dictionaries = {
     "monitoring.chart.zoom": "Zoom",
     "monitoring.chart.reset": "Reset View",
     "monitoring.analysis.title": "Trend Analysis",
+    "monitoring.analysis.average": "Average",
+    "monitoring.analysis.minimum": "Minimum",
+    "monitoring.analysis.maximum": "Maximum",
+    "monitoring.analysis.range": "Range",
+    "monitoring.analysis.dataPoints": "Data Points",
     "monitoring.analysis.subtitle":
-      "Trend analysis based on averages or individual sensors.",
-    "monitoring.analysis.chartSource": "Chart Source",
+      "Analyze trends based on the selected period and data source.",
+    "monitoring.analysis.parameter": "Parameter",
+    "monitoring.analysis.parameterDust": "Dust",
+    "monitoring.analysis.parameterLight": "Light",
+    "monitoring.analysis.source": "Data Source",
+    "monitoring.analysis.sourceAverage": "Average",
+    "monitoring.analysis.sourceIndividual": "Individual Sensor",
     "monitoring.analysis.sensor": "Sensor",
+    "monitoring.analysis.period": "Analysis Period",
+    "monitoring.analysis.startDate": "Start Date",
+    "monitoring.analysis.endDate": "End Date",
+    "monitoring.analysis.analyze": "Analyze",
+    "monitoring.analysis.statistics": "Analysis Statistics",
+    "monitoring.analysis.statisticsSubtitle":
+      "Summary of values from the selected analysis period.",
+    "monitoring.analysis.average": "Average",
+    "monitoring.analysis.minimum": "Minimum",
+    "monitoring.analysis.maximum": "Maximum",
+    "monitoring.analysis.range": "Range",
+    "monitoring.analysis.dataPoints": "Data Points",
     "monitoring.analysis.chartTitle": "Trend Analysis Chart",
-    "monitoring.analysis.latest10": "Latest 10 Data",
-    "monitoring.analysis.latest20": "Latest 20 Data",
-    "monitoring.analysis.latest50": "Latest 50 Data",
+    "monitoring.analysis.threshold": "Threshold",
+    "monitoring.analysis.status": "Status",
+    "monitoring.analysis.summaryTitle": "Analysis Summary",
     "monitoring.analysis.zoom": "Zoom",
     "monitoring.analysis.reset": "Reset View",
+    "monitoring.analysis.threshold.normal": "Normal",
+    "monitoring.analysis.threshold.warning": "Warning",
+    "monitoring.analysis.threshold.danger": "Danger",
+    "monitoring.analysis.threshold.poor": "Poor",
+    "monitoring.analysis.threshold.ideal": "Ideal",
+    "monitoring.analysis.threshold.tooBright": "Too Bright",
+    "monitoring.analysis.chartThreshold.normal":
+      "Normal Threshold ({value} {unit})",
+    "monitoring.analysis.chartThreshold.warning":
+      "Warning Threshold ({value} {unit})",
+    "monitoring.analysis.chartThreshold.minimumIdeal":
+      "Minimum Ideal ({value} {unit})",
+    "monitoring.analysis.chartThreshold.maximumIdeal":
+      "Maximum Ideal ({value} {unit})",
+    "monitoring.analysis.summary.notAnalyzed": "No analysis has been run yet.",
+    "monitoring.analysis.summary.noData":
+      "There is no data available for the selected analysis period.",
+    "monitoring.analysis.summary.status.normal":
+      "The maximum value remains within the normal limit.",
+    "monitoring.analysis.summary.status.warning":
+      "Some values exceed the normal limit but remain within the warning level.",
+    "monitoring.analysis.summary.status.danger":
+      "Some values exceed the danger threshold.",
+    "monitoring.analysis.summary.status.ideal":
+      "The average value is within the ideal lighting range.",
+    "monitoring.analysis.summary.status.poor":
+      "The average value is below the ideal lighting range.",
+    "monitoring.analysis.summary.status.tooBright":
+      "The average value is above the ideal lighting range.",
+    "monitoring.analysis.summary.status.waiting":
+      "Data is not yet available for analysis.",
+    "monitoring.analysis.summary.dust":
+      "{source} has an average of {average} {unit}, a minimum of {minimum} {unit}, a maximum of {maximum} {unit}, and a range of {range} {unit}. The analysis status is {status}. {statusDescription} The normal threshold is {normal} {unit}, while the warning threshold is {warning} {unit}.",
+    "monitoring.analysis.summary.light":
+      "{source} has an average of {average} {unit}, a minimum of {minimum} {unit}, a maximum of {maximum} {unit}, and a range of {range} {unit}. The analysis status is {status}. {statusDescription} The ideal lighting range is {minimumIdeal}–{maximumIdeal} {unit}.",
+    "monitoring.analysis.analyzing": "Analyzing...",
     "monitoring.section.dust": "Dust Sensor",
     "monitoring.section.light": "Light Sensor",
     "monitoring.section.realtime": "Realtime Data",
